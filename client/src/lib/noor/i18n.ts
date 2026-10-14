@@ -79,9 +79,27 @@ export interface TranslationDictionary {
   selectAgeBand: string;
   selectMadrasaStandard: string;
   weeklySessionsGoal: string;
-  beginAdventure: string;
-  demoModeNotice: string;
-  familyPromptTitle: string;
+  // Reference UI Keys
+  heroHeadingStart: string;
+  heroHeadingHighlight: string;
+  heroHeadingEnd: string;
+  signInAsParent: string;
+  emailAddress: string;
+  password: string;
+  forgotPassword: string;
+  logIn: string;
+  newHere: string;
+  createAccount: string;
+  yourLearningSpace: string;
+  todaysMissionTag: string;
+  yourProgress: string;
+  sessionsCompletedSuffix: string;
+  sessionWord: string;
+  keepExploring: string;
+  seeAll: string;
+  myJourneyTitle: string;
+  quickPracticeTitle: string;
+  helloWord: string;
 }
 
 export const translations: Record<Lang, TranslationDictionary> = {
@@ -155,10 +173,29 @@ export const translations: Record<Lang, TranslationDictionary> = {
     enterChildName: "കുട്ടിയുടെ വിളിപ്പേര്",
     selectAgeBand: "പ്രായപരിധി",
     selectMadrasaStandard: "മുമ്പ് പഠിച്ച മദ്റസാ ക്ലാസ് (ഏകദേശം)",
-    weeklySessionsGoal: "ആഴ്ചയിൽ എത്ര തവണ പഠിക്കണം?",
     beginAdventure: "യാത്ര ആരംഭിക്കാം",
     demoModeNotice: "ശ്രദ്ധിക്കുക: ഇതൊരു ഡെമോ പതിപ്പാണ്. പഠന ഉള്ളടക്കങ്ങൾ വിദ്യാഭ്യാസ വിദഗ്ദ്ധരുടെ പരിശോധനക്ക് വിധേയമാണ്.",
     familyPromptTitle: "കുടുംബത്തോടൊപ്പം ചെയ്യാം",
+    heroHeadingStart: "ഒരു നല്ല ",
+    heroHeadingHighlight: "യാത്ര",
+    heroHeadingEnd: " ഇവിടെ തുടങ്ങുന്നു",
+    signInAsParent: "രക്ഷിതാവായി ലോഗിൻ ചെയ്യുക",
+    emailAddress: "ഇമെയിൽ വിലാസം",
+    password: "പാസ്‌വേഡ്",
+    forgotPassword: "പാസ്‌വേഡ് മറന്നോ?",
+    logIn: "ലോഗിൻ",
+    newHere: "പുതിയ ആളാണോ?",
+    createAccount: "അക്കൗണ്ട് നിർമ്മിക്കാം",
+    yourLearningSpace: "നിങ്ങളുടെ പഠന ഇടം",
+    todaysMissionTag: "ഇന്നത്തെ മിഷൻ",
+    yourProgress: "നിങ്ങളുടെ പുരോഗതി",
+    sessionsCompletedSuffix: "സെഷനുകൾ പൂർത്തിയായി",
+    sessionWord: "സെഷൻ",
+    keepExploring: "കൂടുതൽ കണ്ടെത്താം",
+    seeAll: "എല്ലാം കാണുക",
+    myJourneyTitle: "എന്റെ യാത്ര",
+    quickPracticeTitle: "വേഗത്തിലുള്ള പരിശീലനം",
+    helloWord: "ഹലോ,",
   },
   en: {
     appName: "Noor Journey",
@@ -234,6 +271,26 @@ export const translations: Record<Lang, TranslationDictionary> = {
     beginAdventure: "Begin Adventure",
     demoModeNotice: "Notice: This is a frontend demo with fictional scenarios awaiting final educator review.",
     familyPromptTitle: "Family Reflection Prompt",
+    heroHeadingStart: "A brighter ",
+    heroHeadingHighlight: "journey",
+    heroHeadingEnd: " starts here",
+    signInAsParent: "Sign in as a parent",
+    emailAddress: "Email address",
+    password: "Password",
+    forgotPassword: "Forgot password?",
+    logIn: "Log in",
+    newHere: "New here?",
+    createAccount: "Create account",
+    yourLearningSpace: "Your learning space",
+    todaysMissionTag: "TODAY'S MISSION",
+    yourProgress: "Your progress",
+    sessionsCompletedSuffix: "sessions completed",
+    sessionWord: "Session",
+    keepExploring: "Keep exploring",
+    seeAll: "See all",
+    myJourneyTitle: "My journey",
+    quickPracticeTitle: "Quick practice",
+    helloWord: "Hello,",
   },
 };
 

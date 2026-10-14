@@ -24,24 +24,27 @@ export const AppShell: React.FC<AppShellProps> = ({
     <div
       lang={lang}
       data-reduced-motion={state.prefs.reducedMotion}
-      className="min-h-screen bg-sand/30 flex flex-col justify-start items-center text-foreground selection:bg-primary/20 selection:text-primary relative"
+      className="min-h-screen bg-[#FFFCF8] text-[#141426] flex flex-col items-center selection:bg-[#E3D4FF] selection:text-[#141426] relative"
     >
-      {/* Centered Mobile Container */}
-      <div className="w-full max-w-md min-h-screen bg-background border-x border-border/50 shadow-sm flex flex-col relative">
+      {/* Responsive Content Container */}
+      <div className="w-full max-w-md md:max-w-2xl lg:max-w-3xl min-h-screen flex flex-col relative px-4 sm:px-6">
         {/* Child Header */}
         <ChildHeader
           onOpenParentGate={onOpenParentGate}
           onOpenProfilePicker={onOpenProfilePicker}
-          onSwitchTab={onSelectTab}
         />
 
-        {/* Scrollable Main Workspace with bottom navigation clearance */}
-        <main className="flex-1 flex flex-col pb-24 overflow-y-auto">
+        {/* Scrollable Main Workspace with bottom navigation clearance (pb-28) */}
+        <main className="flex-1 flex flex-col pt-2 pb-28">
           {children}
         </main>
 
-        {/* Fixed Bottom Navigation */}
-        <BottomNav currentTab={currentTab} onSelectTab={onSelectTab} />
+        {/* Floating Dark Pill Bottom Navigation */}
+        <BottomNav
+          currentTab={currentTab}
+          onSelectTab={onSelectTab}
+          onOpenProfile={onOpenProfilePicker || onOpenParentGate}
+        />
       </div>
     </div>
   );

@@ -1,16 +1,21 @@
 import React from "react";
 import { useNoor } from "@/lib/noor/state";
 import { translations } from "@/lib/noor/i18n";
-import { Compass, BookOpen, Award } from "lucide-react";
+import { Home, BookOpen, Award, User } from "lucide-react";
 
-export type NavTab = "journey" | "practice" | "collection";
+export type NavTab = "journey" | "practice" | "collection" | "profile";
 
 interface BottomNavProps {
   currentTab: NavTab;
   onSelectTab: (tab: NavTab) => void;
+  onOpenProfile?: () => void;
 }
 
-export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, onSelectTab }) => {
+export const BottomNav: React.FC<BottomNavProps> = ({
+  currentTab,
+  onSelectTab,
+  onOpenProfile,
+}) => {
   const { lang, getDueReviews } = useNoor();
   const t = translations[lang];
   const dueCount = getDueReviews().length;
@@ -18,28 +23,33 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, onSelectTab })
   const tabs: { id: NavTab; label: string; icon: React.FC<{ className?: string }> }[] = [
     {
       id: "journey",
-      label: t.navJourney,
-      icon: Compass,
+      label: lang === "ml" ? "പഠനം" : "Journey",
+      icon: Home,
     },
     {
       id: "practice",
-      label: t.navPractice,
+      label: lang === "ml" ? "പരിശീലനം" : "Practice",
       icon: BookOpen,
     },
     {
       id: "collection",
-      label: t.navCollection,
+      label: lang === "ml" ? "ശേഖരം" : "Collection",
       icon: Award,
+    },
+    {
+      id: "profile",
+      label: lang === "ml" ? "പ്രൊഫൈൽ" : "Profile",
+      icon: User,
     },
   ];
 
   return (
-    <nav
-      className="fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-md border-t-2 border-border/80 shadow-lg pb-safe"
-      role="navigation"
-      aria-label="Child Primary Navigation"
-    >
-      <div className="max-w-md mx-auto grid grid-cols-3 h-16 px-2">
+    <div className="fixed bottom-4 left-0 right-0 z-40 flex justify-center px-4 pointer-events-none pb-safe">
+      <nav
+        className="pointer-events-auto bg-[#191A22] text-white rounded-full p-1.5 shadow-xl flex items-center gap-1 max-w-sm w-full border border-white/10"
+        role="navigation"
+        aria-label="Primary Navigation"
+      >
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = currentTab === tab.id;
@@ -48,40 +58,39 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, onSelectTab })
             <button
               key={tab.id}
               type="button"
-              onClick={() => onSelectTab(tab.id)}
-              className={`relative flex flex-col items-center justify-center min-h-[48px] py-1 transition-all duration-150 tactile ${
+              onClick={() => {
+                if (tab.id === "profile" && onOpenProfile) {
+                  onOpenProfile();
+                } else {
+                  onSelectTab(tab.id);
+                }
+              }}
+              className={`relative flex-1 flex flex-col items-center justify-center py-2 px-2.5 rounded-full transition-all duration-200 tactile min-h-[48px] ${
                 isActive
-                  ? "text-primary font-bold"
-                  : "text-muted-foreground hover:text-foreground font-medium"
+                  ? "bg-white text-[#141426] shadow-sm font-bold"
+                  : "text-white/75 hover:text-white font-medium"
               }`}
               aria-current={isActive ? "page" : undefined}
             >
-              {/* Active Tab Glow Pill Indicator */}
-              {isActive && (
-                <span className="absolute top-0 w-12 h-1 bg-primary rounded-full animate-pop" />
-              )}
-
               <div className="relative">
                 <Icon
-                  className={`w-5 h-5 transition-transform duration-200 ${
-                    isActive ? "scale-115 stroke-[2.5]" : "scale-100"
+                  className={`w-4 h-4 transition-transform duration-150 ${
+                    isActive ? "stroke-[2.5]" : "stroke-2"
                   }`}
                 />
-                {/* Due badge for Practice tab */}
-                {tab.id === "practice" && dueCount > 0 && (
-                  <span className="absolute -top-1.5 -right-2.5 w-4 h-4 bg-coral text-white text-[10px] font-extrabold rounded-full flex items-center justify-center animate-pop">
+                {tab.id === "practice" && dueCount > 0 && !isActive && (
+                  <span className="absolute -top-1 -right-2 w-3.5 h-3.5 bg-[#FFD184] text-[#141426] text-[9px] font-black rounded-full flex items-center justify-center">
                     {dueCount}
                   </span>
                 )}
               </div>
-
-              <span className="text-[11px] mt-1 tracking-tight leading-none truncate max-w-[90px]">
+              <span className="text-[10px] tracking-tight mt-0.5 leading-none truncate max-w-[70px]">
                 {tab.label}
               </span>
             </button>
           );
         })}
-      </div>
-    </nav>
+      </nav>
+    </div>
   );
 };

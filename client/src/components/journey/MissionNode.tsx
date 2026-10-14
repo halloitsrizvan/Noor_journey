@@ -1,7 +1,8 @@
 import React from "react";
 import type { Mission } from "@/lib/noor/types";
 import { useNoor } from "@/lib/noor/state";
-import { Check, Lock, Play, Star } from "lucide-react";
+import { translations } from "@/lib/noor/i18n";
+import { Check, Lock, Play, Clock, Sparkles } from "lucide-react";
 
 interface MissionNodeProps {
   mission: Mission;
@@ -17,78 +18,107 @@ export const MissionNode: React.FC<MissionNodeProps> = ({
   onSelect,
 }) => {
   const { lang } = useNoor();
+  const t = translations[lang];
 
-  // Gentle alternating horizontal offset to create a natural meandering garden path
+  // Gentle alternating horizontal offset
   const offsetClasses = [
     "translate-x-0",
-    "translate-x-6",
+    "translate-x-8",
     "translate-x-0",
-    "-translate-x-6",
+    "-translate-x-8",
     "translate-x-0",
   ];
   const offsetClass = offsetClasses[index % offsetClasses.length];
 
-  const isPlayable = status === "completed" || status === "current" || status === "available";
+  const statusLabel = {
+    completed: t.completed,
+    current: t.start,
+    available: t.available,
+    locked: t.locked,
+    "coming-soon": t.comingSoon,
+  }[status];
 
   return (
-    <div className={`flex flex-col items-center my-3 relative ${offsetClass}`}>
+    <div className={`flex flex-col items-center my-4 relative ${offsetClass}`}>
       {/* Node Button */}
       <button
         type="button"
         onClick={() => onSelect(mission)}
-        className={`relative w-20 h-20 rounded-full flex flex-col items-center justify-center transition-all duration-200 tactile shadow-md ${
+        className={`relative w-20 h-20 rounded-full flex flex-col items-center justify-center transition-all duration-200 tactile shadow-sm ${
           status === "completed"
-            ? "bg-leaf text-white border-4 border-leaf-deep"
+            ? "bg-[#7857E8] text-white border-4 border-white ring-4 ring-[#7857E8]/20"
             : status === "current"
-            ? "bg-primary text-white border-4 border-primary-deep animate-pulse shadow-lg scale-105 ring-4 ring-primary/20"
-            : "bg-muted text-muted-foreground border-4 border-border opacity-70"
+            ? "bg-[#E3D4FF] text-[#141426] border-4 border-[#191A22] shadow-md scale-105"
+            : status === "available"
+            ? "bg-[#FFD184] text-[#141426] border-4 border-white shadow-xs"
+            : "bg-[#F3F1F4] text-[#626273] border-2 border-[#E4E0E9] opacity-75"
         }`}
-        aria-label={`${mission.title[lang]}, status: ${status}`}
+        aria-label={`${mission.title[lang]} — ${statusLabel}`}
       >
         {status === "completed" && (
           <>
             <Check className="w-8 h-8 stroke-[3]" />
-            <span className="text-[10px] font-extrabold tracking-tight mt-0.5">20 XP</span>
+            <span className="text-[10px] font-black tracking-tight mt-0.5">20 XP</span>
           </>
         )}
 
         {status === "current" && (
           <>
-            <Play className="w-8 h-8 fill-white translate-x-0.5" />
-            <span className="text-[10px] font-extrabold tracking-tight mt-0.5">തുടങ്ങാം</span>
+            <Play className="w-7 h-7 fill-[#141426] translate-x-0.5" />
+            <span className="text-[10px] font-black tracking-tight mt-0.5">
+              {lang === "ml" ? "തുടങ്ങാം" : "Start"}
+            </span>
           </>
         )}
 
-        {(status === "locked" || status === "coming-soon") && (
+        {status === "available" && (
           <>
-            <Lock className="w-6 h-6" />
-            <span className="text-[10px] font-semibold mt-0.5">#{mission.order}</span>
+            <Sparkles className="w-6 h-6 text-[#141426]" />
+            <span className="text-[10px] font-black tracking-tight mt-0.5">
+              #{mission.order}
+            </span>
           </>
         )}
 
-        {/* Golden star badge for mission order */}
-        {status !== "locked" && (
-          <span className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-gold text-amber-950 font-black text-xs flex items-center justify-center border-2 border-white shadow-xs">
-            {mission.order}
-          </span>
+        {status === "locked" && (
+          <>
+            <Lock className="w-6 h-6 text-[#626273]" />
+            <span className="text-[10px] font-bold text-[#626273] mt-0.5">
+              {t.locked}
+            </span>
+          </>
         )}
+
+        {status === "coming-soon" && (
+          <>
+            <Clock className="w-6 h-6 text-[#626273]" />
+            <span className="text-[9px] font-bold text-[#626273] mt-0.5">
+              {t.comingSoon}
+            </span>
+          </>
+        )}
+
+        {/* Small index badge on top */}
+        <span className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-[#191A22] text-white font-black text-[11px] flex items-center justify-center border-2 border-white shadow-xs">
+          {mission.order}
+        </span>
       </button>
 
       {/* Mission Label Banner */}
-      <div className="mt-2 text-center max-w-[150px]">
+      <div className="mt-2 text-center max-w-[160px]">
         <span
-          className={`text-xs font-bold block leading-tight px-2.5 py-1 rounded-full shadow-2xs border ${
+          className={`text-xs font-bold block leading-tight px-3 py-1.5 rounded-full shadow-2xs border ${
             status === "current"
-              ? "bg-primary/10 border-primary/30 text-primary"
+              ? "bg-[#191A22] text-white border-transparent"
               : status === "completed"
-              ? "bg-leaf-soft border-leaf/30 text-leaf-deep"
-              : "bg-muted border-border text-muted-foreground"
+              ? "bg-[#F0E9FF] text-[#7857E8] border-[#E3D4FF]"
+              : "bg-white text-[#141426] border-[#E4E0E9]"
           }`}
         >
           {mission.title[lang]}
         </span>
-        <span className="text-[10px] text-muted-foreground block mt-0.5 font-medium">
-          {mission.minutes} {lang === "ml" ? "മിനിറ്റ്" : "min"}
+        <span className="text-[11px] text-[#626273] block mt-1 font-semibold">
+          {mission.durationMinutes} {t.minutes}
         </span>
       </div>
     </div>

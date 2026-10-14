@@ -2,7 +2,7 @@ import React from "react";
 import type { Mission } from "@/lib/noor/types";
 import { useNoor } from "@/lib/noor/state";
 import { translations } from "@/lib/noor/i18n";
-import { Clock, Target, Play, RotateCcw, X, Lock } from "lucide-react";
+import { Clock, Play, RotateCcw, X, Lock, ArrowRight } from "lucide-react";
 
 interface MissionOverviewModalProps {
   mission: Mission | null;
@@ -27,12 +27,12 @@ export const MissionOverviewModal: React.FC<MissionOverviewModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-pop">
-      <div className="w-full max-w-sm bg-card border-2 border-border rounded-3xl p-5 shadow-2xl relative">
+      <div className="w-full max-w-sm bg-[#FFFCF8] border border-[#E4E0E9] rounded-[28px] p-6 shadow-2xl relative text-[#141426]">
         {/* Close Button */}
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground tactile"
+          className="absolute top-5 right-5 w-8 h-8 rounded-full bg-[#F3F1F4] flex items-center justify-center text-[#626273] hover:text-[#141426] tactile"
           aria-label="Close"
         >
           <X className="w-4 h-4" />
@@ -40,33 +40,36 @@ export const MissionOverviewModal: React.FC<MissionOverviewModalProps> = ({
 
         {/* Mission Order Header */}
         <div className="flex items-center gap-2 mb-2">
-          <span className="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-black">
+          <span className="px-3 py-1 rounded-full bg-[#F0E9FF] text-[#7857E8] text-xs font-black">
             {lang === "ml" ? `മിഷൻ #${mission.order}` : `Mission #${mission.order}`}
           </span>
-          <span className="flex items-center gap-1 text-xs text-muted-foreground font-semibold">
+          <span className="flex items-center gap-1 text-xs text-[#626273] font-semibold">
             <Clock className="w-3.5 h-3.5" />
-            {mission.minutes} {t.minutes}
+            {mission.durationMinutes} {t.minutes}
           </span>
         </div>
 
         {/* Title */}
-        <h3 className="text-lg font-black text-foreground leading-tight mb-2">
+        <h3
+          className="text-xl font-black text-[#141426] leading-tight mb-3"
+          style={{ fontFamily: "var(--font-display)" }}
+        >
           {mission.title[lang]}
         </h3>
 
-        {/* Concept Box */}
-        <div className="bg-sand/40 border border-border/80 rounded-2xl p-3 mb-4">
-          <span className="text-[10px] font-bold text-primary-deep uppercase tracking-wider block mb-0.5">
+        {/* Concept Box in Neutral Surface */}
+        <div className="bg-[#F3F1F4] rounded-[22px] p-4 mb-5 border border-[#E4E0E9]">
+          <span className="text-[10px] font-black text-[#7857E8] uppercase tracking-wider block mb-1">
             {t.concept}
           </span>
-          <p className="text-xs font-extrabold text-foreground">
+          <p className="text-sm font-extrabold text-[#141426] mb-2">
             {mission.concept[lang]}
           </p>
-          <div className="mt-2 pt-2 border-t border-border/60">
-            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-0.5">
+          <div className="pt-2 border-t border-[#E4E0E9]">
+            <span className="text-[10px] font-bold text-[#626273] uppercase tracking-wider block mb-0.5">
               {t.objective}
             </span>
-            <p className="text-xs text-muted-foreground leading-relaxed">
+            <p className="text-xs text-[#626273] leading-relaxed font-medium">
               {mission.objective[lang]}
             </p>
           </div>
@@ -74,8 +77,8 @@ export const MissionOverviewModal: React.FC<MissionOverviewModalProps> = ({
 
         {/* Action Button */}
         {isLocked ? (
-          <div className="flex items-center gap-2 p-3 bg-muted rounded-2xl text-xs text-muted-foreground font-medium">
-            <Lock className="w-4 h-4 text-muted-foreground shrink-0" />
+          <div className="flex items-center gap-2.5 p-3.5 bg-[#F3F1F4] rounded-[20px] text-xs text-[#626273] font-medium border border-[#E4E0E9]">
+            <Lock className="w-4 h-4 text-[#626273] shrink-0" />
             <span>
               {lang === "ml"
                 ? "ഈ മിഷൻ തുറക്കാൻ മുമ്പത്തെ മിഷൻ പൂർത്തിയാക്കുക."
@@ -89,7 +92,7 @@ export const MissionOverviewModal: React.FC<MissionOverviewModalProps> = ({
               onClose();
               onStartMission(mission);
             }}
-            className="w-full py-3.5 px-4 rounded-2xl bg-primary hover:bg-primary-deep text-white font-extrabold text-sm flex items-center justify-center gap-2 shadow-md tactile"
+            className="w-full h-14 rounded-full bg-[#191A22] hover:bg-black text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md tactile transition-all"
           >
             {status === "completed" ? (
               <>
@@ -98,8 +101,8 @@ export const MissionOverviewModal: React.FC<MissionOverviewModalProps> = ({
               </>
             ) : (
               <>
-                <Play className="w-4 h-4 fill-white" />
-                <span>{t.start} (+20 XP)</span>
+                <span>{t.start}</span>
+                <ArrowRight className="w-4 h-4" />
               </>
             )}
           </button>

@@ -1,7 +1,7 @@
 import React, { useState, useId } from "react";
 import { useNoor } from "@/lib/noor/state";
 import { translations } from "@/lib/noor/i18n";
-import { Shield, X } from "lucide-react";
+import { Shield, X, ArrowRight } from "lucide-react";
 
 interface ParentGateModalProps {
   isOpen: boolean;
@@ -40,32 +40,38 @@ export const ParentGateModal: React.FC<ParentGateModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-pop">
-      <div className="w-full max-w-sm bg-card border-2 border-border rounded-3xl p-5 shadow-2xl relative">
+      <div className="w-full max-w-sm bg-white border border-[#E4E0E9] rounded-[28px] p-6 shadow-2xl relative">
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground tactile"
+          className="absolute top-5 right-5 w-8 h-8 rounded-full bg-[#F3F1F4] flex items-center justify-center text-[#626273] hover:text-[#141426] tactile"
           aria-label="Close"
         >
           <X className="w-4 h-4" />
         </button>
 
-        <div className="flex items-center gap-2 mb-2">
-          <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-            <Shield className="w-4 h-4" />
+        <div className="flex items-center gap-2.5 mb-2">
+          <div className="w-9 h-9 rounded-full bg-[#E3D4FF] text-[#7857E8] flex items-center justify-center">
+            <Shield className="w-5 h-5" />
           </div>
-          <h3 className="text-base font-black text-foreground">
+          <h3
+            className="text-lg font-black text-[#141426]"
+            style={{ fontFamily: "var(--font-display)" }}
+          >
             {t.parentGateTitle}
           </h3>
         </div>
 
-        <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
+        <p className="text-xs text-[#626273] mb-4 leading-relaxed font-medium">
           {t.parentGateDesc}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="bg-sand/40 border border-border/80 rounded-2xl p-4 text-center">
-            <span className="text-lg font-black text-foreground block tracking-wider">
+          <div className="bg-[#F0E9FF] border border-[#E3D4FF] rounded-[20px] p-4 text-center">
+            <span
+              className="text-2xl font-black text-[#141426] block tracking-wider"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
               {num1} + {num2} = ?
             </span>
           </div>
@@ -84,27 +90,24 @@ export const ParentGateModal: React.FC<ParentGateModalProps> = ({
                 setError(false);
               }}
               placeholder={t.parentGateAnswer}
-              className="w-full text-center text-base font-bold px-4 py-2.5 rounded-2xl border-2 border-input bg-background focus:border-primary focus:outline-hidden"
+              className="w-full h-12 text-center text-lg font-bold px-4 rounded-[18px] border border-[#E4E0E9] bg-[#F3F1F4] focus:bg-white focus:border-[#7857E8] outline-none transition-all"
               autoFocus
             />
             {error && (
-              <span className="text-[11px] font-bold text-destructive block text-center mt-1.5">
-                {lang === "ml" ? "തെറ്റായ ഉത്തരം, ദയവായി വീണ്ടും ശ്രമിക്കുക" : "Incorrect answer, please try again"}
+              <span className="text-[11px] font-bold text-[#B93848] block text-center mt-1.5">
+                {lang === "ml"
+                  ? "തെറ്റായ ഉത്തരം, ദയവായി വീണ്ടും ശ്രമിക്കുക"
+                  : "Incorrect answer, please try again"}
               </span>
             )}
           </div>
 
-          <div className="text-[10px] text-muted-foreground text-center bg-muted/60 p-2 rounded-xl">
-            {lang === "ml"
-              ? "ശ്രദ്ധിക്കുക: ഇതൊരു ഡെമോ വെരിഫിക്കേഷനാണ്. പ്രൊഡക്ഷൻ സിസ്റ്റത്തിൽ പാസ്‌വേർഡ് / ഒടിപി ഉപയോഗിക്കും."
-              : "Notice: This demo gate demonstrates adult oversight; full authentication is handled on the backend."}
-          </div>
-
           <button
             type="submit"
-            className="w-full py-3 rounded-2xl bg-primary hover:bg-primary-deep text-white font-extrabold text-sm tactile shadow-md"
+            className="w-full h-12 bg-[#191A22] hover:bg-black text-white rounded-full font-bold text-sm tactile flex items-center justify-center gap-2 shadow-xs transition-all"
           >
-            {t.continue}
+            <span>{lang === "ml" ? "സ്ഥിരീകരിക്കുക" : "Continue"}</span>
+            <ArrowRight className="w-4 h-4" />
           </button>
         </form>
       </div>

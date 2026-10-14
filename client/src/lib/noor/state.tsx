@@ -18,6 +18,7 @@ import {
 } from "./storage";
 import { akhlaqMissions } from "@/content/chapter-akhlaq";
 import { akhlaqChapter } from "@/content/worlds-data";
+import { api } from "@/lib/api/api-client";
 
 export interface NoorContextValue {
   state: NoorState;
@@ -25,6 +26,11 @@ export interface NoorContextValue {
   activeProgress: ChildProgress | null;
   lang: Lang;
   effectiveNow: number;
+  isBackendConnected: boolean;
+  authAccount: any | null;
+  login: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
+  register: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
   setLang: (lang: Lang) => void;
   toggleSound: () => void;
   toggleReducedMotion: () => void;
@@ -60,6 +66,36 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = useState<NoorState>(() => loadStoredState());
+  const [isBackendConnected, setIsBackendConnected] = useState<boolean>(false);
+  const [authAccount, setAuthAccount] = useState<any | null>(null);
+
+  // Probe backend health and session
+  useEffect(() => {
+    let mounted = true;
+    async function checkBackend() {
+      try {
+        const live = await api.health.checkLive();
+        if (mounted && live?.status === "ok") {
+          setIsBackendConnected(true);
+          // Check if session exists
+          try {
+            const me = await api.auth.getMe();
+            if (mounted && me?.id) {
+              setAuthAccount(me);
+            }
+          } catch {
+            // Not logged in to server yet; normal
+          }
+        }
+      } catch {
+        if (mounted) setIsBackendConnected(false);
+      }
+    }
+    checkBackend();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Save to localStorage on state changes
   useEffect(() => {
@@ -79,6 +115,53 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!activeProfile) return null;
     return state.progress[activeProfile.id] ?? null;
   }, [state.progress, activeProfile]);
+
+  const login = useCallback(async (email: string, pass: string) => {
+    try {
+      const res = await api.auth.login(email, pass);
+      setAuthAccount(res.account);
+      // Fetch server children if any
+      const serverChildren = await api.children.list();
+      if (serverChildren && serverChildren.length > 0) {
+        setState((prev) => ({
+          ...prev,
+          profiles: serverChildren.map((c: any) => ({
+            id: c.id,
+            nickname: c.nickname,
+            ageBand: c.ageBand as AgeBand,
+            priorStandard: (c.priorStandard || "none") as PriorStandard,
+            avatarId: c.avatarKey || "lantern-noor",
+            cosmeticId: null,
+            weeklyGoal: c.weeklyGoal as 2 | 3 | 5,
+            createdAt: new Date(c.createdAt).getTime(),
+          })),
+          activeProfileId: serverChildren[0].id,
+        }));
+      }
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || "Login failed" };
+    }
+  }, []);
+
+  const register = useCallback(async (email: string, pass: string) => {
+    try {
+      const res = await api.auth.register(email, pass);
+      setAuthAccount(res.account);
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || "Registration failed" };
+    }
+  }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      await api.auth.logout();
+    } catch {
+      // ignore
+    }
+    setAuthAccount(null);
+  }, []);
 
   const setLang = useCallback((newLang: Lang) => {
     setState((prev) => ({
@@ -129,6 +212,18 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
         createdAt: effectiveNow,
       };
 
+      // If backend is active and logged in, sync creation
+      if (isBackendConnected && authAccount) {
+        api.children.create({
+          nickname: newProfile.nickname,
+          ageBand: newProfile.ageBand,
+          preferredLanguage: "ml",
+          priorStandard: newProfile.priorStandard,
+          avatarKey: newProfile.avatarId,
+          weeklyGoal: newProfile.weeklyGoal,
+        }).catch(() => {});
+      }
+
       setState((prev) => ({
         ...prev,
         profiles: [...prev.profiles, newProfile],
@@ -140,10 +235,13 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }));
       return id;
     },
-    [effectiveNow]
+    [effectiveNow, isBackendConnected, authAccount]
   );
 
   const deleteProfile = useCallback((id: string) => {
+    if (isBackendConnected && authAccount) {
+      api.children.delete(id).catch(() => {});
+    }
     setState((prev) => {
       const remainingProfiles = prev.profiles.filter((p) => p.id !== id);
       const newProgress = { ...prev.progress };
@@ -156,7 +254,7 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
         progress: newProgress,
       };
     });
-  }, []);
+  }, [isBackendConnected, authAccount]);
 
   const updateWeeklyGoal = useCallback((goal: 2 | 3 | 5) => {
     setState((prev) => {
@@ -171,6 +269,9 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const updateAvatar = useCallback((avatarId: string) => {
+    if (isBackendConnected && authAccount && state.activeProfileId) {
+      api.children.updateAvatar(state.activeProfileId, avatarId).catch(() => {});
+    }
     setState((prev) => {
       if (!prev.activeProfileId) return prev;
       return {
@@ -180,7 +281,7 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
         ),
       };
     });
-  }, []);
+  }, [isBackendConnected, authAccount, state.activeProfileId]);
 
   const completeMission = useCallback(
     (missionId: string, checkpointScore: number): { xpAwarded: number; newBadge: boolean } => {
@@ -327,6 +428,11 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
     (missionId: string, note: string) => {
       if (!activeProfile || !activeProgress || !note.trim()) return;
       const profileId = activeProfile.id;
+
+      if (isBackendConnected && authAccount) {
+        api.reflections.create(profileId, missionId, note.trim()).catch(() => {});
+      }
+
       setState((prev) => ({
         ...prev,
         progress: {
@@ -341,7 +447,7 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
         },
       }));
     },
-    [activeProfile, activeProgress, effectiveNow]
+    [activeProfile, activeProgress, effectiveNow, isBackendConnected, authAccount]
   );
 
   const advanceDayOffset = useCallback((days: number) => {
@@ -381,15 +487,12 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return "completed";
       }
 
-      // Mission 1 is unlocked by default
       if (mission.order === 1) {
         return "current";
       }
 
-      // Check prerequisite: previous mission must be completed
       const prevMission = akhlaqMissions.find((m) => m.order === mission.order - 1);
       if (prevMission && activeProgress.missions[prevMission.id]?.passedAt) {
-        // Is it the very next uncompleted mission?
         return "current";
       }
 
@@ -424,14 +527,12 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const getCurrentLevel = useCallback(() => {
     if (!activeProgress) return 1;
-    // Level formula: Level 1 + completed badges or 1 level per 2 completed missions
     const completedCount = Object.values(activeProgress.missions).filter((m) => m.passedAt).length;
     return Math.max(1, 1 + Math.floor(completedCount / 2));
   }, [activeProgress]);
 
   const getWeeklyProgressCount = useCallback(() => {
     if (!activeProgress) return 0;
-    // Count distinct calendar days in the past 7 days up to effectiveNow
     const sevenDaysAgo = effectiveNow - 7 * MS_PER_DAY;
     const days = new Set<string>();
     for (const timestamp of activeProgress.sessions) {
@@ -450,6 +551,11 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
       activeProgress,
       lang,
       effectiveNow,
+      isBackendConnected,
+      authAccount,
+      login,
+      register,
+      logout,
       setLang,
       toggleSound,
       toggleReducedMotion,
@@ -477,6 +583,11 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
       activeProgress,
       lang,
       effectiveNow,
+      isBackendConnected,
+      authAccount,
+      login,
+      register,
+      logout,
       setLang,
       toggleSound,
       toggleReducedMotion,
