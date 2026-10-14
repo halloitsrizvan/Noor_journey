@@ -5,6 +5,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import type { NavTab } from "@/components/layout/BottomNav";
 import type { Mission } from "@/lib/noor/types";
 
+import { ChildDashboard } from "@/components/dashboard/ChildDashboard";
 import { JourneyMap } from "@/components/journey/JourneyMap";
 import { MissionOverviewModal } from "@/components/journey/ChapterOverviewDialog";
 import { WorldSelectorModal } from "@/components/journey/WorldSelectorDialog";
@@ -14,6 +15,7 @@ import { ParentGateModal } from "@/components/parent/ParentGateModal";
 import { ParentDashboardModal } from "@/components/parent/ParentDashboardModal";
 import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
 import { MissionPlayer } from "@/components/mission/MissionPlayer";
+import { WelcomeAuthScreen } from "@/components/auth/WelcomeAuthScreen";
 
 export const Route = createFileRoute("/")({
   component: NoorApp,
@@ -28,7 +30,16 @@ function NoorApp() {
 }
 
 function NoorAppContent() {
+  const { authAccount } = useNoor();
+
+  // Navigation tab
   const [currentTab, setCurrentTab] = useState<NavTab>("journey");
+  const [journeyView, setJourneyView] = useState<"dashboard" | "map">("dashboard");
+
+  // Welcome / Sign-in Screen toggle
+  const [showWelcomeScreen, setShowWelcomeScreen] = useState(false);
+
+  // Active missions & review state
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
   const [activePlayMission, setActivePlayMission] = useState<Mission | null>(null);
   const [isReviewMode, setIsReviewMode] = useState(false);
@@ -50,25 +61,53 @@ function NoorAppContent() {
     setActivePlayMission(mission);
   };
 
+  // If Welcome Screen is explicitly active, display the left visual reference screen
+  if (showWelcomeScreen) {
+    return (
+      <WelcomeAuthScreen
+        onEnterChildSpace={() => setShowWelcomeScreen(false)}
+      />
+    );
+  }
+
   return (
     <>
       <AppShell
         currentTab={currentTab}
-        onSelectTab={setCurrentTab}
+        onSelectTab={(tab) => {
+          setCurrentTab(tab);
+          if (tab === "journey") {
+            setJourneyView("dashboard");
+          }
+        }}
         onOpenParentGate={() => setIsParentGateOpen(true)}
-        onOpenProfilePicker={() => setIsOnboardingOpen(true)}
+        onOpenProfilePicker={() => setIsParentGateOpen(true)}
       >
+        {/* TAB 1: JOURNEY (Child Dashboard / Journey Map) */}
         {currentTab === "journey" && (
-          <JourneyMap
-            onSelectMission={(mission) => setSelectedMission(mission)}
-            onOpenWorldSelector={() => setIsWorldSelectorOpen(true)}
-          />
+          <>
+            {journeyView === "dashboard" ? (
+              <ChildDashboard
+                onStartMission={handleStartMission}
+                onOpenJourney={() => setJourneyView("map")}
+                onOpenPractice={() => setCurrentTab("practice")}
+              />
+            ) : (
+              <JourneyMap
+                onSelectMission={(mission) => setSelectedMission(mission)}
+                onOpenWorldSelector={() => setIsWorldSelectorOpen(true)}
+                onBackToDashboard={() => setJourneyView("dashboard")}
+              />
+            )}
+          </>
         )}
 
+        {/* TAB 2: PRACTICE (Spaced Revision Queue) */}
         {currentTab === "practice" && (
           <PracticeScreen onStartReview={handleStartReview} />
         )}
 
+        {/* TAB 3: COLLECTION (Milestone Badges & Avatars) */}
         {currentTab === "collection" && <CollectionScreen />}
       </AppShell>
 
@@ -107,7 +146,7 @@ function NoorAppContent() {
         onSuccess={() => setIsParentDashboardOpen(true)}
       />
 
-      {/* Parent Dashboard & Demo Controls */}
+      {/* Parent Dashboard & Account Controls */}
       <ParentDashboardModal
         isOpen={isParentDashboardOpen}
         onClose={() => setIsParentDashboardOpen(false)}

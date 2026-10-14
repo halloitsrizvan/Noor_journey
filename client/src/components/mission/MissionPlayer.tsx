@@ -14,7 +14,9 @@ import {
   X,
   Heart,
   Award,
+  ArrowRight,
 } from "lucide-react";
+import { Illustration } from "@/components/common/Illustration";
 
 interface MissionPlayerProps {
   mission: Mission;
@@ -192,30 +194,30 @@ export const MissionPlayer: React.FC<MissionPlayerProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-background flex flex-col max-w-md mx-auto shadow-2xl animate-rise">
+    <div className="fixed inset-0 z-50 bg-[#FFFCF8] text-[#141426] flex flex-col max-w-md md:max-w-xl mx-auto shadow-2xl animate-rise">
       {/* Top Header & Progress */}
-      <div className="px-4 py-3 border-b border-border flex items-center justify-between gap-3 bg-card">
+      <div className="px-5 py-3.5 border-b border-[#E4E0E9] flex items-center justify-between gap-3 bg-white">
         <button
           type="button"
           onClick={onClose}
-          className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground tactile"
+          className="w-9 h-9 rounded-full bg-[#F3F1F4] flex items-center justify-center text-[#626273] hover:text-[#141426] tactile"
           aria-label="Exit"
         >
           <X className="w-5 h-5" />
         </button>
 
-        {/* Progress Bar */}
+        {/* Progress Bar in Violet */}
         <div className="flex-1">
-          <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
+          <div className="w-full h-2.5 bg-[#F3F1F4] rounded-full overflow-hidden">
             <div
-              className="h-full bg-leaf rounded-full transition-all duration-300"
+              className="h-full bg-[#7857E8] rounded-full transition-all duration-300"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
         </div>
 
         {/* Concept Pill */}
-        <span className="text-[10px] font-black text-primary bg-primary/10 px-2.5 py-1 rounded-full truncate max-w-[100px]">
+        <span className="text-[10px] font-black text-[#7857E8] bg-[#F0E9FF] border border-[#E3D4FF] px-3 py-1 rounded-full truncate max-w-[120px]">
           {mission.concept[lang]}
         </span>
       </div>
@@ -293,12 +295,12 @@ export const MissionPlayer: React.FC<MissionPlayerProps> = ({
                   const isSelected = selectedChoiceId === choice.id;
                   const isThisCorrect = choice.id === currentActivity.correctId;
 
-                  let borderClass = "border-border/80 bg-card";
+                  let borderClass = "border-[#E4E0E9] bg-[#F3F1F4] text-[#141426]";
                   if (isChecked) {
-                    if (isThisCorrect) borderClass = "border-leaf bg-leaf-soft text-leaf-deep font-bold";
-                    else if (isSelected) borderClass = "border-destructive bg-destructive/10 text-destructive";
+                    if (isThisCorrect) borderClass = "border-2 border-[#287553] bg-[#287553]/15 text-[#287553] font-bold";
+                    else if (isSelected) borderClass = "border-2 border-[#B93848] bg-[#B93848]/10 text-[#B93848] font-bold";
                   } else if (isSelected) {
-                    borderClass = "border-primary bg-primary/10 ring-2 ring-primary/20 text-primary";
+                    borderClass = "border-2 border-[#7857E8] bg-[#F0E9FF] text-[#141426] font-bold shadow-xs";
                   }
 
                   return (
@@ -307,7 +309,7 @@ export const MissionPlayer: React.FC<MissionPlayerProps> = ({
                       type="button"
                       disabled={isChecked}
                       onClick={() => setSelectedChoiceId(choice.id)}
-                      className={`w-full p-3.5 rounded-2xl border-2 text-left text-xs font-medium transition-all tactile ${borderClass}`}
+                      className={`w-full p-4 rounded-[20px] border text-left text-sm font-semibold transition-all tactile ${borderClass}`}
                     >
                       {choice.text[lang]}
                     </button>
@@ -463,12 +465,12 @@ export const MissionPlayer: React.FC<MissionPlayerProps> = ({
                 const isSelected = selectedChoiceId === choice.id;
                 const isThisCorrect = choice.id === checkpointQuestions[checkpointIdx].correctId;
 
-                let borderClass = "border-border/80 bg-card";
+                let borderClass = "border-[#E4E0E9] bg-[#F3F1F4] text-[#141426]";
                 if (isChecked) {
-                  if (isThisCorrect) borderClass = "border-leaf bg-leaf-soft text-leaf-deep font-bold";
-                  else if (isSelected) borderClass = "border-destructive bg-destructive/10 text-destructive";
+                  if (isThisCorrect) borderClass = "border-2 border-[#287553] bg-[#287553]/15 text-[#287553] font-bold";
+                  else if (isSelected) borderClass = "border-2 border-[#B93848] bg-[#B93848]/10 text-[#B93848] font-bold";
                 } else if (isSelected) {
-                  borderClass = "border-primary bg-primary/10 ring-2 ring-primary/20 text-primary";
+                  borderClass = "border-2 border-[#7857E8] bg-[#F0E9FF] text-[#141426] font-bold shadow-xs";
                 }
 
                 return (
@@ -477,7 +479,7 @@ export const MissionPlayer: React.FC<MissionPlayerProps> = ({
                     type="button"
                     disabled={isChecked}
                     onClick={() => setSelectedChoiceId(choice.id)}
-                    className={`w-full p-3.5 rounded-2xl border-2 text-left text-xs font-medium transition-all tactile ${borderClass}`}
+                    className={`w-full p-4 rounded-[20px] border text-left text-sm font-semibold transition-all tactile ${borderClass}`}
                   >
                     {choice.text[lang]}
                   </button>
@@ -490,21 +492,30 @@ export const MissionPlayer: React.FC<MissionPlayerProps> = ({
         {/* PHASE 4: Checkpoint Failed - Supported Retry */}
         {phase === "failed" && (
           <div className="space-y-4 text-center my-auto animate-rise">
-            <LanternMascot mood="gentle" size="lg" className="mx-auto" />
-            <h3 className="text-lg font-black text-foreground">
+            <div className="w-24 h-24 mx-auto pointer-events-none">
+              <Illustration
+                role="mission-reading"
+                className="w-full h-full object-contain"
+                alt="Noor encouraging retry"
+              />
+            </div>
+            <h3
+              className="text-xl font-black text-[#141426]"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
               {t.checkpointRetry}
             </h3>
-            <p className="text-xs text-muted-foreground max-w-xs mx-auto leading-relaxed">
+            <p className="text-xs text-[#626273] max-w-xs mx-auto leading-relaxed">
               {lang === "ml"
-                ? "വിഷമിക്കേണ്ട! തോൽവി തെറ്റല്ല. പ്രധാന പാഠങ്ങൾ ഓർത്തെടുത്ത് നമുക്ക് വീണ്ടും ശ്രമിക്കാം."
-                : "Making mistakes is how we learn! Review the core concept and retry without pressure."}
+                ? "വിഷമിക്കേണ്ട! തെറ്റുകൾ സ്വാഭാവികമാണ്. പ്രധാന പാഠങ്ങൾ ഓർത്തെടുത്ത് നമുക്ക് വീണ്ടും ശ്രമിക്കാം."
+                : "Making mistakes is how we learn! Review the key idea and retry without pressure."}
             </p>
 
-            <div className="bg-sand/40 border border-border rounded-2xl p-3 text-left">
-              <span className="text-[10px] font-bold text-primary uppercase block mb-1">
+            <div className="bg-[#F3F1F4] border border-[#E4E0E9] rounded-[22px] p-4 text-left">
+              <span className="text-[10px] font-black text-[#7857E8] uppercase block mb-1">
                 {t.concept}: {mission.concept[lang]}
               </span>
-              <p className="text-xs text-foreground font-medium">
+              <p className="text-xs text-[#141426] font-semibold leading-relaxed">
                 {mission.objective[lang]}
               </p>
             </div>
@@ -517,7 +528,7 @@ export const MissionPlayer: React.FC<MissionPlayerProps> = ({
                 setCheckpointIdx(0);
                 setCheckpointAnswers([]);
               }}
-              className="w-full py-3.5 rounded-2xl bg-primary hover:bg-primary-deep text-white font-black text-sm tactile shadow-md flex items-center justify-center gap-2"
+              className="w-full h-14 rounded-full bg-[#191A22] hover:bg-black text-white font-bold text-sm tactile shadow-md flex items-center justify-center gap-2"
             >
               <RotateCcw className="w-4 h-4" />
               <span>{t.tryAgain}</span>
@@ -528,28 +539,41 @@ export const MissionPlayer: React.FC<MissionPlayerProps> = ({
         {/* PHASE 5: Completion & Reflection */}
         {phase === "complete" && (
           <div className="space-y-4 text-center my-auto animate-rise">
-            <LanternMascot mood="celebrate" size="lg" className="mx-auto" />
-            <h2 className="text-xl font-black text-foreground">
+            {/* 3D Soft Celebrating Lantern Mascot */}
+            <div className="w-32 h-32 mx-auto pointer-events-none">
+              <Illustration
+                role="celebration"
+                className="w-full h-full object-contain drop-shadow-sm"
+                alt="Noor celebrating gently"
+              />
+            </div>
+
+            <h2
+              className="text-2xl font-black text-[#141426]"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
               {t.congratulations}
             </h2>
 
-            {/* XP Award Pill */}
+            {/* XP Award Pill in Apricot */}
             {xpAwarded > 0 && (
-              <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-amber-400 text-amber-950 font-black text-sm shadow-md animate-pop">
-                <Sparkles className="w-4 h-4" />
+              <div className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full bg-[#FFD184] text-[#141426] font-black text-sm shadow-xs animate-pop">
+                <Sparkles className="w-4 h-4 fill-[#141426]" />
                 <span>+{xpAwarded} XP {lang === "ml" ? "നേടി!" : "Earned!"}</span>
               </div>
             )}
 
             {/* Chapter Badge Earned Notification */}
             {earnedBadge && (
-              <div className="p-3.5 bg-amber-400/20 border-2 border-amber-400 rounded-3xl flex items-center gap-3 text-left">
-                <Award className="w-8 h-8 text-amber-600 shrink-0" />
+              <div className="p-4 bg-[#FFF0D6] border border-[#FFD184] rounded-[24px] flex items-center gap-3 text-left">
+                <div className="w-12 h-12 pointer-events-none shrink-0">
+                  <Illustration role="collection" className="w-full h-full object-contain" alt="Badge" />
+                </div>
                 <div>
-                  <span className="text-[10px] font-black text-amber-800 uppercase block">
+                  <span className="text-[10px] font-black text-[#7857E8] uppercase block">
                     {lang === "ml" ? "പുതിയ ബാഡ്ജ് അൺലോക്ക് ആയി!" : "New Badge Unlocked!"}
                   </span>
-                  <span className="text-xs font-black text-foreground">
+                  <span className="text-xs font-black text-[#141426]">
                     {lang === "ml" ? "നന്മയുടെ കാവൽക്കാരൻ" : "Guardian of Good Character"}
                   </span>
                 </div>
@@ -558,14 +582,14 @@ export const MissionPlayer: React.FC<MissionPlayerProps> = ({
 
             {/* Family Reflection Prompt */}
             {!isReviewMode && mission.family && (
-              <div className="bg-sand/40 border border-primary/20 rounded-3xl p-4 text-left space-y-2">
-                <div className="flex items-center gap-1.5 text-primary">
-                  <Heart className="w-4 h-4 fill-primary" />
+              <div className="bg-[#F0E9FF] border border-[#E3D4FF] rounded-[24px] p-4 text-left space-y-2">
+                <div className="flex items-center gap-1.5 text-[#7857E8]">
+                  <Heart className="w-4 h-4 fill-[#7857E8]" />
                   <span className="text-xs font-black uppercase tracking-wider">
                     {t.familyPromptTitle}
                   </span>
                 </div>
-                <p className="text-xs text-foreground font-semibold leading-relaxed">
+                <p className="text-xs text-[#141426] font-semibold leading-relaxed">
                   "{mission.family[lang]}"
                 </p>
 
@@ -576,7 +600,7 @@ export const MissionPlayer: React.FC<MissionPlayerProps> = ({
                     value={reflectionNote}
                     onChange={(e) => setReflectionNote(e.target.value)}
                     placeholder={lang === "ml" ? "കുടുംബത്തിന്റെ അഭിപ്രായം ഇവിടെ കുറിക്കാം..." : "Record family thoughts here..."}
-                    className="w-full text-xs p-2.5 rounded-xl border border-border bg-card focus:border-primary focus:outline-hidden"
+                    className="w-full text-xs p-3 rounded-[16px] border border-[#E4E0E9] bg-white focus:border-[#7857E8] outline-none"
                   />
                   {reflectionNote && !reflectionSaved && (
                     <button
@@ -585,13 +609,13 @@ export const MissionPlayer: React.FC<MissionPlayerProps> = ({
                         saveReflection(mission.id, reflectionNote);
                         setReflectionSaved(true);
                       }}
-                      className="mt-1.5 text-[11px] font-bold text-primary hover:underline"
+                      className="mt-2 text-xs font-bold text-[#7857E8] hover:underline"
                     >
                       {lang === "ml" ? "കുറിപ്പ് സേവ് ചെയ്യുക" : "Save note"}
                     </button>
                   )}
                   {reflectionSaved && (
-                    <span className="text-[10px] font-bold text-leaf-deep block mt-1">
+                    <span className="text-[11px] font-bold text-[#287553] block mt-1.5">
                       {lang === "ml" ? "കുറിപ്പ് രേഖപ്പെടുത്തി!" : "Saved to parent summary!"}
                     </span>
                   )}
@@ -599,10 +623,11 @@ export const MissionPlayer: React.FC<MissionPlayerProps> = ({
               </div>
             )}
 
+            {/* Finish Action Button */}
             <button
               type="button"
               onClick={onClose}
-              className="w-full py-3.5 rounded-2xl bg-leaf hover:bg-leaf-deep text-white font-black text-sm tactile shadow-md"
+              className="w-full h-14 rounded-full bg-[#191A22] hover:bg-black text-white font-bold text-sm tactile shadow-md transition-all"
             >
               {t.finishForToday}
             </button>
@@ -612,10 +637,10 @@ export const MissionPlayer: React.FC<MissionPlayerProps> = ({
         {/* Sticky Explanation Card after checking answer */}
         {isChecked && (phase === "activity" || phase === "checkpoint") && (
           <div
-            className={`p-3.5 rounded-2xl border-2 my-2 animate-pop ${
+            className={`p-4 rounded-[22px] border my-3 animate-pop shadow-xs ${
               isAnswerCorrect
-                ? "bg-leaf-soft border-leaf text-leaf-deep"
-                : "bg-coral-soft border-coral text-coral-deep"
+                ? "bg-[#287553]/15 border-[#287553] text-[#287553]"
+                : "bg-[#B93848]/10 border-[#B93848] text-[#B93848]"
             }`}
           >
             <div className="flex items-center gap-1.5 font-black text-xs mb-1">
@@ -631,7 +656,7 @@ export const MissionPlayer: React.FC<MissionPlayerProps> = ({
                 </>
               )}
             </div>
-            <p className="text-xs leading-relaxed opacity-95">
+            <p className="text-xs leading-relaxed opacity-95 font-medium">
               {phase === "activity" && currentActivity
                 ? isAnswerCorrect
                   ? currentActivity.explainCorrect[lang]
@@ -648,10 +673,10 @@ export const MissionPlayer: React.FC<MissionPlayerProps> = ({
           <button
             type="button"
             onClick={() => setPhase("activity")}
-            className="w-full py-3.5 rounded-2xl bg-primary hover:bg-primary-deep text-white font-black text-sm tactile shadow-md flex items-center justify-center gap-2 mt-4"
+            className="w-full h-14 rounded-full bg-[#191A22] hover:bg-black text-white font-bold text-sm tactile shadow-md flex items-center justify-center gap-2 mt-4"
           >
             <span>{t.continue}</span>
-            <Play className="w-4 h-4 fill-white" />
+            <ArrowRight className="w-4 h-4" />
           </button>
         )}
 
@@ -665,7 +690,7 @@ export const MissionPlayer: React.FC<MissionPlayerProps> = ({
                   (currentActivity.kind === "match" && matchedPairs.length < currentActivity.pairs.length)
                 }
                 onClick={handleCheckActivity}
-                className="w-full py-3.5 rounded-2xl bg-primary hover:bg-primary-deep text-white font-black text-sm tactile shadow-md disabled:opacity-40"
+                className="w-full h-14 rounded-full bg-[#191A22] hover:bg-black text-white font-bold text-sm tactile shadow-md disabled:opacity-40"
               >
                 {t.checkAnswer}
               </button>
@@ -673,9 +698,10 @@ export const MissionPlayer: React.FC<MissionPlayerProps> = ({
               <button
                 type="button"
                 onClick={handleNextActivity}
-                className="w-full py-3.5 rounded-2xl bg-leaf hover:bg-leaf-deep text-white font-black text-sm tactile shadow-md"
+                className="w-full h-14 rounded-full bg-[#191A22] hover:bg-black text-white font-bold text-sm tactile shadow-md flex items-center justify-center gap-2"
               >
-                {t.continue}
+                <span>{t.continue}</span>
+                <ArrowRight className="w-4 h-4" />
               </button>
             )}
           </div>
@@ -688,7 +714,7 @@ export const MissionPlayer: React.FC<MissionPlayerProps> = ({
                 type="button"
                 disabled={!selectedChoiceId}
                 onClick={handleCheckCheckpoint}
-                className="w-full py-3.5 rounded-2xl bg-primary hover:bg-primary-deep text-white font-black text-sm tactile shadow-md disabled:opacity-40"
+                className="w-full h-14 rounded-full bg-[#191A22] hover:bg-black text-white font-bold text-sm tactile shadow-md disabled:opacity-40"
               >
                 {t.checkAnswer}
               </button>
@@ -696,9 +722,10 @@ export const MissionPlayer: React.FC<MissionPlayerProps> = ({
               <button
                 type="button"
                 onClick={handleNextCheckpoint}
-                className="w-full py-3.5 rounded-2xl bg-leaf hover:bg-leaf-deep text-white font-black text-sm tactile shadow-md"
+                className="w-full h-14 rounded-full bg-[#191A22] hover:bg-black text-white font-bold text-sm tactile shadow-md flex items-center justify-center gap-2"
               >
-                {t.continue}
+                <span>{t.continue}</span>
+                <ArrowRight className="w-4 h-4" />
               </button>
             )}
           </div>
