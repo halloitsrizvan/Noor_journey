@@ -15,7 +15,7 @@ export const MissionHero: React.FC<MissionHeroProps> = ({ mission, onContinue })
   const t = translations[lang];
 
   const subjectLabel =
-    subjectNames[mission.subjectId]?.[lang] ||
+    (mission.subject && subjectNames[mission.subject]?.[lang]) ||
     (lang === "ml" ? "അഖ്ലാഖ്" : "Akhlaq");
 
   return (
@@ -51,7 +51,7 @@ export const MissionHero: React.FC<MissionHeroProps> = ({ mission, onContinue })
           <div className="flex items-center gap-1.5 text-xs text-[#626273] font-semibold mt-1.5 mb-4">
             <BookOpen className="w-3.5 h-3.5 text-[#7857E8]" />
             <span>
-              {mission.durationMinutes} {t.minutes}
+              {mission.minutes || 5} {t.minutes}
             </span>
             <span className="text-[#626273]/60">•</span>
             <span>{subjectLabel}</span>

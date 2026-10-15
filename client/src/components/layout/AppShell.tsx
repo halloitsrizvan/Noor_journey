@@ -8,6 +8,7 @@ interface AppShellProps {
   onSelectTab: (tab: NavTab) => void;
   onOpenParentGate: () => void;
   onOpenProfilePicker?: () => void;
+  onSwitchStudent?: () => void;
   children: React.ReactNode;
 }
 
@@ -16,6 +17,7 @@ export const AppShell: React.FC<AppShellProps> = ({
   onSelectTab,
   onOpenParentGate,
   onOpenProfilePicker,
+  onSwitchStudent,
   children,
 }) => {
   const { lang, state } = useNoor();
@@ -32,6 +34,7 @@ export const AppShell: React.FC<AppShellProps> = ({
         <ChildHeader
           onOpenParentGate={onOpenParentGate}
           onOpenProfilePicker={onOpenProfilePicker}
+          onSwitchStudent={onSwitchStudent}
         />
 
         {/* Scrollable Main Workspace with bottom navigation clearance (pb-28) */}
@@ -43,7 +46,7 @@ export const AppShell: React.FC<AppShellProps> = ({
         <BottomNav
           currentTab={currentTab}
           onSelectTab={onSelectTab}
-          onOpenProfile={onOpenProfilePicker || onOpenParentGate}
+          onOpenProfile={onSwitchStudent || onOpenProfilePicker || onOpenParentGate}
         />
       </div>
     </div>

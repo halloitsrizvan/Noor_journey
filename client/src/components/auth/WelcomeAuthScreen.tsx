@@ -4,15 +4,15 @@ import { translations } from "@/lib/noor/i18n";
 import { BrandWordmark } from "@/components/common/BrandWordmark";
 import { LanguageSwitcher } from "@/components/common/LanguageSwitcher";
 import { Illustration } from "@/components/common/Illustration";
+import type { AgeBand, PriorStandard } from "@/lib/noor/types";
 import {
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
+  User,
+  Calendar,
+  GraduationCap,
   ArrowRight,
-  Loader2,
-  AlertCircle,
   Sparkles,
+  AlertCircle,
+  ChevronDown,
 } from "lucide-react";
 
 interface WelcomeAuthScreenProps {
@@ -22,49 +22,77 @@ interface WelcomeAuthScreenProps {
 export const WelcomeAuthScreen: React.FC<WelcomeAuthScreenProps> = ({
   onEnterChildSpace,
 }) => {
-  const { lang, login, register, authAccount, isBackendConnected } = useNoor();
+  const {
+    lang,
+    state,
+    activeProfile,
+    loginStudent,
+    setActiveProfileId,
+  } = useNoor();
   const t = translations[lang];
 
-  const [mode, setMode] = useState<"login" | "register">("login");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  // Student details state
+  const [studentName, setStudentName] = useState(
+    activeProfile?.nickname || (lang === "ml" ? "അമീന" : "Amina")
+  );
+  const [age, setAge] = useState<number>(() => {
+    if (activeProfile?.ageBand === "8-9") return 9;
+    if (activeProfile?.ageBand === "12-13") return 12;
+    return 10;
+  });
+  const [standard, setStandard] = useState<PriorStandard>(
+    activeProfile?.priorStandard && activeProfile.priorStandard !== "none"
+      ? activeProfile.priorStandard
+      : "4"
+  );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const availableAges = [9, 10, 11, 12, 8, 13];
+  const standardOptions: { id: PriorStandard; label: { ml: string; en: string } }[] = [
+    { id: "3", label: { ml: "ക്ലാസ് 3 (സ്റ്റാൻഡേർഡ് 3)", en: "Class 3 (Grade 3)" } },
+    { id: "4", label: { ml: "ക്ലാസ് 4 (സ്റ്റാൻഡേർഡ് 4)", en: "Class 4 (Grade 4)" } },
+    { id: "5", label: { ml: "ക്ലാസ് 5 (സ്റ്റാൻഡേർഡ് 5)", en: "Class 5 (Grade 5)" } },
+    { id: "6", label: { ml: "ക്ലാസ് 6 (സ്റ്റാൻഡേർഡ് 6)", en: "Class 6 (Grade 6)" } },
+    { id: "7", label: { ml: "ക്ലാസ് 7 (സ്റ്റാൻഡേർഡ് 7)", en: "Class 7 (Grade 7)" } },
+  ];
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !password.trim()) {
+    if (!studentName.trim()) {
       setErrorMessage(
         lang === "ml"
-          ? "ദയവായി ഇമെയിലും പാസ്‌വേഡും നൽകുക"
-          : "Please enter your email and password."
+          ? "ദയവായി വിദ്യാർത്ഥിയുടെ പേര് നൽകുക"
+          : "Please enter your name to start your journey."
       );
       return;
     }
 
-    setIsLoading(true);
     setErrorMessage(null);
 
-    try {
-      const res =
-        mode === "login"
-          ? await login(email.trim(), password)
-          : await register(email.trim(), password);
+    // Compute ageBand from selected age
+    const ageBand: AgeBand =
+      age <= 9 ? "8-9" : age <= 11 ? "10-11" : "12-13";
 
-      if (!res.success) {
-        setErrorMessage(
-          res.error || (lang === "ml" ? "ലോഗിൻ പരാജയപ്പെട്ടു" : "Authentication failed.")
-        );
-      } else {
-        // Successful login, proceed to child learning space
-        onEnterChildSpace();
-      }
-    } catch (err: any) {
-      setErrorMessage(err.message || "An error occurred.");
-    } finally {
-      setIsLoading(false);
+    // Create or activate student profile
+    loginStudent({
+      nickname: studentName.trim(),
+      ageBand,
+      priorStandard: standard,
+    });
+
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("noor_active_student_session", "true");
     }
+
+    onEnterChildSpace();
+  };
+
+  const handleContinueAsExisting = (profileId: string) => {
+    setActiveProfileId(profileId);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("noor_active_student_session", "true");
+    }
+    onEnterChildSpace();
   };
 
   return (
@@ -101,99 +129,147 @@ export const WelcomeAuthScreen: React.FC<WelcomeAuthScreenProps> = ({
           </div>
         </div>
 
-        {/* Right Side: Parent Sign-In Form */}
+        {/* Right Side: Student Login Form */}
         <div className="w-full max-w-sm mx-auto md:max-w-md flex flex-col justify-center">
-          <h2
-            className="text-xl sm:text-2xl font-black text-[#141426] mb-5 text-left"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            {mode === "login"
-              ? t.signInAsParent
-              : lang === "ml"
-              ? "രക്ഷിതാവിന്റെ അക്കൗണ്ട് രജിസ്റ്റർ ചെയ്യാം"
-              : "Register as a parent"}
-          </h2>
+          <div className="mb-4 text-left">
+            <h2
+              className="text-2xl font-black text-[#141426] leading-tight"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              {t.signInAsStudent}
+            </h2>
+            <p className="text-xs text-[#626273] font-medium mt-1">
+              {lang === "ml"
+                ? "ദിവസേനയുള്ള ഇസ്ലാമിക മിഷനുകൾ ആരംഭിക്കാൻ നിങ്ങളുടെ വിവരങ്ങൾ നൽകുക."
+                : "Enter your name, age, and class to begin your daily learning space."}
+            </p>
+          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email Field with Icon */}
+          <form onSubmit={handleSubmit} className="space-y-3.5">
+            {/* Field 1: Student Name with User Icon */}
             <div>
               <label
-                htmlFor="parent-email"
-                className="sr-only"
+                htmlFor="student-name"
+                className="text-[11px] font-bold text-[#626273] uppercase tracking-wider block mb-1 pl-1"
               >
-                {t.emailAddress}
+                {t.studentName}
               </label>
               <div className="relative flex items-center">
                 <div className="absolute left-4 text-[#626273] pointer-events-none">
-                  <Mail className="w-5 h-5" />
+                  <User className="w-5 h-5" />
                 </div>
                 <input
-                  id="parent-email"
-                  type="email"
+                  id="student-name"
+                  type="text"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={t.emailAddress}
-                  className="w-full h-14 pl-12 pr-4 bg-[#F3F1F4] rounded-[20px] text-[#141426] placeholder-[#626273]/80 text-sm font-semibold border border-transparent focus:border-[#7857E8] focus:bg-white outline-none transition-all shadow-2xs"
+                  value={studentName}
+                  onChange={(e) => setStudentName(e.target.value)}
+                  placeholder={t.studentNamePlaceholder}
+                  className="w-full h-14 pl-12 pr-4 bg-[#F3F1F4] rounded-[20px] text-[#141426] placeholder-[#626273]/80 text-sm font-bold border border-transparent focus:border-[#7857E8] focus:bg-white outline-none transition-all shadow-2xs"
                 />
               </div>
             </div>
 
-            {/* Password Field with Padlock and Eye Visibility Toggle */}
+            {/* Field 2: Age Selector with Calendar Icon & Quick Pills */}
             <div>
-              <label
-                htmlFor="parent-password"
-                className="sr-only"
-              >
-                {t.password}
-              </label>
+              <div className="flex items-center justify-between mb-1 pl-1 pr-1">
+                <label
+                  htmlFor="student-age"
+                  className="text-[11px] font-bold text-[#626273] uppercase tracking-wider block"
+                >
+                  {t.studentAge}
+                </label>
+                <span className="text-[11px] font-black text-[#7857E8]">
+                  {age} {t.yearsOld}
+                </span>
+              </div>
               <div className="relative flex items-center">
                 <div className="absolute left-4 text-[#626273] pointer-events-none">
-                  <Lock className="w-5 h-5" />
+                  <Calendar className="w-5 h-5" />
                 </div>
-                <input
-                  id="parent-password"
-                  type={showPassword ? "text" : "password"}
-                  required
-                  minLength={6}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder={t.password}
-                  className="w-full h-14 pl-12 pr-12 bg-[#F3F1F4] rounded-[20px] text-[#141426] placeholder-[#626273]/80 text-sm font-semibold border border-transparent focus:border-[#7857E8] focus:bg-white outline-none transition-all shadow-2xs"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 text-[#626273] hover:text-[#141426] p-1 rounded-md"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                <select
+                  id="student-age"
+                  value={age}
+                  onChange={(e) => setAge(Number(e.target.value))}
+                  className="w-full h-14 pl-12 pr-10 bg-[#F3F1F4] rounded-[20px] text-[#141426] text-sm font-bold border border-transparent focus:border-[#7857E8] focus:bg-white outline-none transition-all shadow-2xs appearance-none cursor-pointer"
                 >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
+                  {availableAges.map((a) => (
+                    <option key={a} value={a}>
+                      {a} {t.yearsOld} {a >= 9 && a <= 12 ? "(Primary)" : ""}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-4 text-[#626273] pointer-events-none">
+                  <ChevronDown className="w-4 h-4" />
+                </div>
+              </div>
+
+              {/* Quick Age Buttons for Children */}
+              <div className="flex items-center gap-1.5 mt-1.5 pl-1">
+                {[9, 10, 11, 12].map((quickAge) => (
+                  <button
+                    key={quickAge}
+                    type="button"
+                    onClick={() => setAge(quickAge)}
+                    className={`px-3 py-1 rounded-full text-xs font-black transition-all ${
+                      age === quickAge
+                        ? "bg-[#7857E8] text-white shadow-2xs scale-105"
+                        : "bg-[#F3F1F4] text-[#626273] hover:bg-[#E4E0E9]"
+                    }`}
+                  >
+                    {quickAge} {lang === "ml" ? "വയസ്സ്" : "yrs"}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Forgot Password Right-Aligned Link */}
-            {mode === "login" && (
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={() =>
-                    alert(
-                      lang === "ml"
-                        ? "രക്ഷിതാവിന്റെ ഇമെയിലിലേക്ക് പാസ്‌വേഡ് റീസെറ്റ് ലിങ്ക് അയക്കും."
-                        : "Password reset link will be sent to the guardian email."
-                    )
-                  }
-                  className="text-xs font-bold text-[#7857E8] hover:underline"
+            {/* Field 3: Class / Standard with GraduationCap Icon */}
+            <div>
+              <label
+                htmlFor="student-standard"
+                className="text-[11px] font-bold text-[#626273] uppercase tracking-wider block mb-1 pl-1"
+              >
+                {t.studentClass}
+              </label>
+              <div className="relative flex items-center">
+                <div className="absolute left-4 text-[#626273] pointer-events-none">
+                  <GraduationCap className="w-5 h-5" />
+                </div>
+                <select
+                  id="student-standard"
+                  value={standard}
+                  onChange={(e) => setStandard(e.target.value as PriorStandard)}
+                  className="w-full h-14 pl-12 pr-10 bg-[#F3F1F4] rounded-[20px] text-[#141426] text-sm font-bold border border-transparent focus:border-[#7857E8] focus:bg-white outline-none transition-all shadow-2xs appearance-none cursor-pointer"
                 >
-                  {t.forgotPassword}
-                </button>
+                  {standardOptions.map((opt) => (
+                    <option key={opt.id} value={opt.id}>
+                      {opt.label[lang]}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-4 text-[#626273] pointer-events-none">
+                  <ChevronDown className="w-4 h-4" />
+                </div>
               </div>
-            )}
+
+              {/* Quick Class Buttons */}
+              <div className="flex items-center gap-1.5 mt-1.5 pl-1">
+                {(["3", "4", "5", "6"] as PriorStandard[]).map((quickStd) => (
+                  <button
+                    key={quickStd}
+                    type="button"
+                    onClick={() => setStandard(quickStd)}
+                    className={`px-3 py-1 rounded-full text-xs font-black transition-all ${
+                      standard === quickStd
+                        ? "bg-[#191A22] text-white shadow-2xs scale-105"
+                        : "bg-[#F3F1F4] text-[#626273] hover:bg-[#E4E0E9]"
+                    }`}
+                  >
+                    {t.classPrefix} {quickStd}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             {/* Error Message */}
             {errorMessage && (
@@ -206,58 +282,37 @@ export const WelcomeAuthScreen: React.FC<WelcomeAuthScreenProps> = ({
             {/* Large Dark Action Button with Arrow */}
             <button
               type="submit"
-              disabled={isLoading}
-              className="w-full h-14 bg-[#191A22] hover:bg-black text-white rounded-full font-bold text-base flex items-center justify-center gap-2 shadow-md tactile transition-all disabled:opacity-50 mt-2"
+              className="w-full h-14 bg-[#191A22] hover:bg-black text-white rounded-full font-bold text-base flex items-center justify-center gap-2 shadow-md tactile transition-all mt-4"
             >
-              {isLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  <span>
-                    {mode === "login" ? t.logIn : t.createAccount}
-                  </span>
-                  <ArrowRight className="w-5 h-5" />
-                </>
-              )}
+              <span>{t.startLearning}</span>
+              <ArrowRight className="w-5 h-5" />
             </button>
           </form>
 
-          {/* Switch Mode: Create Account / Log In */}
-          <div className="text-center mt-5 text-xs text-[#626273]">
-            <span>
-              {mode === "login"
-                ? `${t.newHere} `
-                : lang === "ml"
-                ? "അക്കൗണ്ട് ഉണ്ടോ? "
-                : "Already registered? "}
-            </span>
-            <button
-              type="button"
-              onClick={() => {
-                setMode(mode === "login" ? "register" : "login");
-                setErrorMessage(null);
-              }}
-              className="text-[#7857E8] font-black hover:underline"
-            >
-              {mode === "login" ? t.createAccount : t.logIn}
-            </button>
-          </div>
-
-          {/* Quick Child Space Access (no blockage for demo / child play) */}
-          <div className="mt-6 pt-4 border-t border-[#E4E0E9]/70 text-center">
-            <button
-              type="button"
-              onClick={onEnterChildSpace}
-              className="inline-flex items-center gap-1.5 text-xs font-extrabold text-[#626273] hover:text-[#141426] py-1.5 px-3 rounded-full bg-[#F3F1F4] hover:bg-[#E4E0E9] tactile transition-colors"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-[#7857E8]" />
-              <span>
-                {lang === "ml"
-                  ? "നേരിട്ട് കുട്ടികളുടെ പഠന ഇടത്തിലേക്ക് →"
-                  : "Go to child learning space →"}
+          {/* Quick Continue as Existing Student Profile (if present) */}
+          {state.profiles.length > 0 && (
+            <div className="mt-5 pt-3.5 border-t border-[#E4E0E9]/80 flex flex-col items-center">
+              <span className="text-[11px] font-bold text-[#626273] mb-1.5">
+                {lang === "ml" ? "മുൻപ് പഠിച്ച വിദ്യാർത്ഥി:" : "Recent student profile:"}
               </span>
-            </button>
-          </div>
+              <div className="flex flex-wrap justify-center gap-1.5">
+                {state.profiles.slice(0, 3).map((prof) => (
+                  <button
+                    key={prof.id}
+                    type="button"
+                    onClick={() => handleContinueAsExisting(prof.id)}
+                    className="inline-flex items-center gap-1.5 text-xs font-extrabold text-[#141426] py-1.5 px-3 rounded-full bg-[#F0E9FF] hover:bg-[#E3D4FF] border border-[#E3D4FF] tactile transition-colors"
+                  >
+                    <Sparkles className="w-3 h-3 text-[#7857E8]" />
+                    <span>
+                      {t.continueAsStudent} {prof.nickname} (
+                      {t.classPrefix} {prof.priorStandard}) →
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

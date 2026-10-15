@@ -24,12 +24,14 @@ interface ParentDashboardModalProps {
   isOpen: boolean;
   onClose: () => void;
   onOpenOnboarding: () => void;
+  onOpenWelcomeScreen?: () => void;
 }
 
 export const ParentDashboardModal: React.FC<ParentDashboardModalProps> = ({
   isOpen,
   onClose,
   onOpenOnboarding,
+  onOpenWelcomeScreen,
 }) => {
   const {
     lang,
@@ -312,7 +314,7 @@ export const ParentDashboardModal: React.FC<ParentDashboardModalProps> = ({
               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
                 {t.parentFamilyReflections}
               </span>
-              {activeProgress?.reflections.length === 0 ? (
+              {(activeProgress?.reflections?.length ?? 0) === 0 ? (
                 <div className="p-4 bg-muted/40 rounded-2xl text-center text-muted-foreground">
                   <FileText className="w-6 h-6 mx-auto mb-1 text-muted-foreground/60" />
                   <p>
@@ -322,7 +324,7 @@ export const ParentDashboardModal: React.FC<ParentDashboardModalProps> = ({
                   </p>
                 </div>
               ) : (
-                activeProgress?.reflections.map((r, i) => (
+                activeProgress?.reflections?.map((r, i) => (
                   <div key={i} className="p-3 bg-card border border-border/80 rounded-2xl shadow-2xs">
                     <span className="text-[10px] text-primary font-bold block mb-1">
                       {new Date(r.at).toLocaleDateString()}
@@ -530,6 +532,27 @@ export const ParentDashboardModal: React.FC<ParentDashboardModalProps> = ({
                           : "Create Guardian Account"}
                     </button>
                   </form>
+                </div>
+              )}
+
+              {/* Quick Jump to Full Parent Welcome & Sign-In Screen */}
+              {onOpenWelcomeScreen && (
+                <div className="pt-2 border-t border-border/70">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      onOpenWelcomeScreen();
+                    }}
+                    className="w-full py-2.5 px-4 rounded-xl bg-[#F0E9FF] hover:bg-[#E3D4FF] border border-[#E3D4FF] text-[#7857E8] font-black text-xs tactile flex items-center justify-center gap-2 transition-all shadow-2xs"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-[#7857E8]" />
+                    <span>
+                      {lang === "ml"
+                        ? "രക്ഷിതാവിന്റെ സൈൻ-ഇൻ സ്ക്രീൻ കാണുക (റെഫറൻസ്)"
+                        : "View Parent Sign-in Screen (Visual Reference)"}
+                    </span>
+                  </button>
                 </div>
               )}
             </div>

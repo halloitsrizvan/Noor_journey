@@ -84,6 +84,16 @@ export interface TranslationDictionary {
   heroHeadingHighlight: string;
   heroHeadingEnd: string;
   signInAsParent: string;
+  signInAsStudent: string;
+  studentName: string;
+  studentNamePlaceholder: string;
+  studentAge: string;
+  studentClass: string;
+  yearsOld: string;
+  classPrefix: string;
+  startLearning: string;
+  continueAsStudent: string;
+  switchStudent: string;
   emailAddress: string;
   password: string;
   forgotPassword: string;
@@ -180,6 +190,16 @@ export const translations: Record<Lang, TranslationDictionary> = {
     heroHeadingHighlight: "യാത്ര",
     heroHeadingEnd: " ഇവിടെ തുടങ്ങുന്നു",
     signInAsParent: "രക്ഷിതാവായി ലോഗിൻ ചെയ്യുക",
+    signInAsStudent: "വിദ്യാർത്ഥി പ്രവേശനം",
+    studentName: "വിദ്യാർത്ഥിയുടെ പേര്",
+    studentNamePlaceholder: "നിങ്ങളുടെ പേര് നൽകുക (ഉദാ: അമീന)",
+    studentAge: "വയസ്സ്",
+    studentClass: "ക്ലാസ് / സ്റ്റാൻഡേർഡ്",
+    yearsOld: "വയസ്സ്",
+    classPrefix: "ക്ലാസ്",
+    startLearning: "പഠനം തുടങ്ങാം",
+    continueAsStudent: "വിദ്യാർത്ഥിയായി തുടരുക",
+    switchStudent: "വിദ്യാർത്ഥിയെ മാറ്റുക",
     emailAddress: "ഇമെയിൽ വിലാസം",
     password: "പാസ്‌വേഡ്",
     forgotPassword: "പാസ്‌വേഡ് മറന്നോ?",
@@ -275,6 +295,16 @@ export const translations: Record<Lang, TranslationDictionary> = {
     heroHeadingHighlight: "journey",
     heroHeadingEnd: " starts here",
     signInAsParent: "Sign in as a parent",
+    signInAsStudent: "Sign in as a student",
+    studentName: "Student name",
+    studentNamePlaceholder: "Enter your name (e.g. Amina)",
+    studentAge: "Age",
+    studentClass: "Class / Standard",
+    yearsOld: "years",
+    classPrefix: "Class",
+    startLearning: "Log in",
+    continueAsStudent: "Continue as",
+    switchStudent: "Switch student",
     emailAddress: "Email address",
     password: "Password",
     forgotPassword: "Forgot password?",

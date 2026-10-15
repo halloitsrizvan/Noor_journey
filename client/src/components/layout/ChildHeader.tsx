@@ -8,11 +8,13 @@ import { Illustration } from "@/components/common/Illustration";
 interface ChildHeaderProps {
   onOpenParentGate: () => void;
   onOpenProfilePicker?: () => void;
+  onSwitchStudent?: () => void;
 }
 
 export const ChildHeader: React.FC<ChildHeaderProps> = ({
   onOpenParentGate,
   onOpenProfilePicker,
+  onSwitchStudent,
 }) => {
   const { activeProfile, lang, getTotalXp } = useNoor();
   const t = translations[lang];
@@ -75,14 +77,14 @@ export const ChildHeader: React.FC<ChildHeaderProps> = ({
         </div>
       </div>
 
-      {/* Right: Profile / Parent Area Action */}
+      {/* Right: Profile / Switch Student Action */}
       <div className="flex items-center gap-2">
         <button
           type="button"
-          onClick={onOpenParentGate}
+          onClick={onSwitchStudent || onOpenParentGate}
           className="w-10 h-10 rounded-full bg-[#F3F1F4] hover:bg-[#E4E0E9] text-[#141426] flex items-center justify-center tactile border border-[#E4E0E9]/80 shadow-2xs"
-          title={t.parentAreaTitle}
-          aria-label="Parent controls and settings"
+          title={t.switchStudent}
+          aria-label={t.switchStudent}
         >
           <User className="w-5 h-5 text-[#141426]" />
         </button>

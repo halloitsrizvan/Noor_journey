@@ -23,7 +23,7 @@ export const JourneyMap: React.FC<JourneyMapProps> = ({
 
   const t = translations[lang];
   const currentWorld = worlds[0]; // Akhlaq world
-  const hasChapterBadge = activeProgress?.badges.includes(akhlaqChapter.badge.id);
+  const hasChapterBadge = Boolean(activeProgress?.badges?.includes(akhlaqChapter.badge.id));
 
   return (
     <div className="flex flex-col w-full pb-8 animate-pop">

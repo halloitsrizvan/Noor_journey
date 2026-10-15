@@ -36,8 +36,24 @@ function NoorAppContent() {
   const [currentTab, setCurrentTab] = useState<NavTab>("journey");
   const [journeyView, setJourneyView] = useState<"dashboard" | "map">("dashboard");
 
-  // Welcome / Sign-in Screen toggle
-  const [showWelcomeScreen, setShowWelcomeScreen] = useState(false);
+  // Welcome / Sign-in Screen toggle (defaults to true on first visit)
+  const [showWelcomeScreen, setShowWelcomeScreen] = useState(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("screen") === "dashboard") return false;
+      if (params.get("screen") === "welcome" || params.get("screen") === "login") return true;
+      const hasEntered = sessionStorage.getItem("noor_active_student_session");
+      return !hasEntered;
+    }
+    return true;
+  });
+
+  const handleSwitchStudent = () => {
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("noor_active_student_session");
+    }
+    setShowWelcomeScreen(true);
+  };
 
   // Active missions & review state
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
@@ -82,6 +98,7 @@ function NoorAppContent() {
         }}
         onOpenParentGate={() => setIsParentGateOpen(true)}
         onOpenProfilePicker={() => setIsParentGateOpen(true)}
+        onSwitchStudent={handleSwitchStudent}
       >
         {/* TAB 1: JOURNEY (Child Dashboard / Journey Map) */}
         {currentTab === "journey" && (
@@ -151,6 +168,7 @@ function NoorAppContent() {
         isOpen={isParentDashboardOpen}
         onClose={() => setIsParentDashboardOpen(false)}
         onOpenOnboarding={() => setIsOnboardingOpen(true)}
+        onOpenWelcomeScreen={() => setShowWelcomeScreen(true)}
       />
 
       {/* Onboarding & Profile Modal */}

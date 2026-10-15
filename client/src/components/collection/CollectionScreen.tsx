@@ -9,7 +9,7 @@ export const CollectionScreen: React.FC = () => {
   const { lang, activeProfile, activeProgress, updateAvatar } = useNoor();
   const t = translations[lang];
 
-  const hasAkhlaqBadge = activeProgress?.badges.includes(akhlaqChapter.badge.id);
+  const hasAkhlaqBadge = Boolean(activeProgress?.badges?.includes(akhlaqChapter.badge.id));
 
   return (
     <div className="flex flex-col w-full space-y-6 animate-pop pb-6">
@@ -169,7 +169,7 @@ export const CollectionScreen: React.FC = () => {
                     )}
                   </div>
                   <span className="text-[10px] text-[#626273] block truncate">
-                    {av.description[lang]}
+                    {av.badge}
                   </span>
                 </div>
               </button>

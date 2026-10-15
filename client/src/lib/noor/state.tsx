@@ -35,6 +35,11 @@ export interface NoorContextValue {
   toggleSound: () => void;
   toggleReducedMotion: () => void;
   setActiveProfileId: (id: string) => void;
+  loginStudent: (data: {
+    nickname: string;
+    ageBand: AgeBand;
+    priorStandard: PriorStandard;
+  }) => string;
   createProfile: (data: {
     nickname: string;
     ageBand: AgeBand;
@@ -113,7 +118,18 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const activeProgress = useMemo((): ChildProgress | null => {
     if (!activeProfile) return null;
-    return state.progress[activeProfile.id] ?? null;
+    const prog = state.progress[activeProfile.id];
+    if (!prog) return null;
+    return {
+      missions: prog.missions || {},
+      reviews: prog.reviews || {},
+      xp: Array.isArray(prog.xp) ? prog.xp : [],
+      badges: Array.isArray(prog.badges) ? prog.badges : [],
+      chapterReviews: prog.chapterReviews || {},
+      sessions: Array.isArray(prog.sessions) ? prog.sessions : [],
+      inFlight: prog.inFlight ?? null,
+      reflections: Array.isArray(prog.reflections) ? prog.reflections : [],
+    };
   }, [state.progress, activeProfile]);
 
   const login = useCallback(async (email: string, pass: string) => {
@@ -236,6 +252,36 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return id;
     },
     [effectiveNow, isBackendConnected, authAccount]
+  );
+
+  const loginStudent = useCallback(
+    (data: { nickname: string; ageBand: AgeBand; priorStandard: PriorStandard }) => {
+      const cleanName = data.nickname.trim();
+      const existing = state.profiles.find(
+        (p) => p.nickname.toLowerCase() === cleanName.toLowerCase()
+      );
+      if (existing) {
+        setState((prev) => ({
+          ...prev,
+          activeProfileId: existing.id,
+          profiles: prev.profiles.map((p) =>
+            p.id === existing.id
+              ? { ...p, ageBand: data.ageBand, priorStandard: data.priorStandard }
+              : p
+          ),
+        }));
+        return existing.id;
+      } else {
+        return createProfile({
+          nickname: cleanName,
+          ageBand: data.ageBand,
+          priorStandard: data.priorStandard,
+          avatarId: "lantern-noor",
+          weeklyGoal: 3,
+        });
+      }
+    },
+    [state.profiles, createProfile]
   );
 
   const deleteProfile = useCallback((id: string) => {
@@ -560,6 +606,7 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toggleSound,
       toggleReducedMotion,
       setActiveProfileId,
+      loginStudent,
       createProfile,
       deleteProfile,
       updateWeeklyGoal,
@@ -592,6 +639,7 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toggleSound,
       toggleReducedMotion,
       setActiveProfileId,
+      loginStudent,
       createProfile,
       deleteProfile,
       updateWeeklyGoal,
