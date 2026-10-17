@@ -158,6 +158,22 @@ class ApiClient {
         method: "POST",
         body: JSON.stringify(data),
       }),
+    getLeaderboard: () =>
+      this.request<
+        Array<{
+          id: string;
+          name: string;
+          avatar: string;
+          totalXp: number;
+          stars: number;
+          badgesCount: number;
+          completedCount: number;
+          createdAt: string;
+          rank: number;
+        }>
+      >("/children/leaderboard"),
+    getCollection: (childId: string) =>
+      this.request<{ badges: any[]; avatars: any[] }>(`/children/${childId}/collection`),
   };
 
   // Content & Journey Endpoints

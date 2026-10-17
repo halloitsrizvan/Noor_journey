@@ -55,19 +55,30 @@ export const LeaderboardScreen: React.FC = () => {
   useEffect(() => {
     let mounted = true;
     setIsLoadingDb(true);
-    api.children
-      .getLeaderboard()
-      .then((data) => {
-        if (mounted && Array.isArray(data) && data.length > 0) {
-          setDbStudents(data);
-        }
-      })
-      .catch((err) => {
-        console.warn("Could not fetch database leaderboard:", err);
-      })
-      .finally(() => {
-        if (mounted) setIsLoadingDb(false);
-      });
+
+    const getLeaderboardFn =
+      typeof api.children?.getLeaderboard === "function"
+        ? api.children.getLeaderboard.bind(api.children)
+        : typeof (api as any).reviews?.getLeaderboard === "function"
+        ? (api as any).reviews.getLeaderboard.bind((api as any).reviews)
+        : null;
+
+    if (getLeaderboardFn) {
+      getLeaderboardFn()
+        .then((data: any) => {
+          if (mounted && Array.isArray(data) && data.length > 0) {
+            setDbStudents(data);
+          }
+        })
+        .catch((err: any) => {
+          console.warn("Could not fetch database leaderboard:", err);
+        })
+        .finally(() => {
+          if (mounted) setIsLoadingDb(false);
+        });
+    } else {
+      if (mounted) setIsLoadingDb(false);
+    }
 
     return () => {
       mounted = false;
@@ -182,7 +193,7 @@ export const LeaderboardScreen: React.FC = () => {
       isCurrentUser: !!isSelf,
       xp: getAdjustedXp(baseXp, !!isSelf),
       streak: Math.max(1, d.completedCount || 1),
-      standard: "Class 3",
+      standard: isSelf ? currentStudentStandard : "Class 3",
       badge: {
         en: `${calculatedStars} Noor Stars ⭐`,
         ml: `${calculatedStars} നൂർ നക്ഷത്രങ്ങൾ ⭐`,
@@ -211,9 +222,10 @@ export const LeaderboardScreen: React.FC = () => {
     .sort((a, b) => b.xp - a.xp);
 
   // Determine current user's calculated rank
-  const userRank = allStudents.findIndex((s) => s.isCurrentUser) + 1;
+  const userIndex = allStudents.findIndex((s) => s.isCurrentUser);
+  const userRank = userIndex >= 0 ? userIndex + 1 : 1;
   const userAbove = userRank > 1 ? allStudents[userRank - 2] : null;
-  const pointsToClimb = userAbove ? userAbove.xp - currentUserEntry.xp + 5 : 0;
+  const pointsToClimb = userAbove ? Math.max(0, userAbove.xp - currentUserEntry.xp + 5) : 0;
 
   // Top 3 Podium Students
   const top1 = allStudents[0] || null;
@@ -564,7 +576,7 @@ export const LeaderboardScreen: React.FC = () => {
                           </span>
                           <span className="text-[10px] text-[#626273]">•</span>
                           <span className="text-[10px] font-bold text-[#7857E8]">
-                            {student.badge[lang]}
+                            {student.badge?.[lang] || student.badge?.en || "Noor Star"}
                           </span>
                         </div>
                       </div>

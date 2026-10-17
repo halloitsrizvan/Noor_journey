@@ -58,8 +58,6 @@ export const StudentAppShell: React.FC<StudentAppShellProps> = ({
   const handleLogoutOrSwitch = async () => {
     clearStudentSession();
     setIsSessionActive(false);
-    setIsParentDashboardOpen(false);
-    setIsAdminDashboardOpen(false);
     try {
       await logout();
     } catch {}
