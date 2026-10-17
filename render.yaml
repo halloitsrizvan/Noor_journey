@@ -4,7 +4,7 @@ services:
     name: noor-journey-server
     runtime: node
     rootDir: server
-    buildCommand: npm install && npx prisma generate && npm run build
+    buildCommand: npm install --include=dev && chmod -R +x node_modules/.bin && npx prisma generate && npm run build
     startCommand: npm run start:prod
     healthCheckPath: /api/v1/health
     plan: free
