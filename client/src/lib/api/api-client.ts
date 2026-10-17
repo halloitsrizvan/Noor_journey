@@ -146,6 +146,18 @@ class ApiClient {
         method: "PATCH",
         body: JSON.stringify({ avatarKey }),
       }),
+    syncStudent: (data: {
+      nickname: string;
+      email?: string | undefined;
+      ageBand?: string | undefined;
+      priorStandard?: string | undefined;
+      avatarKey?: string | undefined;
+      weeklyGoal?: number | undefined;
+    }) =>
+      this.request<any>("/children/sync-student", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
   };
 
   // Content & Journey Endpoints
@@ -254,6 +266,20 @@ class ApiClient {
       }>(`/children/${childId}/progress`),
     getCollection: (childId: string) =>
       this.request<{ badges: any[]; avatars: any[] }>(`/children/${childId}/collection`),
+    getLeaderboard: () =>
+      this.request<
+        Array<{
+          id: string;
+          name: string;
+          avatar: string;
+          totalXp: number;
+          stars: number;
+          badgesCount: number;
+          completedCount: number;
+          createdAt: string;
+          rank: number;
+        }>
+      >("/children/leaderboard"),
   };
 
   // Reflections Endpoints
@@ -281,6 +307,144 @@ class ApiClient {
   health = {
     checkLive: () => this.request<{ status: string }>("/health/live"),
     checkReady: () => this.request<{ status: string; database: string }>("/health/ready"),
+  };
+
+  // Editorial & Curriculum (Admin)
+  editorial = {
+    getOverview: () => this.request<any>("/editorial/overview"),
+    review: (versionId: string, status: "APPROVED" | "REJECTED", comments?: string) =>
+      this.request<any>(`/editorial/versions/${versionId}/review`, {
+        method: "POST",
+        body: JSON.stringify({ status, comments: comments || "Reviewed by administrator" }),
+      }),
+    publish: (versionId: string, releaseNotes?: string) =>
+      this.request<any>(`/editorial/versions/${versionId}/publish`, {
+        method: "POST",
+        body: JSON.stringify({ releaseNotes: releaseNotes || "Published by administrator" }),
+      }),
+    archive: (versionId: string) =>
+      this.request<any>(`/editorial/versions/${versionId}/archive`, {
+        method: "POST",
+      }),
+    withdraw: (versionId: string) =>
+      this.request<any>(`/editorial/versions/${versionId}/withdraw`, {
+        method: "POST",
+      }),
+  };
+
+  // Madrasa Subjects & Tajweed Curriculum (Dynamic DB & Multi-Qari Audio)
+  madrasa = {
+    getSubjects: () =>
+      this.request<
+        Array<{
+          id: string;
+          key: string;
+          titleMl: string;
+          titleEn: string;
+          arabicTitle: string;
+          descMl: string;
+          descEn: string;
+          badgeText: string;
+          gradient: string;
+          bgLight: string;
+          textColor: string;
+          accentColor: string;
+          topicsCount: number;
+          displayOrder: number;
+          topics: Array<{
+            id: string;
+            subjectId: string;
+            titleMl: string;
+            titleEn: string;
+            arabicTitle?: string;
+            description?: string;
+            order: number;
+            xpReward: number;
+            durationMinutes: number;
+            isPublished: boolean;
+            iconName?: string;
+          }>;
+        }>
+      >("/madrasa/subjects"),
+
+    getSubjectByKey: (key: string) =>
+      this.request<any>(`/madrasa/subjects/${key}`),
+
+    createSubject: (data: any) =>
+      this.request<any>("/madrasa/subjects", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+
+    updateSubject: (id: string, data: any) =>
+      this.request<any>(`/madrasa/subjects/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+
+    deleteSubject: (id: string) =>
+      this.request<{ success: boolean; message: string }>(`/madrasa/subjects/${id}`, {
+        method: "DELETE",
+      }),
+
+    createTopic: (subjectId: string, data: any) =>
+      this.request<any>(`/madrasa/subjects/${subjectId}/topics`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+
+    updateTopic: (topicId: string, data: any) =>
+      this.request<any>(`/madrasa/topics/${topicId}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+
+    deleteTopic: (topicId: string) =>
+      this.request<{ success: boolean; message: string }>(`/madrasa/topics/${topicId}`, {
+        method: "DELETE",
+      }),
+
+    getFatihah: () =>
+      this.request<any[]>("/madrasa/fatihah"),
+
+    updateFatihahVerse: (verseId: string, data: any) =>
+      this.request<any>(`/madrasa/fatihah/${verseId}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+
+    getReciters: () =>
+      this.request<
+        Array<{
+          id: string;
+          reciterId: number;
+          nameEnglish: string;
+          nameArabic: string;
+          nameMalayalam: string;
+          style: string;
+          serverSubfolder: string;
+          avatarUrl: string;
+        }>
+      >("/madrasa/quran/reciters"),
+
+    getFatihahAudio: (reciter?: string) =>
+      this.request<{
+        surah: number;
+        surahName: string;
+        reciter: {
+          id: string;
+          nameEnglish: string;
+          nameArabic: string;
+          nameMalayalam: string;
+          style: string;
+        };
+        audioFiles: Array<{
+          verseNumber: number;
+          verseKey: string;
+          audioUrl: string;
+          duration?: number;
+        }>;
+      }>(`/madrasa/quran/fatihah/audio${reciter ? `?reciter=${reciter}` : ""}`),
   };
 }
 

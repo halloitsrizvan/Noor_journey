@@ -1,181 +1,45 @@
-import React, { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
-import { NoorProvider, useNoor } from "@/lib/noor/state";
-import { AppShell } from "@/components/layout/AppShell";
-import type { NavTab } from "@/components/layout/BottomNav";
-import type { Mission } from "@/lib/noor/types";
-
-import { ChildDashboard } from "@/components/dashboard/ChildDashboard";
-import { JourneyMap } from "@/components/journey/JourneyMap";
-import { MissionOverviewModal } from "@/components/journey/ChapterOverviewDialog";
-import { WorldSelectorModal } from "@/components/journey/WorldSelectorDialog";
-import { PracticeScreen } from "@/components/practice/PracticeScreen";
-import { CollectionScreen } from "@/components/collection/CollectionScreen";
-import { ParentGateModal } from "@/components/parent/ParentGateModal";
-import { ParentDashboardModal } from "@/components/parent/ParentDashboardModal";
-import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
-import { MissionPlayer } from "@/components/mission/MissionPlayer";
+import React, { useEffect } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useNoor } from "@/lib/noor/state";
+import { isStudentSessionActive, setStudentSession } from "@/lib/noor/session";
 import { WelcomeAuthScreen } from "@/components/auth/WelcomeAuthScreen";
 
 export const Route = createFileRoute("/")({
-  component: NoorApp,
+  component: IndexRoute,
 });
 
-function NoorApp() {
-  return (
-    <NoorProvider>
-      <NoorAppContent />
-    </NoorProvider>
-  );
-}
-
-function NoorAppContent() {
+function IndexRoute() {
+  const navigate = useNavigate();
   const { authAccount } = useNoor();
 
-  // Navigation tab
-  const [currentTab, setCurrentTab] = useState<NavTab>("journey");
-  const [journeyView, setJourneyView] = useState<"dashboard" | "map">("dashboard");
+  const isAuthenticated = isStudentSessionActive() || Boolean(authAccount);
 
-  // Welcome / Sign-in Screen toggle (defaults to true on first visit)
-  const [showWelcomeScreen, setShowWelcomeScreen] = useState(() => {
+  useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
-      if (params.get("screen") === "dashboard") return false;
-      if (params.get("screen") === "welcome" || params.get("screen") === "login") return true;
-      const hasEntered = sessionStorage.getItem("noor_active_student_session");
-      return !hasEntered;
+      const portal = params.get("portal");
+      if (portal === "admin") {
+        navigate({ to: "/admin" });
+        return;
+      }
+      if (portal === "student") {
+        navigate({ to: "/student-login" });
+        return;
+      }
     }
-    return true;
-  });
 
-  const handleSwitchStudent = () => {
-    if (typeof window !== "undefined") {
-      sessionStorage.removeItem("noor_active_student_session");
+    if (isAuthenticated) {
+      navigate({ to: "/journey" });
     }
-    setShowWelcomeScreen(true);
-  };
-
-  // Active missions & review state
-  const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
-  const [activePlayMission, setActivePlayMission] = useState<Mission | null>(null);
-  const [isReviewMode, setIsReviewMode] = useState(false);
-
-  // Modals state
-  const [isWorldSelectorOpen, setIsWorldSelectorOpen] = useState(false);
-  const [isParentGateOpen, setIsParentGateOpen] = useState(false);
-  const [isParentDashboardOpen, setIsParentDashboardOpen] = useState(false);
-  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
-  const [selectedWorldId, setSelectedWorldId] = useState("akhlaq");
-
-  const handleStartMission = (mission: Mission) => {
-    setIsReviewMode(false);
-    setActivePlayMission(mission);
-  };
-
-  const handleStartReview = (mission: Mission) => {
-    setIsReviewMode(true);
-    setActivePlayMission(mission);
-  };
-
-  // If Welcome Screen is explicitly active, display the left visual reference screen
-  if (showWelcomeScreen) {
-    return (
-      <WelcomeAuthScreen
-        onEnterChildSpace={() => setShowWelcomeScreen(false)}
-      />
-    );
-  }
+  }, [isAuthenticated, navigate]);
 
   return (
-    <>
-      <AppShell
-        currentTab={currentTab}
-        onSelectTab={(tab) => {
-          setCurrentTab(tab);
-          if (tab === "journey") {
-            setJourneyView("dashboard");
-          }
-        }}
-        onOpenParentGate={() => setIsParentGateOpen(true)}
-        onOpenProfilePicker={() => setIsParentGateOpen(true)}
-        onSwitchStudent={handleSwitchStudent}
-      >
-        {/* TAB 1: JOURNEY (Child Dashboard / Journey Map) */}
-        {currentTab === "journey" && (
-          <>
-            {journeyView === "dashboard" ? (
-              <ChildDashboard
-                onStartMission={handleStartMission}
-                onOpenJourney={() => setJourneyView("map")}
-                onOpenPractice={() => setCurrentTab("practice")}
-              />
-            ) : (
-              <JourneyMap
-                onSelectMission={(mission) => setSelectedMission(mission)}
-                onOpenWorldSelector={() => setIsWorldSelectorOpen(true)}
-                onBackToDashboard={() => setJourneyView("dashboard")}
-              />
-            )}
-          </>
-        )}
-
-        {/* TAB 2: PRACTICE (Spaced Revision Queue) */}
-        {currentTab === "practice" && (
-          <PracticeScreen onStartReview={handleStartReview} />
-        )}
-
-        {/* TAB 3: COLLECTION (Milestone Badges & Avatars) */}
-        {currentTab === "collection" && <CollectionScreen />}
-      </AppShell>
-
-      {/* Mission Overview Modal */}
-      <MissionOverviewModal
-        mission={selectedMission}
-        isOpen={!!selectedMission && !activePlayMission}
-        onClose={() => setSelectedMission(null)}
-        onStartMission={handleStartMission}
-      />
-
-      {/* Fullscreen Interactive Mission Player */}
-      {activePlayMission && (
-        <MissionPlayer
-          mission={activePlayMission}
-          isReviewMode={isReviewMode}
-          onClose={() => {
-            setActivePlayMission(null);
-            setSelectedMission(null);
-          }}
-        />
-      )}
-
-      {/* World Selector Modal */}
-      <WorldSelectorModal
-        isOpen={isWorldSelectorOpen}
-        onClose={() => setIsWorldSelectorOpen(false)}
-        selectedWorldId={selectedWorldId}
-        onSelectWorld={setSelectedWorldId}
-      />
-
-      {/* Parent Verification Gate */}
-      <ParentGateModal
-        isOpen={isParentGateOpen}
-        onClose={() => setIsParentGateOpen(false)}
-        onSuccess={() => setIsParentDashboardOpen(true)}
-      />
-
-      {/* Parent Dashboard & Account Controls */}
-      <ParentDashboardModal
-        isOpen={isParentDashboardOpen}
-        onClose={() => setIsParentDashboardOpen(false)}
-        onOpenOnboarding={() => setIsOnboardingOpen(true)}
-        onOpenWelcomeScreen={() => setShowWelcomeScreen(true)}
-      />
-
-      {/* Onboarding & Profile Modal */}
-      <OnboardingModal
-        isOpen={isOnboardingOpen}
-        onClose={() => setIsOnboardingOpen(false)}
-      />
-    </>
+    <WelcomeAuthScreen
+      onEnterChildSpace={() => {
+        setStudentSession("Amina");
+        navigate({ to: "/journey" });
+      }}
+      onGoToStudentLogin={() => navigate({ to: "/student-login" })}
+    />
   );
 }

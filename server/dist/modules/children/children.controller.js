@@ -26,6 +26,12 @@ let ChildrenController = class ChildrenController {
     constructor(childrenService) {
         this.childrenService = childrenService;
     }
+    async getLeaderboard() {
+        return this.childrenService.getLeaderboard();
+    }
+    async syncStudent(dto) {
+        return this.childrenService.syncStudent(dto);
+    }
     async getChildren(user) {
         return this.childrenService.getChildren(user.id);
     }
@@ -46,6 +52,23 @@ let ChildrenController = class ChildrenController {
     }
 };
 exports.ChildrenController = ChildrenController;
+__decorate([
+    (0, common_1.Get)("leaderboard"),
+    (0, auth_decorators_1.Public)(),
+    (0, swagger_1.ApiOperation)({ summary: "Get public student leaderboard" }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], ChildrenController.prototype, "getLeaderboard", null);
+__decorate([
+    (0, common_1.Post)("sync-student"),
+    (0, auth_decorators_1.Public)(),
+    (0, swagger_1.ApiOperation)({ summary: "Sync student learner profile to database" }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], ChildrenController.prototype, "syncStudent", null);
 __decorate([
     (0, common_1.Get)(),
     (0, swagger_1.ApiOperation)({ summary: "List all children for authenticated parent" }),

@@ -109,9 +109,11 @@ export type PriorStandard = "none" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "
 export interface ChildProfile {
   id: string;
   nickname: string;
+  email?: string;
   ageBand: AgeBand;
   priorStandard: PriorStandard;
   avatarId: string;
+  avatarUrl?: string | null;
   cosmeticId: string | null;
   weeklyGoal: 2 | 3 | 5;
   recommendedStart?: string;
@@ -135,7 +137,7 @@ export interface ReviewItem {
 export interface XpTransaction {
   id: string; // deterministic, used for dedupe
   amount: number;
-  reason: "mission" | "review" | "chapter-review";
+  reason: "mission" | "review" | "chapter-review" | "tajweed" | "quiz" | "activity" | "fatihah";
   at: number;
 }
 

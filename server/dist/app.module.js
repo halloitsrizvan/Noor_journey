@@ -21,6 +21,7 @@ const reflections_module_1 = require("./modules/reflections/reflections.module")
 const parent_reports_module_1 = require("./modules/parent-reports/parent-reports.module");
 const editorial_module_1 = require("./modules/editorial/editorial.module");
 const health_module_1 = require("./modules/health/health.module");
+const madrasa_module_1 = require("./modules/madrasa/madrasa.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -40,6 +41,7 @@ exports.AppModule = AppModule = __decorate([
             parent_reports_module_1.ParentReportsModule,
             editorial_module_1.EditorialModule,
             health_module_1.HealthModule,
+            madrasa_module_1.MadrasaModule,
         ],
     })
 ], AppModule);

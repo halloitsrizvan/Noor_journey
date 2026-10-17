@@ -2,10 +2,12 @@ import React from "react";
 import { useNoor } from "@/lib/noor/state";
 import { translations } from "@/lib/noor/i18n";
 import { akhlaqMissions } from "@/content/chapter-akhlaq";
+import { useNavigate } from "@tanstack/react-router";
 import type { Mission } from "@/lib/noor/types";
 
 import { MissionHero } from "./MissionHero";
 import { WeeklyProgress } from "./WeeklyProgress";
+import { MadrasaSubjects } from "./MadrasaSubjects";
 import { ExploreTiles } from "./ExploreTiles";
 
 interface ChildDashboardProps {
@@ -19,6 +21,7 @@ export const ChildDashboard: React.FC<ChildDashboardProps> = ({
   onOpenJourney,
   onOpenPractice,
 }) => {
+  const navigate = useNavigate();
   const { lang, activeProgress, getMissionStatus } = useNoor();
   const t = translations[lang];
 
@@ -50,6 +53,12 @@ export const ChildDashboard: React.FC<ChildDashboardProps> = ({
 
       {/* Derived Weekly Progress */}
       <WeeklyProgress />
+
+      {/* Madrasa Subjects: 5 Core Subjects (Aqeedah, Fiqh, Lisanul Quran, Akhlaq, Tajweed) */}
+      <MadrasaSubjects
+        onOpenTajweed={() => navigate({ to: "/tajweed" })}
+        onOpenAkhlaq={onOpenJourney}
+      />
 
       {/* Supporting Destinations: Apricot & Sky-blue Explore Tiles */}
       <ExploreTiles

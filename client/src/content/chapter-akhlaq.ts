@@ -392,7 +392,308 @@ const m5: Mission = {
   family: tx(["കുടുംബത്തിലെ ഓരോരുത്തരും അവരുടെ ഒരു നല്ല കൂട്ടുകാരനെക്കുറിച്ച് പറയൂ — എന്താണ് അവരെ നല്ല കൂട്ടുകാരനാക്കിയത്?", "Each family member shares about a good friend — what made them a good friend?"]),
 };
 
-export const akhlaqMissions: Mission[] = [m1, m2, m3, m4, m5];
+// ---------------- Mission 6: Sharing with joy ----------------
+const C6: [string, string] = ["പങ്കുവെക്കൽ", "Generosity & sharing"];
+const m6: Mission = {
+  ...base,
+  id: "m6-sharing",
+  order: 6,
+  title: tx(["പങ്കുവെക്കൽ", "Sharing is caring"]),
+  concept: tx(C6),
+  objective: tx(["തനിക്കുള്ളത് മറ്റുള്ളവരുമായി സന്തോഷത്തോടെ പങ്കുവെക്കാൻ കുട്ടി പഠിക്കുന്നു.", "The child learns to share food, toys, and joy generously."]),
+  teaching: {
+    title: tx(["പങ്കുവെക്കുമ്പോൾ സന്തോഷം ഇരട്ടിയാകും", "Sharing multiplies joy"]),
+    body: [
+      tx(["നമുക്കിഷ്ടപ്പെട്ട സാധനങ്ങൾ പങ്കുവെക്കുന്നത് വലിയ നന്മയാണ്.", "Sharing things we love is one of the highest acts of goodness."]),
+      tx(["പങ്കുവെക്കുമ്പോൾ നമ്മുടെ വസ്തുക്കൾ കുറയില്ല, സ്നേഹവും ബറകത്തും കൂടും.", "Sharing does not decrease our wealth; it brings love and blessings."]),
+      tx(["മറ്റുള്ളവർക്ക് ആവശ്യമുള്ളപ്പോൾ ഉദാരമനസ്സോടെ നൽകാം.", "When someone is in need, offer generously with a warm smile."]),
+    ],
+    arabic: {
+      text: "تَهَادَوْا تَحَابُّوا",
+      transliteration: tx(["തഹാദൗ തഹാബ്ബൂ", "Tahādaw taḥābbū"]),
+      meaning: tx(["പരസ്പരം സമ്മാനങ്ങൾ നൽകുക, നിങ്ങൾക്കിടയിൽ സ്നേഹം വളരും", "Exchange gifts with each other, you will love one another"]),
+    },
+  },
+  activities: [
+    choice("m6a1", C6,
+      ["ഇടവേള സമയത്ത് കൂട്ടുകാരന് ഉച്ചഭക്ഷണം കൊണ്ടുവരാൻ മറന്നുപോയി. നിങ്ങൾ എന്ത് ചെയ്യണം?", "At break time, your friend forgot their lunchbox at home. What should you do?"],
+      [["എന്റെ ഭക്ഷണം സന്തോഷത്തോടെ പകുത്തു നൽകുക", "Happily share half of my lunch with them"],
+       ["അവർ കാണാതെ വേഗം കഴിച്ചുതീർക്കുക", "Eat quickly so they don't notice"],
+       ["മറന്നുപോയതിന് അവരെ കുറ്റപ്പെടുത്തുക", "Scold them for forgetting their box"]],
+      ["മനോഹരമായ മനസ്സ്! പങ്കുവെക്കൽ വിശപ്പും സങ്കടവും മാറ്റുന്നു.", "Beautiful heart! Sharing satisfies hunger and brings true happiness."],
+      ["വിശന്നിരിക്കുന്ന കൂട്ടുകാരനെ കാണുമ്പോൾ പങ്കുവെക്കലാണ് ഏറ്റവും വലിയ നന്മ.", "When a friend is hungry, sharing our food is the kindest action."]),
+    match("m6a2", C6,
+      ["സാഹചര്യത്തെ ഉദാരമായ പങ്കുവെക്കലുമായി യോജിപ്പിക്കൂ", "Match each situation with the generous action"],
+      [[["പുതിയ കളർ പെൻസിലുകൾ കിട്ടി", "Got a brand new pack of crayons"], ["കൂട്ടുകാരനും ഒപ്പം ചിത്രം വരയ്ക്കാൻ നൽകുക", "Let your friend draw with you"]],
+       [["കളിക്കാൻ ഒരു പന്ത് മാത്രം", "Only one football on the ground"], ["എല്ലാവരെയും കൂട്ടി ഒന്നിച്ച് കളിക്കുക", "Invite everyone to play together"]],
+       [["ചെറുതായ വസ്ത്രങ്ങളും പുസ്തകങ്ങളും", "Outgrown clothes and storybooks"], ["ആവശ്യക്കാരായ കുട്ടികൾക്ക് സമ്മാനിക്കുക", "Gift them to children who need them"]]],
+      ["ഉദാരമായ തീരുമാനങ്ങൾ!", "Generous choices!"],
+      ["ഓരോ സാഹചര്യത്തിലും എങ്ങനെ നല്ല രീതിയിൽ പങ്കുവെക്കാം എന്ന് നോക്കൂ.", "See how each moment can become an opportunity to share."]),
+    sequence("m6a3", C6,
+      ["ഒരു കളിപ്പാട്ടം പങ്കുവെക്കുന്നതിന്റെ മര്യാദകൾ", "Steps for sharing a toy with friends nicely"],
+      [["കളിക്കാൻ കൂട്ടുകാരെ സന്തോഷത്തോടെ ക്ഷണിക്കുക", "Cheerfully invite friends to play"], ["എല്ലാവർക്കും തുല്യമായി അവസരം നൽകുക", "Take turns fairly"], ["വഴക്കില്ലാതെ ഒരുമിച്ച് സന്തോഷിക്കുക", "Enjoy playing together peacefully"], ["കളി കഴിഞ്ഞ് നന്ദി പറയുക", "Say thank you after finishing"]],
+      ["മികച്ച രീതി! പങ്കുവെച്ച് കളിക്കുമ്പോഴാണ് യഥാർത്ഥ സന്തോഷം.", "Wonderful way! Playing together brings the real fun."],
+      ["ആദ്യം ക്ഷണിക്കണം, പിന്നെ മാറിമാറി അവസരം നൽകണം.", "Invite first, then take fair turns."]),
+  ],
+  checkpointPool: [
+    choice("m6c1", C6, ["നിങ്ങൾക്ക് രണ്ട് മിഠായികൾ കിട്ടി. ഒന്ന് അനിയന് നൽകുന്നത്?", "You have two sweets. Giving one to your little brother is…"],
+      [["സ്നേഹവും പങ്കുവെക്കലുമാണ്", "love and generosity"], ["നഷ്ടമാണ്", "a loss"], ["നിർബന്ധം കൊണ്ടാണ്", "only done when forced"]],
+      ["സ്നേഹത്തോടെയുള്ള പങ്കുവെക്കൽ!", "Sharing with love!"], ["സഹോദരങ്ങളുമായി പങ്കുവെക്കുന്നത് സ്നേഹം കൂട്ടും.", "Sharing with siblings strengthens love."]),
+    choice("m6c2", C6, ["പുസ്തകം വായിക്കാൻ കാത്തിരിക്കുന്ന കൂട്ടുകാരനോട്?", "A friend is waiting to read the storybook in your hand."],
+      [["വായിച്ചു കഴിഞ്ഞ ഉടനെ അവർക്ക് നൽകുക", "Pass it to them as soon as you finish"], ["ഒളിച്ചുവെക്കുക", "Hide it away"], ["“ഇത് എനിക്ക് മാത്രമാണ്” എന്ന് പറയുക", "Say “This is mine alone”"]],
+      ["നല്ല മനസ്സ്!", "Kind mindset!"], ["അറിവും പുസ്തകങ്ങളും പങ്കുവെക്കാനുള്ളതാണ്.", "Knowledge and books are meant to be shared."]),
+    choice("m6c3", C6, ["പങ്കുവെക്കുമ്പോൾ എന്താണ് കരുതേണ്ടത്?", "What intention should we have while sharing?"],
+      [["അല്ലാഹുവിന്റെ തൃപ്തിയും മറ്റുള്ളവരുടെ സന്തോഷവും", "Allah's pleasure and making others happy"], ["എല്ലാവരും എന്നെ പുകഴ്ത്തണം", "So everyone praises me"], ["തിരിച്ച് എന്തെങ്കിലും കിട്ടണം", "Only to get something back"]],
+      ["ശുദ്ധമായ നിയ്യത്ത്!", "Pure intention!"], ["നന്മ ചെയ്യുന്നത് അല്ലാഹുവിന്റെ തൃപ്തിക്ക് വേണ്ടിയാണ്.", "Good deeds are done for Allah's pleasure."]),
+    choice("m6c4", C6, ["പങ്കുവെച്ചാൽ നമ്മുടെ പക്കലുള്ളത് കുറയുമോ?", "Does sharing truly decrease what we have?"],
+      [["ഇല്ല, അതിൽ ബറകത്തും നന്മയും വർദ്ധിക്കും", "No, blessings and goodness increase"], ["ഉവ്വ്, എല്ലാം തീർന്നുപോകും", "Yes, everything runs out"], ["കുറയുമെങ്കിലും കുഴപ്പമില്ല", "It decreases but that's fine"]],
+      ["ബറകത്ത് ഉണ്ടാകും!", "Blessings will increase!"], ["ഉദാരത അനുഗ്രഹങ്ങൾ വർദ്ധിപ്പിക്കും.", "Generosity brings barakah."]),
+  ],
+  revision: [
+    choice("m6r1", C6, ["പാർക്കിൽ ഊഞ്ഞാലാടാൻ മറ്റു കുട്ടികൾ കാത്തുനിൽക്കുന്നു. നിങ്ങൾ?", "Other kids are waiting for the swing at the park. You…"],
+      [["കുറച്ചു സമയം കഴിഞ്ഞ് മറ്റുള്ളവർക്കായി ഒഴിഞ്ഞുകൊടുക്കുക", "Step down cheerfully after your turn so others can swing"], ["ഇറങ്ങാതെ മുഴുവൻ സമയം പിടിച്ചിരിക്കുക", "Hold on and refuse to get off"], ["വേറെ എവിടെയെങ്കിലും പോകാൻ പറയുക", "Tell them to go away"]],
+      ["മാന്യമായ പങ്കുവെക്കൽ!", "Respectful sharing!"], ["മറ്റുള്ളവരുടെ അവസരവും നമ്മൾ മാനിക്കണം.", "We must respect others' turn."]),
+  ],
+  family: tx(["ഇന്ന് വീട്ടിലുള്ള എന്തെങ്കിലും നല്ല കാര്യമോ ഭക്ഷണമോ എല്ലാവരുമായി പങ്കുവെക്കൂ.", "Share something special or delicious with family members today."]),
+};
+
+// ---------------- Mission 7: Respecting elders & parents ----------------
+const C7: [string, string] = ["മുതിർന്നവരെ ആദരിക്കൽ", "Honouring parents & elders"];
+const m7: Mission = {
+  ...base,
+  id: "m7-elders",
+  order: 7,
+  title: tx(["മുതിർന്നവരെ ആദരിക്കാം", "Honour your elders"]),
+  concept: tx(C7),
+  objective: tx(["മാതാപിതാക്കളോടും മുതിർന്നവരോടും മാന്യമായി സംസാരിക്കാനും സഹായിക്കാനും പഠിക്കുന്നു.", "The child learns to speak gently to parents and assist elders with reverence."]),
+  teaching: {
+    title: tx(["മാതാപിതാക്കളും മുതിർന്നവരും നമ്മുടെ തണലാണ്", "Elders are our blessing"]),
+    body: [
+      tx(["ഉമ്മയോടും ഉപ്പയോടും എപ്പോഴും സൗമ്യമായി സംസാരിക്കണം.", "Always speak to mother and father with gentleness and warmth."]),
+      tx(["മുത്തശ്ശനും മുത്തശ്ശിക്കും നടക്കാനും സാധനങ്ങൾ എടുക്കാനും സഹായിക്കാം.", "Help grandparents walk, find their glasses, and listen to them patiently."]),
+      tx(["അവരുടെ മുന്നിൽ ശബ്ദമുയർത്താതെ അനുസരണയോടെ പെരുമാറാം.", "Never raise your voice before them; listen with respect."]),
+    ],
+    arabic: {
+      text: "وَقُل رَّبِّ ارْحَمْهُمَا كَمَا رَبَّيَانِي صَغِيرًا",
+      transliteration: tx(["വഖുൽ റബ്ബിർ-ഹംഹുമാ കമാ റബ്ബയാനീ സഗീറാ", "Wa qur-Rabbir-ḥamhumā kamā rabbayānī ṣaghīrā"]),
+      meaning: tx(["എന്റെ നാഥാ, ചെറുപ്പത്തിൽ എന്നെ അവർ വളർത്തിയത് പോലെ നീ അവരോട് കരുണ കാണിക്കേണമേ", "My Lord, have mercy upon them as they brought me up when I was small"]),
+    },
+  },
+  activities: [
+    choice("m7a1", C7,
+      ["ഉമ്മ ജോലി കഴിഞ്ഞ് ക്ഷീണിച്ച് വീട്ടിലെത്തി. നിങ്ങൾക്ക് കളിക്കാൻ പോകണം. എന്ത് ചെയ്യണം?", "Mother returns home tired after a long day. You want to go out. What should you do?"],
+      [["ഉമ്മയ്ക്ക് കുടിക്കാൻ വെള്ളം നൽകി, കുറച്ചുനേരം സഹായിച്ച ശേഷം അനുവാദം ചോദിക്കുക", "Offer her a glass of water, help her rest, then ask politely"],
+       ["വാശിപിടിച്ച് വേഗം വിടാൻ പറഞ്ഞ് നിലവിളിക്കുക", "Cry and throw a tantrum to go out right away"],
+       ["ഉമ്മയെ ശ്രദ്ധിക്കാതെ വാതിലടച്ച് ഓടുക", "Run out slamming the door without looking at her"]],
+      ["ഉമ്മയുടെ കണ്ണ് കുളിർക്കുന്ന നല്ല കുട്ടി!", "A wonderful child who comforts mother's heart!"],
+      ["മാതാപിതാക്കളുടെ ക്ഷീണം മനസ്സിലാക്കി ആദ്യം അവരെ സഹായിക്കണം.", "Notice your parents' tiredness and assist them first."]),
+    match("m7a2", C7,
+      ["മുതിർന്നവരോടുള്ള ആദരവ് പ്രവർത്തനങ്ങളുമായി ചേർക്കൂ", "Match respectful attitudes with actions"],
+      [[["മുത്തശ്ശൻ റൂമിലേക്ക് വരുന്നു", "Grandfather walks into the living room"], ["എഴുന്നേറ്റ് ഇരിക്കാൻ സൗകര്യമൊരുക്കുക", "Stand up and offer your seat gently"]],
+       [["ഉപ്പ സംസാരിക്കുമ്പോൾ", "When father is speaking"], ["ശ്രദ്ധയോടെ കേൾക്കുക, തടസ്സപ്പെടുത്താതിരിക്കുക", "Listen attentively without interrupting"]],
+       [["മുതിർന്നവരെ കാണുമ്പോൾ", "Greeting an elder relative"], ["സലാം പറഞ്ഞ് ഹസ്തദാനം ചെയ്യുക", "Greet warmly with salam and a smile"]]],
+      ["ഉന്നതമായ മര്യാദകൾ!", "Noble manners!"],
+      ["മുതിർന്നവരെ ബഹുമാനിക്കുന്നത് ഇസ്ലാമിക സ്വഭാവത്തിന്റെ കാതലാണ്.", "Respecting elders is at the heart of good character."]),
+    sequence("m7a3", C7,
+      ["മാതാപിതാക്കളോട് അനുവാദം ചോദിക്കുന്ന ക്രമം", "Steps for asking permission from parents respectfully"],
+      [["ശാന്തമായി അടുത്ത് ചെല്ലുക", "Approach them calmly with a smile"], ["മര്യാദയോടെ കാര്യം പറയുക", "Politely state your request"], ["അവരുടെ തീരുമാനം ക്ഷമയോടെ കേൾക്കുക", "Listen patiently to their answer"], ["‘ശരി ഉമ്മാ/ഉപ്പാ’ എന്ന് സന്തോഷത്തോടെ പറയുക", "Accept their decision cheerfully"]],
+      ["മര്യാദയുള്ള സംസാരം!", "Polite communication!"],
+      ["മാതാപിതാക്കളുടെ തീരുമാനം നമ്മുടെ നന്മയ്ക്കാണ്.", "Parents decide what is best for our safety and happiness."]),
+  ],
+  checkpointPool: [
+    choice("m7c1", C7, ["മുതിർന്നവർ സംസാരിക്കുമ്പോൾ കുട്ടികൾ?", "When elders are having a conversation, children should…"],
+      [["ഇടയിൽ കയറി ബഹളം വെക്കാതെ കാത്തിരിക്കുക", "wait patiently without interrupting"], ["ഇടയിൽ കയറി ഒച്ചയിടുക", "shout over them"], ["ശ്രദ്ധിക്കാതെ കളിയാക്കുക", "make fun of them"]],
+      ["അച്ചടക്കവും മര്യാദയും!", "Manners and patience!"], ["സംസാരം തടസ്സപ്പെടുത്താതിരിക്കുന്നത് വലിയ മര്യാദയാണ്.", "Not interrupting is a sign of good upbringing."]),
+    choice("m7c2", C7, ["മാതാപിതാക്കൾക്ക് വേണ്ടി ദിവസവും എന്ത് ചെയ്യാം?", "What special gift can we give our parents every day?"],
+      [["പ്രാർത്ഥന (ദുആ) ചെയ്യുക", "Make sincere Dua for them"], ["അവർ പറയുന്നത് കേൾക്കാതിരിക്കുക", "Ignore their instructions"], ["എപ്പോഴും എന്തെങ്കിലും ആവശ്യപ്പെടുക", "Only ask them for gifts"]],
+      ["ദുആ ഏറ്റവും വലിയ സമ്മാനമാണ്!", "Dua is the greatest gift!"], ["മാതാപിതാക്കൾക്ക് വേണ്ടിയുള്ള ദുആ അല്ലാഹു വേഗത്തിൽ സ്വീകരിക്കും.", "Dua for parents is beloved to Allah."]),
+  ],
+  revision: [
+    choice("m7r1", C7, ["മുത്തശ്ശിയുടെ കണ്ണട കാണാനില്ലെന്ന് പറഞ്ഞു. നിങ്ങൾ?", "Grandma says she cannot find her reading glasses. You…"],
+      [["സന്തോഷത്തോടെ തിരഞ്ഞ് കണ്ടുപിടിച്ചു നൽകുക", "Cheerfully look around and hand them to her"], ["“എനിക്ക് സമയമില്ല” എന്ന് പറയുക", "Say “I don't have time”"], ["കേൾക്കാത്ത ഭാവം നടിക്കുക", "Pretend not to hear"]],
+      ["സഹായമനസ്കത!", "Helpful spirit!"], ["മുതിർന്നവരെ സഹായിക്കുന്നത് അനുഗ്രഹമാണ്.", "Helping elders brings endless blessings."]),
+  ],
+  family: tx(["ഇന്ന് ഉമ്മയ്ക്കും ഉപ്പയ്ക്കും മുത്തശ്ശനും വേണ്ടി പ്രത്യേകമായി ദുആ ചെയ്യുക.", "Make a special heartfelt prayer together for parents and grandparents today."]),
+};
+
+// ---------------- Mission 8: Cleanliness & Taharah ----------------
+const C8: [string, string] = ["വൃത്തിയും ശുദ്ധിയും", "Cleanliness & purity"];
+const m8: Mission = {
+  ...base,
+  id: "m8-cleanliness",
+  order: 8,
+  title: tx(["വൃത്തിയും ശുദ്ധിയും", "Cleanliness & purity"]),
+  concept: tx(C8),
+  objective: tx(["ശരീരവും വസ്ത്രവും ചുറ്റുപാടും വൃത്തിയായി സൂക്ഷിക്കാൻ കുട്ടി ശീലിക്കുന്നു.", "The child learns to keep their body, clothes, and surroundings clean and pure."]),
+  teaching: {
+    title: tx(["ശുദ്ധി വിശ്വാസത്തിന്റെ പകുതിയാണ്", "Purity is half of faith"]),
+    body: [
+      tx(["നമ്മുടെ ശരീരവും വസ്ത്രവും മുറിയും എപ്പോഴും വൃത്തിയായിരിക്കണം.", "Keep our bodies, clothes, and living spaces clean and fresh."]),
+      tx(["ഭക്ഷണത്തിന് മുമ്പും ശേഷവും കൈകൾ നന്നായി കഴുകണം.", "Wash hands thoroughly before and after every meal."]),
+      tx(["വഴികളിലുള്ള മാലിന്യങ്ങൾ എടുത്തു മാറ്റുന്നത് വിശ്വാസത്തിന്റെ ഭാഗമാണ്.", "Removing harmful objects and trash from paths is part of faith."]),
+    ],
+    arabic: {
+      text: "الطَّهُورُ شَطْرُ الإِيمَانِ",
+      transliteration: tx(["അത്ത്വഹൂറു ശത്വ്റുൽ ഈമാൻ", "Aṭ-ṭahūru shaṭrul-īmān"]),
+      meaning: tx(["ശുദ്ധി വിശ്വാസത്തിന്റെ പകുതിയാകുന്നു", "Cleanliness and purity are half of faith"]),
+    },
+  },
+  activities: [
+    choice("m8a1", C8,
+      ["ബിസ്ക്കറ്റ് തിന്ന ശേഷം പ്ലാസ്റ്റിക് കവർ കയ്യിലുണ്ട്. അടുത്തൊന്നും വേസ്റ്റ് ബിൻ ഇല്ല. എന്ത് ചെയ്യും?", "You finished a snack and have the wrapper in hand. No bin is nearby. What to do?"],
+      [["ബാഗിലോ പോക്കറ്റിലോ വെച്ച് ബിൻ കാണുമ്പോൾ അതിൽ നിക്ഷേപിക്കുക", "Keep it in pocket or bag until finding a dustbin"],
+       ["ആരും കാണാതെ റോഡരികിലേക്ക് വലിച്ചെറിയുക", "Toss it on the pavement when no one is looking"],
+       ["കാറ്റിൽ പറത്തിവിടുക", "Let the wind blow it away"]],
+      ["നല്ല പൗരനും നല്ല വിശ്വാസിയും!", "A true believer and responsible guardian of nature!"],
+      ["വഴിയിൽ മാലിന്യം ഇടുന്നത് മറ്റുള്ളവർക്ക് ബുദ്ധിമുട്ടുണ്ടാക്കും. ബിന്നിൽ മാത്രമേ ഇടാവൂ.", "Throwing trash outdoors harms others and the environment."]),
+    match("m8a2", C8,
+      ["വൃത്തിയുടെ ശീലങ്ങളെ ശരിയായ സമയവുമായി ചേർക്കൂ", "Match clean habits with the right time"],
+      [[["ഭക്ഷണത്തിന് മുമ്പ്", "Before having food"], ["കൈകൾ സോപ്പിട്ട് കഴുകുക", "Wash hands with soap"]],
+       [["വുദു ചെയ്യുമ്പോൾ", "When doing Wudu"], ["വെള്ളം ദുർവ്യയം ചെയ്യാതിരിക്കുക", "Use water moderately without wasting"]],
+       [["വീട്ടിൽ പ്രവേശിക്കുമ്പോൾ", "Entering the home"], ["ചെരിപ്പുകൾ നേരെ വെക്കുക", "Place shoes neatly on the rack"]]],
+      ["വൃത്തിയുള്ള ചിട്ടകൾ!", "Pristine habits!"],
+      ["വൃത്തി നമ്മുടെ ദിനചര്യയുടെ ഓരോ ഭാഗത്തും വേണം.", "Cleanliness should shine in every part of daily routine."]),
+    sequence("m8a3", C8,
+      ["ഭക്ഷണത്തിന് ശേഷം കൈകഴുകി സ്ഥലം വൃത്തിയാക്കുന്ന ക്രമം", "Steps for cleaning up after meals"],
+      [["പ്ലേറ്റിൽ നിന്ന് എഴുന്നേൽക്കുക", "Finish eating respectfully"], ["കൈകളും വായും നന്നായി കഴുകുക", "Wash hands and mouth cleanly"], ["സ്വന്തം പ്ലേറ്റ് സിങ്കിൽ കൊണ്ടുപോയി വെക്കുക", "Carry plate to the kitchen sink"], ["മേശ തുടച്ച് വൃത്തിയാക്കാൻ സഹായിക്കുക", "Help wipe the dining table"]],
+      ["സ്മാർട്ട് ശീലം!", "Smart and tidy habit!"],
+      ["കഴിച്ച ശേഷം സ്വന്തം പ്ലേറ്റ് മാറ്റുന്നത് വലിയ നല്ല ശീലമാണ്.", "Clearing your own plate shows maturity and helpfulness."]),
+  ],
+  checkpointPool: [
+    choice("m8c1", C8, ["വുദു ചെയ്യുമ്പോൾ പൈപ്പ് മുഴുവനായി തുറന്നുവെക്കാമോ?", "Should we keep the tap on full blast during Wudu?"],
+      [["ഇല്ല, ആവശ്യത്തിന് മാത്രം വെള്ളമെടുക്കുക", "No, use only as much water as needed"], ["ഉവ്വ്, കൂടുതൽ വെള്ളം കൂടുതൽ ശുദ്ധി നൽകും", "Yes, more water means more reward"], ["വേഗത്തിൽ തീർക്കാൻ തുറക്കാം", "Yes, to finish faster"]],
+      ["വെള്ളം പാഴാക്കരുത്!", "Never waste water!"], ["പ്രവാചകൻ ﷺ വുദുവിൽ വെള്ളം പാഴാക്കുന്നത് വിലക്കിയിട്ടുണ്ട്.", "The Prophet ﷺ taught never to waste water, even at a flowing river."]),
+    choice("m8c2", C8, ["പല്ല് തേക്കുന്നത് (മിസ്വാക് / ബ്രഷിംഗ്) എപ്പോഴൊക്കെ നല്ലതാണ്?", "When is brushing teeth especially encouraged?"],
+      [["രാവിലെയും ഉറങ്ങുന്നതിന് മുമ്പും നിസ്കാരങ്ങൾക്ക് മുമ്പും", "Morning, bedtime, and before prayers"], ["ആഴ്ചയിൽ ഒരിക്കൽ മാത്രം", "Only once a week"], ["മിഠായി തിന്നുമ്പോൾ മാത്രം", "Only after candy"]],
+      ["വായയുടെ ശുദ്ധി പ്രധാനം!", "Oral hygiene is essential!"], ["വായ ശുദ്ധിയാക്കുന്നത് നാഥന് ഏറെ ഇഷ്ടമാണ്.", "Cleaning the mouth is pleasing to the Lord."]),
+  ],
+  revision: [
+    choice("m8r1", C8, ["മുറിയിൽ കളിപ്പാട്ടങ്ങളും പുസ്തകങ്ങളും ചിതറിക്കിടക്കുന്നു.", "Toys and books are scattered across your bedroom floor."],
+      [["ഓരോന്നും അതതിന്റെ സ്ഥാനത്ത് എടുത്തുവെക്കുക", "Put each item back in its proper place"], ["ഉമ്മ വന്ന് എടുക്കട്ടെ എന്ന് വിചാരിക്കുക", "Wait for mum to pick them up"], ["ചവിട്ടി നടക്കുക", "Step over them"]],
+      ["വൃത്തിയും അടുക്കും ചിട്ടയും!", "Order and cleanliness!"], ["സ്വന്തം സാധനങ്ങൾ ക്രമീകരിച്ചു വെക്കണം.", "Keep your personal space tidy."]),
+  ],
+  family: tx(["ഇന്ന് നിങ്ങളുടെ മുറിയോ പഠനമേശയോ ഒരുമിച്ച് വൃത്തിയാക്കി ഭംഗിയാക്കൂ.", "Organise your study desk or bedroom together with family today."]),
+};
+
+// ---------------- Mission 9: Truthfulness & Honesty ----------------
+const C9: [string, string] = ["സത്യസന്ധത", "Truthfulness & honesty"];
+const m9: Mission = {
+  ...base,
+  id: "m9-truthfulness",
+  order: 9,
+  title: tx(["സത്യസന്ധതയുടെ ധൈര്യം", "Courage of truthfulness"]),
+  concept: tx(C9),
+  objective: tx(["ഭയപ്പെടാതെ സത്യം പറയാനും തെറ്റുകൾ ഏറ്റുപറയാനും കുട്ടി പഠിക്കുന്നു.", "The child learns the bravery of speaking the truth and owning up to mistakes."]),
+  teaching: {
+    title: tx(["സത്യം പറയുമ്പോൾ മനസ്സ് ശാന്തമാകും", "Truth brings inner peace"]),
+    body: [
+      tx(["തെറ്റ് പറ്റിയാൽ ഭയന്ന് കള്ളം പറയരുത്; സത്യം തുറന്നുപറയുക.", "Never lie out of fear when a mistake happens; speak the truth openly."]),
+      tx(["സത്യം പറയുന്നവരെ എല്ലാവരും വിശ്വസിക്കും, അല്ലാഹു സ്നേഹിക്കും.", "Those who speak truth are trusted by all and loved by Allah."]),
+      tx(["കളികളിലും പരീക്ഷകളിലും കള്ളത്തരം കാണിക്കാതിരിക്കുക.", "Never cheat in games, sports, or schoolwork."]),
+    ],
+    arabic: {
+      text: "عَلَيْكُمْ بِالصِّدْقِ",
+      transliteration: tx(["അലൈക്കും ബിസ്സിദ്ഖ്", "'Alaykum biṣ-ṣidq"]),
+      meaning: tx(["നിങ്ങൾ സത്യസന്ധത മുറുകെപ്പിടിക്കുക", "Hold firmly to truthfulness at all times"]),
+    },
+  },
+  activities: [
+    choice("m9a1", C9,
+      ["കളിക്കുന്നതിനിടയിൽ അബദ്ധത്തിൽ പൂപ്പാത്രം തട്ടി താഴെ വീണ് പൊട്ടി. ഉപ്പ ശബ്ദം കേട്ട് വന്നു ചോദിച്ചു. എന്ത് പറയണം?", "While playing, you accidentally knocked over a vase and it broke. Dad asks what happened. What should you say?"],
+      [["“ഉപ്പാ, അബദ്ധത്തിൽ എന്റെ കൈ തട്ടി വീണതാണ്, എന്നോട് ക്ഷമിക്കണം.”", "“Dad, I bumped into it accidentally while playing. I am very sorry.”"],
+       ["“പൂച്ച വന്ന് തട്ടിയിട്ടതാണ്” എന്ന് കള്ളം പറയുക", "Lie and say “The neighbour's cat knocked it over!”"],
+       ["അനിയൻ തട്ടിയതാണെന്ന് പറഞ്ഞ് കുറ്റം ചാർത്തുക", "Blame your little brother instead"]],
+      ["സത്യം പറഞ്ഞ ധീരത! ഉപ്പ നിങ്ങളെ കൂടുതൽ സ്നേഹിക്കും.", "Brave honesty! Telling the truth earns lasting respect and trust."],
+      ["കള്ളം പറഞ്ഞാൽ കുറ്റം കൂടും, സത്യം പറഞ്ഞാൽ പ്രശ്നം പരിഹരിക്കാം.", "A lie makes a problem worse, while the truth brings relief."]),
+    match("m9a2", C9,
+      ["സത്യസന്ധമായ പ്രതികരണങ്ങളെ കണ്ടെത്തൂ", "Match honest responses to each challenge"],
+      [[["കളിയിൽ ഔട്ടായി", "Tagged out in a game"], ["സത്യസന്ധമായി അംഗീകരിച്ച് മാറിനിൽക്കുക", "Accept it honestly and step aside"]],
+       [["കടക്കാരൻ ബാക്കി തുക കൂടുതൽ തന്നു", "Shopkeeper mistakenly gave extra change"], ["ഉടൻ തന്നെ അത് തിരികെ നൽകുക", "Hand it back immediately"]],
+       [["ഹോംവർക്ക് ചെയ്യാൻ മറന്നു", "Forgot to do homework"], ["കാരണം തുറന്നുപറഞ്ഞ് ക്ഷമ ചോദിക്കുക", "Explain honestly and apologise"]]],
+      ["സത്യസന്ധമായ മാതൃകകൾ!", "Honest role models!"],
+      ["ചെറിയ കാര്യങ്ങളിലും സത്യം പാലിക്കുന്നത് വലിയ സ്വഭാവമാണ്.", "Practising honesty in little things builds noble character."]),
+    sequence("m9a3", C9,
+      ["തെറ്റ് പറ്റിപ്പോയാൽ സത്യം പറഞ്ഞ് തിരുത്തേണ്ട ക്രമം", "Steps for admitting a mistake honestly"],
+      [["ആഴത്തിൽ ശ്വാസമെടുത്ത് മനസ്സ് ശാന്തമാക്കുക", "Take a deep breath and calm your heart"], ["ഉണ്ടായ കാര്യം സത്യസന്ധമായി പറയുക", "Clearly state what actually happened"], ["മനസ്സറിഞ്ഞ് ‘സോറി’ പറയുക", "Sincerely say 'I am sorry'"], ["അത് പരിഹരിക്കാൻ സഹായിക്കുക", "Help clean up or fix the mistake"]],
+      ["സത്യസന്ധമായ തിരുത്തൽ!", "Genuine and honest rectification!"],
+      ["സത്യം പറയുന്നതിലൂടെ തെറ്റുകൾക്ക് മാപ്പ് ലഭിക്കുന്നു.", "Admitting truth opens the door to forgiveness."]),
+  ],
+  checkpointPool: [
+    choice("m9c1", C9, ["തമാശയ്ക്ക് പോലും കള്ളം പറയാമോ?", "Is it okay to lie just for a joke?"],
+      [["പാടില്ല, ചിരിപ്പിക്കാൻ വേണ്ടിയും കള്ളം പറയരുത്", "No, never lie even to make people laugh"], ["ആരും അറിയില്ലെങ്കിൽ പറയാം", "Yes, if nobody finds out"], ["സുഹൃത്തുക്കളോട് പറയാം", "Yes, with close friends"]],
+      ["പ്രവാചക അധ്യാപനം!", "Prophetic teaching!"], ["തമാശക്ക് പോലും കളവ് പറയാതിരിക്കുന്നവർക്ക് സ്വർഗ്ഗത്തിൽ വീടുണ്ട്.", "There is high reward for avoiding lies even in jest."]),
+    choice("m9c2", C9, ["റോഡിൽ നിന്ന് ഉടമസ്ഥനില്ലാത്ത പഴ്സ് കിട്ടിയാൽ?", "You find a lost wallet on the street. What to do?"],
+      [["മുതിർന്നവരെ സമീപിച്ച് ഉടമയെ കണ്ടെത്താൻ ശ്രമിക്കുക", "Hand it to a trusted adult/police to find the owner"], ["പോക്കറ്റിലിട്ട് സ്വന്തമാക്കുക", "Keep it in your pocket"], ["കൂട്ടുകാർക്ക് വീതിച്ചു നൽകുക", "Divide the money with friends"]],
+      ["അമാനത്ത് സൂക്ഷിച്ചു!", "Preserved the trust!"], ["മറ്റുള്ളവരുടെ വസ്തുക്കൾ നമ്മുടേതല്ല.", "Others' belongings must be returned faithfully."]),
+  ],
+  revision: [
+    choice("m9r1", C9, ["പരീക്ഷയിൽ കൂട്ടുകാരന്റെ ഉത്തരക്കടലാസ് തുറന്നിരിക്കുന്നത് കണ്ടു. നിങ്ങൾ?", "You notice a classmate's answer sheet is visible during a test. You…"],
+      [["സ്വന്തം പേപ്പറിൽ മാത്രം ശ്രദ്ധിച്ച് എഴുതുക", "Keep eyes strictly on your own paper"], ["നോക്കി ഉത്തരം പകർത്തുക", "Peek and copy the answer"], ["കൂട്ടുകാരോട് ആംഗ്യം കാണിക്കുക", "Signal answers to others"]],
+      ["സത്യസന്ധമായ വിജയം!", "Honest success!"], ["വഞ്ചന കാണിക്കുന്നവർ നമ്മിൽ പെട്ടവനല്ല.", "Whoever cheats is not of us."]),
+  ],
+  family: tx(["ഇന്ന് കുടുംബത്തോടൊപ്പം സത്യസന്ധതയെക്കുറിച്ചുള്ള ഒരു നല്ല കഥ പങ്കുവെക്കൂ.", "Share an inspiring true story about honesty with your family tonight."]),
+};
+
+// ---------------- Mission 10: Patience & Gratitude ----------------
+const C10: [string, string] = ["ക്ഷമയും നന്ദിയും", "Patience & gratitude"];
+const m10: Mission = {
+  ...base,
+  id: "m10-gratitude",
+  order: 10,
+  title: tx(["ക്ഷമയും നന്ദിയും", "Patience & gratitude"]),
+  concept: tx(C10),
+  objective: tx(["പ്രയാസങ്ങളിൽ ക്ഷമിക്കാനും അനുഗ്രഹങ്ങളിൽ അല്ലാഹുവിന് നന്ദി പറയാനും പഠിക്കുന്നു.", "The child learns to practice patience (Sabr) and express daily gratitude (Shukr)."]),
+  teaching: {
+    title: tx(["സബ്റും ശുക്റും വിശ്വാസിയുടെ രണ്ട് ചിറകുകൾ", "Sabr & Shukr: Two wings"]),
+    body: [
+      tx(["നല്ല കാര്യങ്ങൾ സംഭവിക്കുമ്പോൾ ‘അൽഹംദുലില്ലാഹ്’ എന്ന് നന്ദി പറയുക.", "When good things happen, say 'Alhamdulillah' with a grateful heart."]),
+      tx(["കാര്യങ്ങൾ നാം ഉദ്ദേശിച്ച പോലെ നടക്കാത്തപ്പോൾ ക്ഷമയോടെ (സബ്ർ) കാത്തിരിക്കുക.", "When things don't go as planned, be patient and remain calm."]),
+      tx(["വിശപ്പ്, ക്ഷീണം, കാത്തിരിപ്പ് എന്നിവ വരുമ്പോൾ അസ്വസ്ഥരാകാതിരിക്കുക.", "Stay composed during hunger, tiredness, or long waits in queues."]),
+    ],
+    arabic: {
+      text: "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
+      transliteration: tx(["അൽഹംദുലില്ലാഹി റബ്ബിൽ ആലമീൻ", "Al-ḥamdu lillāhi Rabbil-'ālamīn"]),
+      meaning: tx(["സർവ്വസ്തുതിയും ലോകരക്ഷിതാവായ അല്ലാഹുവിനാകുന്നു", "All praise belongs to Allah, Lord of all the worlds"]),
+    },
+  },
+  activities: [
+    choice("m10a1", C10,
+      ["നിങ്ങൾ ഒരുപാട് ആഗ്രഹിച്ച കളിപ്പാട്ടം കടയിൽ തീർന്നുപോയി. നിങ്ങൾ എന്ത് ചെയ്യണം?", "The toy you eagerly wanted is out of stock at the store. What should you do?"],
+      [["“സാരമില്ല, അല്ലാഹു ഇതിലും നല്ലത് തരും” എന്ന് പറഞ്ഞ് ക്ഷമിക്കുക", "Be patient and say “It's okay, Allah will provide what is best”"],
+       ["കടയിൽ വെച്ച് നിലത്തുരുണ്ട് വാശിപിടിച്ച് കരയുക", "Throw a tantrum and roll on the store floor"],
+       ["മാതാപിതാക്കളോട് ദേഷ്യപ്പെട്ട് മിണ്ടാതിരിക്കുക", "Snap at your parents and stay grumpy"]],
+      ["മനോഹരമായ സബ്ർ! അല്ലാഹു ക്ഷമിക്കുന്നവരെ സ്നേഹിക്കുന്നു.", "Beautiful Sabr! Allah loves those who remain patient."],
+      ["ആഗ്രഹിച്ചതെല്ലാം ഉടൻ കിട്ടണമെന്നില്ല. ക്ഷമിക്കുന്നതിലാണ് പ്രതിഫലം.", "Not everything comes instantly; great patience brings great rewards."]),
+    match("m10a2", C10,
+      ["അനുഗ്രഹങ്ങൾക്ക് നൽകേണ്ട നന്ദിയുടെ രീതികൾ ചേർക്കൂ", "Match everyday blessings with heartfelt gratitude"],
+      [[["രുചികരമായ ഭക്ഷണം കഴിച്ചപ്പോൾ", "After eating a delicious meal"], ["“അൽഹംദുലില്ലാഹ്” എന്ന് പറയുക", "Say “Alhamdulillah” with heart"]],
+       [["ആരോഗ്യമുള്ള കൈകാലുകൾ ലഭിച്ചതിന്", "Gift of a healthy body and limbs"], ["നല്ല കാര്യങ്ങൾ ചെയ്യാൻ ഉപയോഗിക്കുക", "Use them to do good deeds and help others"]],
+       [["സ്നേഹമുള്ള കുടുംബവും കൂട്ടുകാരും", "A loving family and kind friends"], ["അവർക്ക് വേണ്ടി നന്മകൾ പ്രാർത്ഥിക്കുക", "Pray for their well-being and smile with them"]]],
+      ["കൃതജ്ഞത നിറഞ്ഞ ഹൃദയം!", "Grateful heart!"],
+      ["നന്ദി കാണിക്കുമ്പോൾ അനുഗ്രഹങ്ങൾ വീണ്ടും വർദ്ധിക്കും.", "When you are grateful, Allah increases your blessings."]),
+    sequence("m10a3", C10,
+      ["നീണ്ട വരിയിൽ കാത്തുനിൽക്കുമ്പോൾ ക്ഷമ പാലിക്കേണ്ട ക്രമം", "Steps for staying patient in a long queue"],
+      [["ശാന്തമായി സ്വന്തം വരിയിൽ നിൽക്കുക", "Stand calmly in your designated line"], ["മറ്റുള്ളവരെ തള്ളിമാറ്റാതെ ക്ഷമയോടെ കാത്തിരിക്കുക", "Wait without pushing or complaining"], ["മനസ്സിൽ ദിക്റുകൾ ചൊല്ലുക", "Engage your heart with soft Dhikr"], ["സ്വന്തം ഊഴം എത്തുമ്പോൾ പുഞ്ചിരിയോടെ മുന്നോട്ട് വരിക", "Step forward with a smile when your turn arrives"]],
+      ["ഉത്തമമായ ക്ഷമ!", "Exemplary patience!"],
+      ["കാത്തിരിപ്പിലും ദിക്ർ ചൊല്ലിയാൽ സമയം സന്തോഷകരമാകും.", "Remembering Allah turns waiting time into rewards."]),
+  ],
+  checkpointPool: [
+    choice("m10c1", C10, ["നമ്മൾ ഉറക്കമുണരുമ്പോൾ ആദ്യം എന്താണ് പറയേണ്ടത്?", "What should we say first upon waking up?"],
+      [["അൽഹംദുലില്ലാഹ് (ജീവനേകിയ നാഥന് സ്തുതി)", "Alhamdulillah (praise for giving us life again)"], ["“എനിക്ക് ഉറക്കം തീർന്നില്ല” എന്ന് പരാതി പറയുക", "Complain about being sleepy"], ["ഫോൺ തിരയുക", "Search for phone"]],
+      ["പുതിയൊരു പ്രഭാതത്തിന് നന്ദി!", "Gratitude for a new morning!"], ["ഓരോ ദിവസവും നാഥന്റെ പുത്തൻ അനുഗ്രഹമാണ്.", "Each day is a fresh gift from our Creator."]),
+    choice("m10c2", C10, ["പ്രയാസങ്ങൾ വരുമ്പോൾ ഒരു വിശ്വാസി എന്ത് പറയുന്നു?", "What does a believer say in difficult moments?"],
+      [["ഇന്നാ ലില്ലാഹി വ ഇന്നാ ഇലൈഹി റാജിഊൻ", "Innā lillāhi wa innā ilayhi rāji'ūn"], ["“എനിക്ക് മാത്രം എന്തുകൊണ്ട്?” എന്ന് ചോദിക്കുക", "Complain “Why only me?”"], ["ദേഷ്യപ്പെട്ട് സാധനങ്ങൾ എറിയുക", "Throw things in rage"]],
+      ["വിശ്വാസത്തിന്റെ കരുത്ത്!", "Strength of faith!"], ["എല്ലാം അല്ലാഹുവിങ്കൽ നിന്നാണ്, അവങ്കലേക്കാണ് മടക്കം.", "To Allah we belong, and to Him is our return."]),
+  ],
+  revision: [
+    choice("m10r1", C10, ["മഴ കാരണം കൂട്ടുകാരോടൊപ്പമുള്ള കളി മുടങ്ങി. നിങ്ങൾ?", "Heavy rain cancelled outdoor games with friends. You…"],
+      [["“അൽഹംദുലില്ലാഹ്, മഴ നാടിന് അനുഗ്രഹമാണ്” എന്ന് കണ്ട് വീട്ടിലിരുന്ന് കളിക്കുക", "Say “Alhamdulillah, rain is a blessing” and play indoors happily"], ["മഴയെ കുറ്റപ്പെടുത്തുക", "Curse the rain"], ["ദേഷ്യപ്പെട്ട് കിടന്നുറങ്ങുക", "Sulka and sleep in anger"]],
+      ["മഴ അനുഗ്രഹമാണ്!", "Rain is mercy!"], ["കാലാവസ്ഥയെ കുറ്റപ്പെടുത്താതെ നല്ല വശം കാണാം.", "Never blame the weather; appreciate its blessings."]),
+  ],
+  family: tx(["ഇന്ന് കുടുംബത്തിലെ ഓരോരുത്തരും ഇന്ന് നന്ദി തോന്നിയ 3 കാര്യങ്ങൾ പങ്കുവെക്കൂ.", "Each person shares 3 specific blessings they are grateful for today."]),
+};
+
+export const akhlaqMissions: Mission[] = [m1, m2, m3, m4, m5, m6, m7, m8, m9, m10];
 
 /** Adult-preview-only fixtures demonstrating publishing states. Never shown to children. */
 export const nonPublishedMissions: Mission[] = [

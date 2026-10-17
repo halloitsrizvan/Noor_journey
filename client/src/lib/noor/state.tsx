@@ -32,16 +32,19 @@ export interface NoorContextValue {
   register: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   setLang: (lang: Lang) => void;
+  setLanguage: (lang: Lang) => void;
   toggleSound: () => void;
   toggleReducedMotion: () => void;
   setActiveProfileId: (id: string) => void;
   loginStudent: (data: {
     nickname: string;
+    email?: string;
     ageBand: AgeBand;
     priorStandard: PriorStandard;
   }) => string;
   createProfile: (data: {
     nickname: string;
+    email?: string;
     ageBand: AgeBand;
     priorStandard: PriorStandard;
     avatarId: string;
@@ -50,6 +53,13 @@ export interface NoorContextValue {
   deleteProfile: (id: string) => void;
   updateWeeklyGoal: (goal: 2 | 3 | 5) => void;
   updateAvatar: (avatarId: string) => void;
+  updateProfileImage: (avatarUrl: string | null) => void;
+  updateStudentDetails: (details: { ageBand: AgeBand; priorStandard: PriorStandard }) => void;
+  awardXp: (
+    amount: number,
+    reason?: "mission" | "review" | "chapter-review" | "tajweed" | "quiz" | "activity" | "fatihah",
+    dedupeKey?: string
+  ) => number;
   completeMission: (missionId: string, checkpointScore: number) => { xpAwarded: number; newBadge: boolean };
   completeReview: (missionId: string) => { xpAwarded: number };
   saveReflection: (missionId: string, note: string) => void;
@@ -61,6 +71,7 @@ export interface NoorContextValue {
   getMissionStatus: (missionId: string) => "completed" | "current" | "available" | "locked" | "coming-soon";
   getDueReviews: () => { missionId: string; review: ReviewItem; missionTitle: { ml: string; en: string } }[];
   getTotalXp: () => number;
+  getNoorStars: () => number;
   getCurrentLevel: () => number;
   getWeeklyProgressCount: () => number;
 }
@@ -82,6 +93,23 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const live = await api.health.checkLive();
         if (mounted && live?.status === "ok") {
           setIsBackendConnected(true);
+          // Sync any local student profiles to backend database
+          if (Array.isArray(state.profiles)) {
+            state.profiles.forEach((p) => {
+              if (p.nickname) {
+                api.children
+                  .syncStudent({
+                    nickname: p.nickname,
+                    email: p.email,
+                    ageBand: p.ageBand,
+                    priorStandard: p.priorStandard,
+                    avatarKey: p.avatarId,
+                    weeklyGoal: p.weeklyGoal,
+                  })
+                  .catch(() => {});
+              }
+            });
+          }
           // Check if session exists
           try {
             const me = await api.auth.getMe();
@@ -210,6 +238,7 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const createProfile = useCallback(
     (data: {
       nickname: string;
+      email?: string;
       ageBand: AgeBand;
       priorStandard: PriorStandard;
       avatarId: string;
@@ -219,6 +248,7 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const newProfile: ChildProfile = {
         id,
         nickname: data.nickname || "കുട്ടി",
+        email: data.email,
         ageBand: data.ageBand,
         priorStandard: data.priorStandard,
         avatarId: data.avatarId || "lantern-noor",
@@ -228,16 +258,29 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
         createdAt: effectiveNow,
       };
 
-      // If backend is active and logged in, sync creation
-      if (isBackendConnected && authAccount) {
-        api.children.create({
+      // Always sync creation to backend
+      api.children
+        .syncStudent({
           nickname: newProfile.nickname,
+          email: newProfile.email,
           ageBand: newProfile.ageBand,
-          preferredLanguage: "ml",
           priorStandard: newProfile.priorStandard,
           avatarKey: newProfile.avatarId,
           weeklyGoal: newProfile.weeklyGoal,
-        }).catch(() => {});
+        })
+        .catch(() => {});
+
+      if (isBackendConnected && authAccount) {
+        api.children
+          .create({
+            nickname: newProfile.nickname,
+            ageBand: newProfile.ageBand,
+            preferredLanguage: "ml",
+            priorStandard: newProfile.priorStandard,
+            avatarKey: newProfile.avatarId,
+            weeklyGoal: newProfile.weeklyGoal,
+          })
+          .catch(() => {});
       }
 
       setState((prev) => ({
@@ -255,10 +298,18 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 
   const loginStudent = useCallback(
-    (data: { nickname: string; ageBand: AgeBand; priorStandard: PriorStandard }) => {
+    (data: {
+      nickname: string;
+      email?: string;
+      ageBand: AgeBand;
+      priorStandard: PriorStandard;
+    }) => {
       const cleanName = data.nickname.trim();
+      const cleanEmail = data.email?.trim();
       const existing = state.profiles.find(
-        (p) => p.nickname.toLowerCase() === cleanName.toLowerCase()
+        (p) =>
+          p.nickname.toLowerCase() === cleanName.toLowerCase() ||
+          (cleanEmail && p.email?.toLowerCase() === cleanEmail.toLowerCase())
       );
       if (existing) {
         setState((prev) => ({
@@ -266,7 +317,12 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
           activeProfileId: existing.id,
           profiles: prev.profiles.map((p) =>
             p.id === existing.id
-              ? { ...p, ageBand: data.ageBand, priorStandard: data.priorStandard }
+              ? {
+                  ...p,
+                  email: cleanEmail || p.email,
+                  ageBand: data.ageBand,
+                  priorStandard: data.priorStandard,
+                }
               : p
           ),
         }));
@@ -274,6 +330,7 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         return createProfile({
           nickname: cleanName,
+          email: cleanEmail,
           ageBand: data.ageBand,
           priorStandard: data.priorStandard,
           avatarId: "lantern-noor",
@@ -328,6 +385,32 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
     });
   }, [isBackendConnected, authAccount, state.activeProfileId]);
+
+  const updateProfileImage = useCallback((avatarUrl: string | null) => {
+    setState((prev) => {
+      if (!prev.activeProfileId) return prev;
+      return {
+        ...prev,
+        profiles: prev.profiles.map((p) =>
+          p.id === prev.activeProfileId ? { ...p, avatarUrl } : p
+        ),
+      };
+    });
+  }, []);
+
+  const updateStudentDetails = useCallback((details: { ageBand: AgeBand; priorStandard: PriorStandard }) => {
+    setState((prev) => {
+      if (!prev.activeProfileId) return prev;
+      return {
+        ...prev,
+        profiles: prev.profiles.map((p) =>
+          p.id === prev.activeProfileId
+            ? { ...p, ageBand: details.ageBand, priorStandard: details.priorStandard }
+            : p
+        ),
+      };
+    });
+  }, []);
 
   const completeMission = useCallback(
     (missionId: string, checkpointScore: number): { xpAwarded: number; newBadge: boolean } => {
@@ -470,6 +553,54 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [activeProfile, activeProgress, effectiveNow]
   );
 
+  const awardXp = useCallback(
+    (
+      amount: number,
+      reason: "mission" | "review" | "chapter-review" | "tajweed" | "quiz" | "activity" | "fatihah" = "activity",
+      dedupeKey?: string
+    ): number => {
+      if (!activeProfile || amount <= 0) return 0;
+      const profileId = activeProfile.id;
+      const finalDedupeKey =
+        dedupeKey || `xp-${profileId}-${reason}-${effectiveNow}-${Math.random().toString(36).slice(2, 7)}`;
+
+      let actualAwarded = 0;
+      setState((prev) => {
+        const currentProg = prev.progress[profileId] || createInitialProgress();
+        const currentXp = Array.isArray(currentProg.xp) ? currentProg.xp : [];
+        const alreadyAwarded = currentXp.some((tx) => tx.id === finalDedupeKey);
+        if (alreadyAwarded) {
+          return prev;
+        }
+
+        actualAwarded = amount;
+        const newTx: XpTransaction = {
+          id: finalDedupeKey,
+          amount,
+          reason,
+          at: effectiveNow,
+        };
+
+        const currentSessions = Array.isArray(currentProg.sessions) ? currentProg.sessions : [];
+
+        return {
+          ...prev,
+          progress: {
+            ...prev.progress,
+            [profileId]: {
+              ...currentProg,
+              xp: [...currentXp, newTx],
+              sessions: [...currentSessions, effectiveNow],
+            },
+          },
+        };
+      });
+
+      return actualAwarded;
+    },
+    [activeProfile, effectiveNow]
+  );
+
   const saveReflection = useCallback(
     (missionId: string, note: string) => {
       if (!activeProfile || !activeProgress || !note.trim()) return;
@@ -478,6 +609,20 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (isBackendConnected && authAccount) {
         api.reflections.create(profileId, missionId, note.trim()).catch(() => {});
       }
+
+      const dedupeKey = `reflection-${profileId}-${missionId}`;
+      const alreadyXp = activeProgress.xp.some((t) => t.id === dedupeKey);
+      const newXpTransactions = alreadyXp
+        ? activeProgress.xp
+        : [
+            ...activeProgress.xp,
+            {
+              id: dedupeKey,
+              amount: 5,
+              reason: "activity" as const,
+              at: effectiveNow,
+            },
+          ];
 
       setState((prev) => ({
         ...prev,
@@ -489,6 +634,7 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
               ...activeProgress.reflections.filter((r) => r.missionId !== missionId),
               { missionId, note: note.trim(), at: effectiveNow },
             ],
+            xp: newXpTransactions,
           },
         },
       }));
@@ -571,6 +717,10 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return activeProgress.xp.reduce((sum, tx) => sum + tx.amount, 0);
   }, [activeProgress]);
 
+  const getNoorStars = useCallback(() => {
+    return Math.floor(getTotalXp() / 10);
+  }, [getTotalXp]);
+
   const getCurrentLevel = useCallback(() => {
     if (!activeProgress) return 1;
     const completedCount = Object.values(activeProgress.missions).filter((m) => m.passedAt).length;
@@ -603,6 +753,7 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
       register,
       logout,
       setLang,
+      setLanguage: setLang,
       toggleSound,
       toggleReducedMotion,
       setActiveProfileId,
@@ -611,6 +762,9 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
       deleteProfile,
       updateWeeklyGoal,
       updateAvatar,
+      updateProfileImage,
+      updateStudentDetails,
+      awardXp,
       completeMission,
       completeReview,
       saveReflection,
@@ -621,6 +775,7 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
       getMissionStatus,
       getDueReviews,
       getTotalXp,
+      getNoorStars,
       getCurrentLevel,
       getWeeklyProgressCount,
     }),
@@ -644,6 +799,8 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
       deleteProfile,
       updateWeeklyGoal,
       updateAvatar,
+      updateProfileImage,
+      awardXp,
       completeMission,
       completeReview,
       saveReflection,

@@ -1,7 +1,7 @@
 import React from "react";
 import { useNoor } from "@/lib/noor/state";
 import { translations } from "@/lib/noor/i18n";
-import { Home, BookOpen, Award, User } from "lucide-react";
+import { Home, BookOpen, Trophy, User } from "lucide-react";
 
 export type NavTab = "journey" | "practice" | "collection" | "profile";
 
@@ -33,8 +33,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({
     },
     {
       id: "collection",
-      label: lang === "ml" ? "ശേഖരം" : "Collection",
-      icon: Award,
+      label: lang === "ml" ? "ലീഡർബോർഡ്" : "Leaderboard",
+      icon: Trophy,
     },
     {
       id: "profile",

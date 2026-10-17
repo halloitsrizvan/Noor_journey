@@ -15,6 +15,9 @@ import {
   Heart,
   Award,
   ArrowRight,
+  GripVertical,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { Illustration } from "@/components/common/Illustration";
 
@@ -47,8 +50,83 @@ export const MissionPlayer: React.FC<MissionPlayerProps> = ({
   const [selectedPairLeft, setSelectedPairLeft] = useState<string | null>(null);
   const [matchedPairs, setMatchedPairs] = useState<string[]>([]);
 
-  // Sequence state
+  // Sequence state & Drag-and-Drop
   const [sequenceOrder, setSequenceOrder] = useState<string[]>([]);
+  const [draggedSeqIdx, setDraggedSeqIdx] = useState<number | null>(null);
+  const [dragOverSeqIdx, setDragOverSeqIdx] = useState<number | null>(null);
+  const pointerCurrentSeqIdx = React.useRef<number | null>(null);
+
+  const reorderSequence = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0) return;
+    setSequenceOrder((prev) => {
+      const updated = [...prev];
+      const [moved] = updated.splice(fromIndex, 1);
+      updated.splice(toIndex, 0, moved);
+      return updated;
+    });
+  };
+
+  const handleSeqDragStart = (e: React.DragEvent, index: number) => {
+    e.dataTransfer.setData("text/plain", index.toString());
+    e.dataTransfer.effectAllowed = "move";
+    setDraggedSeqIdx(index);
+  };
+
+  const handleSeqDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (dragOverSeqIdx !== index) {
+      setDragOverSeqIdx(index);
+    }
+  };
+
+  const handleSeqDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedSeqIdx !== null && draggedSeqIdx !== targetIndex) {
+      reorderSequence(draggedSeqIdx, targetIndex);
+    }
+    setDraggedSeqIdx(null);
+    setDragOverSeqIdx(null);
+  };
+
+  const handleSeqDragEnd = () => {
+    setDraggedSeqIdx(null);
+    setDragOverSeqIdx(null);
+  };
+
+  const handlePointerDown = (e: React.PointerEvent, index: number) => {
+    if (isChecked) return;
+    const target = e.currentTarget as HTMLElement;
+    target.setPointerCapture?.(e.pointerId);
+    setDraggedSeqIdx(index);
+    pointerCurrentSeqIdx.current = index;
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (pointerCurrentSeqIdx.current === null) return;
+    const elementBelow = document.elementFromPoint(e.clientX, e.clientY);
+    const dropItem = elementBelow?.closest("[data-sequence-idx]");
+    if (dropItem) {
+      const targetIdx = Number(dropItem.getAttribute("data-sequence-idx"));
+      if (!isNaN(targetIdx) && targetIdx !== pointerCurrentSeqIdx.current) {
+        reorderSequence(pointerCurrentSeqIdx.current, targetIdx);
+        pointerCurrentSeqIdx.current = targetIdx;
+        setDraggedSeqIdx(targetIdx);
+        setDragOverSeqIdx(targetIdx);
+      }
+    }
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (pointerCurrentSeqIdx.current !== null) {
+      try {
+        (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
+      } catch {}
+      pointerCurrentSeqIdx.current = null;
+      setDraggedSeqIdx(null);
+      setDragOverSeqIdx(null);
+    }
+  };
 
   // Checkpoint state
   const checkpointQuestions = useMemo(() => {
@@ -383,62 +461,124 @@ export const MissionPlayer: React.FC<MissionPlayerProps> = ({
               </div>
             )}
 
-            {/* 3. Sequence Activity */}
+            {/* 3. Sequence Activity with Drag and Drop */}
             {currentActivity.kind === "sequence" && (
-              <div className="space-y-2">
-                <span className="text-[11px] text-muted-foreground block">
-                  {lang === "ml" ? "ശരിയായ ക്രമം നൽകാൻ മുകളിലോട്ടോ താഴോട്ടോ മാറ്റുക:" : "Use up/down to arrange the steps in the correct order:"}
-                </span>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-xs text-[#626273] font-semibold">
+                  <span className="flex items-center gap-1.5">
+                    <GripVertical className="w-4 h-4 text-[#7857E8]" />
+                    {lang === "ml"
+                      ? "ക്രമം മാറ്റാൻ വലിച്ച് മാറ്റുക (Drag to reorder):"
+                      : "Drag and drop to put the steps in order:"}
+                  </span>
+                  <span className="text-[11px] font-extrabold text-[#7857E8] bg-[#F0E9FF] px-2.5 py-0.5 rounded-full border border-[#E3D4FF]">
+                    {lang === "ml" ? "വലിച്ചിടുക" : "Drag & Drop"}
+                  </span>
+                </div>
 
-                {sequenceOrder.map((stepId, index) => {
-                  const stepObj = currentActivity.steps.find((s) => s.id === stepId);
-                  if (!stepObj) return null;
+                <div className="space-y-2.5">
+                  {sequenceOrder.map((stepId, index) => {
+                    const stepObj = currentActivity.steps.find((s) => s.id === stepId);
+                    if (!stepObj) return null;
 
-                  return (
-                    <div
-                      key={stepId}
-                      className="p-3 bg-card border-2 border-border rounded-2xl flex items-center justify-between gap-2 shadow-2xs"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="w-5 h-5 rounded-full bg-primary/15 text-primary text-xs font-black flex items-center justify-center">
-                          {index + 1}
-                        </span>
-                        <span className="text-xs font-bold text-foreground">
-                          {stepObj.text[lang]}
-                        </span>
-                      </div>
+                    const isBeingDragged = draggedSeqIdx === index;
+                    const isDragOver = dragOverSeqIdx === index && !isBeingDragged;
+                    const isCorrectStep = isChecked && currentActivity.steps[index]?.id === stepId;
 
-                      {!isChecked && (
-                        <div className="flex gap-1 shrink-0">
-                          <button
-                            type="button"
-                            disabled={index === 0}
-                            onClick={() => {
-                              const newOrder = [...sequenceOrder];
-                              [newOrder[index - 1], newOrder[index]] = [newOrder[index], newOrder[index - 1]];
-                              setSequenceOrder(newOrder);
-                            }}
-                            className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center text-xs font-bold disabled:opacity-30 tactile"
+                    return (
+                      <div
+                        key={stepId}
+                        data-sequence-idx={index}
+                        draggable={!isChecked}
+                        onDragStart={(e) => handleSeqDragStart(e, index)}
+                        onDragOver={(e) => handleSeqDragOver(e, index)}
+                        onDrop={(e) => handleSeqDrop(e, index)}
+                        onDragEnd={handleSeqDragEnd}
+                        className={`p-3.5 rounded-[22px] border-2 flex items-center justify-between gap-3 shadow-2xs transition-all select-none ${
+                          isBeingDragged
+                            ? "opacity-60 scale-102 border-[#7857E8] bg-[#F0E9FF] shadow-md z-30"
+                            : isDragOver
+                            ? "border-t-4 border-[#7857E8] bg-[#F0E9FF]/50"
+                            : isChecked
+                            ? isCorrectStep
+                              ? "bg-[#287553]/10 border-[#287553]"
+                              : "bg-[#B93848]/10 border-[#B93848]"
+                            : "bg-white border-[#E4E0E9] hover:border-[#7857E8]/50"
+                        }`}
+                      >
+                        {/* Drag Handle, Step Number & Text */}
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          {/* Tactile drag handle */}
+                          {!isChecked && (
+                            <div
+                              onPointerDown={(e) => handlePointerDown(e, index)}
+                              onPointerMove={handlePointerMove}
+                              onPointerUp={handlePointerUp}
+                              onPointerCancel={handlePointerUp}
+                              className="p-1 rounded-lg text-[#626273] hover:text-[#141426] hover:bg-[#F3F1F4] cursor-grab active:cursor-grabbing touch-none shrink-0"
+                              title="Drag to reorder"
+                              aria-label="Drag handle"
+                            >
+                              <GripVertical className="w-5 h-5 text-[#7857E8]" />
+                            </div>
+                          )}
+
+                          {/* Step Number Circle */}
+                          <span
+                            className={`w-7 h-7 rounded-full text-xs font-black flex items-center justify-center shrink-0 shadow-2xs ${
+                              isChecked
+                                ? isCorrectStep
+                                  ? "bg-[#287553] text-white"
+                                  : "bg-[#B93848] text-white"
+                                : "bg-[#7857E8] text-white"
+                            }`}
                           >
-                            ↑
-                          </button>
-                          <button
-                            type="button"
-                            disabled={index === sequenceOrder.length - 1}
-                            onClick={() => {
-                              const newOrder = [...sequenceOrder];
-                              [newOrder[index + 1], newOrder[index]] = [newOrder[index], newOrder[index + 1]];
-                              setSequenceOrder(newOrder);
-                            }}
-                            className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center text-xs font-bold disabled:opacity-30 tactile"
+                            {index + 1}
+                          </span>
+
+                          {/* Step Content */}
+                          <span
+                            className={`text-sm font-bold leading-snug truncate ${
+                              isChecked
+                                ? isCorrectStep
+                                  ? "text-[#287553]"
+                                  : "text-[#B93848]"
+                                : "text-[#141426]"
+                            }`}
                           >
-                            ↓
-                          </button>
+                            {stepObj.text[lang]}
+                          </span>
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
+
+                        {/* Accessibility Up/Down Buttons */}
+                        {!isChecked && (
+                          <div className="flex gap-1 shrink-0">
+                            <button
+                              type="button"
+                              disabled={index === 0}
+                              onClick={() => reorderSequence(index, index - 1)}
+                              className="w-7 h-7 rounded-xl bg-[#F3F1F4] hover:bg-[#E4E0E9] text-[#141426] flex items-center justify-center text-xs font-bold disabled:opacity-20 tactile"
+                              aria-label="Move up"
+                              title="Move up"
+                            >
+                              <ChevronUp className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              disabled={index === sequenceOrder.length - 1}
+                              onClick={() => reorderSequence(index, index + 1)}
+                              className="w-7 h-7 rounded-xl bg-[#F3F1F4] hover:bg-[#E4E0E9] text-[#141426] flex items-center justify-center text-xs font-bold disabled:opacity-20 tactile"
+                              aria-label="Move down"
+                              title="Move down"
+                            >
+                              <ChevronDown className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </div>

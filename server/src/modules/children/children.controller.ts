@@ -18,7 +18,7 @@ import {
 import { AuthGuard } from "@/common/guards/auth.guard";
 import { CsrfGuard } from "@/common/guards/csrf.guard";
 import { ChildOwnershipGuard } from "@/common/guards/child-ownership.guard";
-import { CurrentUser } from "@/common/decorators/auth.decorators";
+import { CurrentUser, Public } from "@/common/decorators/auth.decorators";
 import { Account } from "@prisma/client";
 
 @ApiTags("Child Profiles")
@@ -27,6 +27,30 @@ import { Account } from "@prisma/client";
 @Controller("children")
 export class ChildrenController {
   constructor(private readonly childrenService: ChildrenService) {}
+
+  @Get("leaderboard")
+  @Public()
+  @ApiOperation({ summary: "Get public student leaderboard" })
+  async getLeaderboard() {
+    return this.childrenService.getLeaderboard();
+  }
+
+  @Post("sync-student")
+  @Public()
+  @ApiOperation({ summary: "Sync student learner profile to database" })
+  async syncStudent(
+    @Body()
+    dto: {
+      nickname: string;
+      email?: string;
+      ageBand?: string;
+      priorStandard?: string;
+      avatarKey?: string;
+      weeklyGoal?: number;
+    }
+  ) {
+    return this.childrenService.syncStudent(dto);
+  }
 
   @Get()
   @ApiOperation({ summary: "List all children for authenticated parent" })

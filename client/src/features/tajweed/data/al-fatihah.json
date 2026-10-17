@@ -1,0 +1,266 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "tajweed-al-fatihah",
+  "slug": "al-fatihah",
+  "subject": "quran-studies",
+  "module": "tajweed",
+  "surah": {
+    "number": 1,
+    "nameArabic": "الفاتحة",
+    "nameEnglish": "Al-Fatihah",
+    "nameMalayalam": "അൽ-ഫാതിഹ",
+    "verseCount": 7,
+    "numberingNote": "This fixture counts the basmalah as verse 1."
+  },
+  "titles": {
+    "en": "My Al-Fatihah Journey",
+    "ml": "എന്റെ ഫാതിഹ പഠനയാത്ര"
+  },
+  "descriptions": {
+    "en": "Explore one verse at a time. Listen, practise and revisit.",
+    "ml": "ഓരോ ആയത്തായി പഠിക്കാം. കേൾക്കാം, പരിശീലിക്കാം, ആവർത്തിക്കാം."
+  },
+  "audience": {
+    "minimumAge": 9,
+    "maximumAge": 12
+  },
+  "curriculum": {
+    "intendedBoard": "SKIMVB",
+    "standard": null,
+    "book": null,
+    "chapter": null,
+    "mappingStatus": "pending"
+  },
+  "source": {
+    "referenceUrl": "https://quran.com/1",
+    "script": "uthmani",
+    "textVerificationStatus": "pending_final_review",
+    "teachingReviewStatus": "draft",
+    "reviewerId": null,
+    "reviewedAt": null
+  },
+  "theme": {
+    "surface": "lavender",
+    "accent": "gold",
+    "companionAssetKey": "lantern-reading",
+    "overviewAssetKey": "open-book",
+    "completionAssetKey": "lantern-celebrating"
+  },
+  "audio": {
+    "reciterName": null,
+    "recitationTradition": null,
+    "sourceUrl": null,
+    "usagePermissionStatus": "pending",
+    "fullSurahUrl": null,
+    "wordTimingAvailable": false
+  },
+  "verses": [
+    {
+      "id": "fatihah-1",
+      "verseKey": "1:1",
+      "number": 1,
+      "textUthmani": "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ",
+      "audioUrl": null,
+      "translation": {
+        "en": "In the Name of Allah—the Most Compassionate, Most Merciful.",
+        "ml": "പരമകാരുണികനും കരുണാനിധിയുമായ അല്ലാഹുവിന്റെ നാമത്തിൽ."
+      },
+      "annotations": []
+    },
+    {
+      "id": "fatihah-2",
+      "verseKey": "1:2",
+      "number": 2,
+      "textUthmani": "ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ",
+      "audioUrl": null,
+      "translation": {
+        "en": "All praise is for Allah—Lord of all worlds.",
+        "ml": "സ്തുതിയെല്ലാം സർവ്വലോക പരിപാലകനായ അല്ലാഹുവിനാകുന്നു."
+      },
+      "annotations": []
+    },
+    {
+      "id": "fatihah-3",
+      "verseKey": "1:3",
+      "number": 3,
+      "textUthmani": "ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ",
+      "audioUrl": null,
+      "translation": {
+        "en": "The Most Compassionate, Most Merciful.",
+        "ml": "പരമകാരുണികനും കരുണാനിധിയുമായവൻ."
+      },
+      "annotations": []
+    },
+    {
+      "id": "fatihah-4",
+      "verseKey": "1:4",
+      "number": 4,
+      "textUthmani": "مَـٰلِكِ يَوْمِ ٱلدِّينِ",
+      "audioUrl": null,
+      "translation": {
+        "en": "Master of the Day of Judgment.",
+        "ml": "പ്രതിഫല ദിവസത്തിന്റെ ഉടമസ്ഥനായവൻ."
+      },
+      "annotations": []
+    },
+    {
+      "id": "fatihah-5",
+      "verseKey": "1:5",
+      "number": 5,
+      "textUthmani": "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ",
+      "audioUrl": null,
+      "translation": {
+        "en": "You alone we worship and You alone we ask for help.",
+        "ml": "നിന്നെ മാത്രം ഞങ്ങൾ ആരാധിക്കുന്നു, നിന്നോട് മാത്രം ഞങ്ങൾ സഹായം തേടുന്നു."
+      },
+      "annotations": []
+    },
+    {
+      "id": "fatihah-6",
+      "verseKey": "1:6",
+      "number": 6,
+      "textUthmani": "ٱهْدِنَا ٱلصِّرَٰطَ ٱلْمُسْتَقِيمَ",
+      "audioUrl": null,
+      "translation": {
+        "en": "Guide us along the Straight Path.",
+        "ml": "ഞങ്ങളെ നീ നേരായ പാതയിൽ നയിക്കേണമേ."
+      },
+      "annotations": []
+    },
+    {
+      "id": "fatihah-7",
+      "verseKey": "1:7",
+      "number": 7,
+      "textUthmani": "صِرَٰطَ ٱلَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ ٱلْمَغْضُوبِ عَلَيْهِمْ وَلَا ٱلضَّآلِّينَ",
+      "audioUrl": null,
+      "translation": {
+        "en": "The path of those You have blessed—not those who have incurred Your wrath, nor those who are astray.",
+        "ml": "നീ അനുഗ്രഹിച്ചവരുടെ വഴിയിൽ; കോപത്തിനിരയായവരുടെയോ വഴിപിഴച്ചവരുടെയോ വഴിയല്ല."
+      },
+      "annotations": []
+    }
+  ],
+  "lessonTemplate": {
+    "id": "verse-exploration",
+    "estimatedMinutes": 4,
+    "steps": [
+      {
+        "type": "read",
+        "required": true
+      },
+      {
+        "type": "listen",
+        "required": false,
+        "requiresApprovedAudio": true,
+        "repeatChoices": [1, 3]
+      },
+      {
+        "type": "explore-annotation",
+        "required": false,
+        "requiresReviewedAnnotations": true
+      },
+      {
+        "type": "knowledge-check",
+        "required": false,
+        "requiresReviewedQuestions": true
+      },
+      {
+        "type": "record-and-replay",
+        "required": false,
+        "storage": "memory",
+        "upload": false
+      },
+      {
+        "type": "reflection",
+        "required": false
+      }
+    ]
+  },
+  "missions": [
+    {
+      "id": "fatihah-mission-1",
+      "verseIds": ["fatihah-1"],
+      "templateId": "verse-exploration",
+      "prerequisites": []
+    },
+    {
+      "id": "fatihah-mission-2",
+      "verseIds": ["fatihah-2"],
+      "templateId": "verse-exploration",
+      "prerequisites": ["fatihah-mission-1"]
+    },
+    {
+      "id": "fatihah-mission-3",
+      "verseIds": ["fatihah-3"],
+      "templateId": "verse-exploration",
+      "prerequisites": ["fatihah-mission-2"]
+    },
+    {
+      "id": "fatihah-mission-4",
+      "verseIds": ["fatihah-4"],
+      "templateId": "verse-exploration",
+      "prerequisites": ["fatihah-mission-3"]
+    },
+    {
+      "id": "fatihah-mission-5",
+      "verseIds": ["fatihah-5"],
+      "templateId": "verse-exploration",
+      "prerequisites": ["fatihah-mission-4"]
+    },
+    {
+      "id": "fatihah-mission-6",
+      "verseIds": ["fatihah-6"],
+      "templateId": "verse-exploration",
+      "prerequisites": ["fatihah-mission-5"]
+    },
+    {
+      "id": "fatihah-mission-7",
+      "verseIds": ["fatihah-7"],
+      "templateId": "verse-exploration",
+      "prerequisites": ["fatihah-mission-6"]
+    }
+  ],
+  "draftKnowledgeActivities": [
+    {
+      "id": "recognise-shaddah-fatihah-5",
+      "verseId": "fatihah-5",
+      "type": "find-word",
+      "reviewStatus": "draft",
+      "prompt": {
+        "en": "Tap a word that contains a shaddah.",
+        "ml": "ശദ്ദയുള്ള ഒരു വാക്ക് തിരഞ്ഞെടുക്കൂ."
+      },
+      "options": [
+        {
+          "id": "f5-word-1",
+          "wordIndex": 0
+        },
+        {
+          "id": "f5-word-2",
+          "wordIndex": 1
+        },
+        {
+          "id": "f5-word-3",
+          "wordIndex": 2
+        },
+        {
+          "id": "f5-word-4",
+          "wordIndex": 3
+        }
+      ],
+      "correctOptionIds": ["f5-word-1", "f5-word-3"],
+      "feedback": {
+        "en": "Look for the small shaddah mark ( ّ ) above the letter. In verse 5, both 'إِيَّاكَ' words contain a shaddah.",
+        "ml": "അക്ഷരത്തിന് മുകളിലുള്ള ചെറിയ ശദ്ദ ചിഹ്നം ( ّ ) ശ്രദ്ധിക്കൂ. 5-ാം ആയത്തിൽ രണ്ട് 'إِيَّاكَ' വാക്കുകളിലും ശദ്ദയുണ്ട്."
+      }
+    }
+  ],
+  "completionPolicy": {
+    "readingParticipationLabel": "explored",
+    "knowledgeRequiresReviewedAssessment": true,
+    "recitationRequiresTeacherAssessment": true,
+    "allowAutomaticRecitationScore": false,
+    "useExistingRewardService": true,
+    "awardReligiousMeritPoints": false
+  }
+}

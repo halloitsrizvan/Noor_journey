@@ -27,6 +27,9 @@ let EditorialController = class EditorialController {
     constructor(editorialService) {
         this.editorialService = editorialService;
     }
+    async getOverview() {
+        return this.editorialService.getEditorialOverview();
+    }
     async createDraft(user, missionId, dto) {
         return this.editorialService.createDraft(user.id, missionId, dto);
     }
@@ -47,6 +50,14 @@ let EditorialController = class EditorialController {
     }
 };
 exports.EditorialController = EditorialController;
+__decorate([
+    (0, auth_decorators_1.Roles)(client_1.Role.ADMIN, client_1.Role.REVIEWER),
+    (0, common_1.Get)("overview"),
+    (0, swagger_1.ApiOperation)({ summary: "Get editorial & system overview for Admin dashboard" }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], EditorialController.prototype, "getOverview", null);
 __decorate([
     (0, auth_decorators_1.Roles)(client_1.Role.AUTHOR, client_1.Role.ADMIN),
     (0, common_1.Post)("missions/:missionId/draft"),

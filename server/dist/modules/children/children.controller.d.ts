@@ -4,6 +4,37 @@ import { Account } from "@prisma/client";
 export declare class ChildrenController {
     private readonly childrenService;
     constructor(childrenService: ChildrenService);
+    getLeaderboard(): Promise<{
+        rank: number;
+        id: string;
+        name: string;
+        avatar: string;
+        totalXp: number;
+        stars: number;
+        badgesCount: number;
+        completedCount: number;
+        createdAt: Date;
+    }[]>;
+    syncStudent(dto: {
+        nickname: string;
+        email?: string;
+        ageBand?: string;
+        priorStandard?: string;
+        avatarKey?: string;
+        weeklyGoal?: number;
+    }): Promise<{
+        id: string;
+        parentAccountId: string;
+        nickname: string;
+        ageBand: string;
+        preferredLanguage: string;
+        priorStandard: string | null;
+        avatarKey: string;
+        weeklyGoal: number;
+        timezone: string;
+        createdAt: Date;
+        updatedAt: Date;
+    } | null>;
     getChildren(user: Account): Promise<({
         completions: {
             missionId: string;
@@ -15,8 +46,6 @@ export declare class ChildrenController {
         }[];
     } & {
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         parentAccountId: string;
         nickname: string;
         ageBand: string;
@@ -25,11 +54,11 @@ export declare class ChildrenController {
         avatarKey: string;
         weeklyGoal: number;
         timezone: string;
+        createdAt: Date;
+        updatedAt: Date;
     })[]>;
     createChild(user: Account, dto: CreateChildProfileDto): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         parentAccountId: string;
         nickname: string;
         ageBand: string;
@@ -38,6 +67,8 @@ export declare class ChildrenController {
         avatarKey: string;
         weeklyGoal: number;
         timezone: string;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
     getChild(user: Account, id: string): Promise<{
         completions: {
@@ -56,8 +87,6 @@ export declare class ChildrenController {
         }[];
     } & {
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         parentAccountId: string;
         nickname: string;
         ageBand: string;
@@ -66,11 +95,11 @@ export declare class ChildrenController {
         avatarKey: string;
         weeklyGoal: number;
         timezone: string;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
     updateChild(user: Account, id: string, dto: UpdateChildProfileDto): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         parentAccountId: string;
         nickname: string;
         ageBand: string;
@@ -79,6 +108,8 @@ export declare class ChildrenController {
         avatarKey: string;
         weeklyGoal: number;
         timezone: string;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
     deleteChild(user: Account, id: string): Promise<{
         success: boolean;
@@ -86,8 +117,6 @@ export declare class ChildrenController {
     }>;
     updateAvatar(user: Account, childId: string, dto: UpdateAvatarDto): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         parentAccountId: string;
         nickname: string;
         ageBand: string;
@@ -96,5 +125,7 @@ export declare class ChildrenController {
         avatarKey: string;
         weeklyGoal: number;
         timezone: string;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
 }

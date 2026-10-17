@@ -136,6 +136,9 @@ export interface AvatarOption {
   badge: string;
   color: string;
   icon: string;
+  emoji: string;
+  requiredPoints: number;
+  description: { ml: string; en: string };
 }
 
 export const avatarOptions: AvatarOption[] = [
@@ -145,6 +148,12 @@ export const avatarOptions: AvatarOption[] = [
     badge: "ഗൈഡ്",
     color: "#f59e0b",
     icon: "lantern",
+    emoji: "🏮",
+    requiredPoints: 0,
+    description: {
+      ml: "ആദ്യ പഠനയാത്രയിൽ സഹായിക്കുന്ന വെളിച്ചം നൽകുന്ന നൂർ വിളക്ക്.",
+      en: "The friendly guiding lantern that illuminates your early learning steps.",
+    },
   },
   {
     id: "olive-tree",
@@ -152,6 +161,12 @@ export const avatarOptions: AvatarOption[] = [
     badge: "സമാധാനം",
     color: "#10b981",
     icon: "leaf",
+    emoji: "🌿",
+    requiredPoints: 20,
+    description: {
+      ml: "സമാധാനവും ശാന്തതയും ഓർമ്മിപ്പിക്കുന്ന പച്ച ഒലീവ് ഇല.",
+      en: "A gentle sprout symbolizing peace, kindness, and continuous growth.",
+    },
   },
   {
     id: "crescent-star",
@@ -159,6 +174,12 @@ export const avatarOptions: AvatarOption[] = [
     badge: "പ്രതീക്ഷ",
     color: "#06b6d4",
     icon: "moon",
+    emoji: "🌙",
+    requiredPoints: 40,
+    description: {
+      ml: "രാത്രിയിലെ സുന്ദരമായ ചന്ദ്രക്കലയും നക്ഷത്ര ശോഭയും.",
+      en: "A serene crescent moon glowing with high hopes and devotion.",
+    },
   },
   {
     id: "little-scholar",
@@ -166,6 +187,12 @@ export const avatarOptions: AvatarOption[] = [
     badge: "അറിവ്",
     color: "#8b5cf6",
     icon: "book",
+    emoji: "📚",
+    requiredPoints: 60,
+    description: {
+      ml: "ജ്ഞാനം തേടുന്ന ഉത്സാഹമുള്ള കൊച്ചു പഠിതാവ്.",
+      en: "Dedicated learner curious to read and understand deep concepts.",
+    },
   },
   {
     id: "desert-falcon",
@@ -173,5 +200,50 @@ export const avatarOptions: AvatarOption[] = [
     badge: "ധൈര്യം",
     color: "#f97316",
     icon: "feather",
+    emoji: "🦅",
+    requiredPoints: 80,
+    description: {
+      ml: "ഉയരങ്ങളിൽ പറക്കുന്ന ലക്ഷ്യബോധമുള്ള ധീര പരുന്ത്.",
+      en: "Sharp-eyed, courageous explorer soaring towards noble goals.",
+    },
+  },
+  {
+    id: "golden-star",
+    name: { ml: "സുവർണ്ണ താരം", en: "Golden Star" },
+    badge: "വിജയം",
+    color: "#eab308",
+    icon: "star",
+    emoji: "⭐",
+    requiredPoints: 100,
+    description: {
+      ml: "നല്ല ശീലങ്ങൾ സ്ഥിരമായി പാലിക്കുന്നവർക്കുള്ള തിളങ്ങുന്ന നക്ഷത്രം.",
+      en: "Radiant star honoring consistency and mastery in character.",
+    },
+  },
+  {
+    id: "pearl-diver",
+    name: { ml: "ജ്ഞാന മുത്ത്", en: "Pearl of Wisdom" },
+    badge: "വിശുദ്ധി",
+    color: "#ec4899",
+    icon: "gem",
+    emoji: "🪸",
+    requiredPoints: 140,
+    description: {
+      ml: "ആഴത്തിലുള്ള പഠനത്തിലൂടെ കണ്ടെത്തിയ വിലയേറിയ മുത്ത്.",
+      en: "A treasured jewel discovered through patient, reflective study.",
+    },
+  },
+  {
+    id: "noble-shield",
+    name: { ml: "ധർമ്മ കാവൽക്കാരൻ", en: "Noble Guardian" },
+    badge: "കാവൽ",
+    color: "#4f46e5",
+    icon: "shield",
+    emoji: "🛡️",
+    requiredPoints: 180,
+    description: {
+      ml: "തിന്മയിൽ നിന്ന് സ്വന്തം മനസ്സിനെ കാക്കുന്ന ധീരനായ കാവൽക്കാരൻ.",
+      en: "Steadfast protector embodying strength, justice, and truth.",
+    },
   },
 ];

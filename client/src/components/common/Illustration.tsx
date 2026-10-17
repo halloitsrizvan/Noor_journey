@@ -2,6 +2,7 @@ import React from "react";
 
 export type IllustrationRole =
   | "login"
+  | "mission"
   | "mission-reading"
   | "journey"
   | "practice"
@@ -18,31 +19,35 @@ interface IllustrationProps {
 
 const illustrationMap: Record<IllustrationRole, { src: string; defaultAlt: string }> = {
   login: {
-    src: "/assets/illustrations/login-lantern-book.jpg",
+    src: "/assets/illustrations/login-lantern-book.png",
     defaultAlt: "Noor the golden lantern floating above an open lavender book",
   },
+  mission: {
+    src: "/assets/illustrations/mission-reading-lantern.png",
+    defaultAlt: "Noor the golden lantern reading an open lavender book",
+  },
   "mission-reading": {
-    src: "/assets/illustrations/mission-reading-lantern.jpg",
+    src: "/assets/illustrations/mission-reading-lantern.png",
     defaultAlt: "Noor the golden lantern reading an open lavender book",
   },
   journey: {
-    src: "/assets/illustrations/journey-path-mountain.jpg",
+    src: "/assets/illustrations/journey-path-mountain.png",
     defaultAlt: "A winding miniature path leading to a hilltop with a purple flag",
   },
   practice: {
-    src: "/assets/illustrations/practice-pencil-curve.jpg",
+    src: "/assets/illustrations/practice-pencil-curve.png",
     defaultAlt: "A bright yellow pencil drawing a smooth curved path",
   },
   collection: {
-    src: "/assets/illustrations/collection-badge-star.jpg",
+    src: "/assets/illustrations/collection-badge-star.png",
     defaultAlt: "A golden honor star badge with lavender ribbons",
   },
   celebration: {
-    src: "/assets/illustrations/celebrating-lantern.jpg",
+    src: "/assets/illustrations/celebrating-lantern.png",
     defaultAlt: "Noor the lantern celebrating mission accomplishment",
   },
   "avatar-amina": {
-    src: "/assets/illustrations/amina-avatar.jpg",
+    src: "/assets/illustrations/amina-avatar.png",
     defaultAlt: "Amina, a friendly young girl avatar in a soft lavender hijab",
   },
 };

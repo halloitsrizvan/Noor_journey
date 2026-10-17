@@ -1,29 +1,31 @@
 import React from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { useNoor } from "@/lib/noor/state";
 import { translations } from "@/lib/noor/i18n";
 import { akhlaqMissions } from "@/content/chapter-akhlaq";
-import { ArrowRight, ChevronRight, Clock } from "lucide-react";
+import { ArrowRight, ChevronRight, Clock, Gamepad2, Sparkles } from "lucide-react";
 import { Illustration } from "@/components/common/Illustration";
 
 interface ExploreTilesProps {
-  onOpenJourney: () => void;
+  onOpenJourney?: () => void;
   onOpenPractice: () => void;
+  onOpenTajweed?: () => void;
 }
 
 export const ExploreTiles: React.FC<ExploreTilesProps> = ({
   onOpenJourney,
   onOpenPractice,
+  onOpenTajweed,
 }) => {
+  const navigate = useNavigate();
   const { lang, activeProgress, getDueReviews } = useNoor();
   const t = translations[lang];
 
-  const totalMissions = akhlaqMissions.length;
-  const completedMissions = akhlaqMissions.filter(
-    (m) => activeProgress?.missions[m.id]?.passedAt
-  ).length;
-
-  const currentMissionIndex = Math.min(completedMissions + 1, totalMissions);
   const dueReviews = getDueReviews();
+
+  const handleOpenGame = () => {
+    navigate({ to: "/games" });
+  };
 
   return (
     <section aria-label={t.keepExploring} className="w-full">
@@ -35,101 +37,60 @@ export const ExploreTiles: React.FC<ExploreTilesProps> = ({
         >
           {t.keepExploring}
         </h3>
-        <button
-          type="button"
-          onClick={onOpenJourney}
-          className="text-xs font-bold text-[#7857E8] hover:underline flex items-center gap-0.5"
-        >
-          <span>{t.seeAll}</span>
-          <ChevronRight className="w-3.5 h-3.5" />
-        </button>
+        {onOpenJourney && (
+          <button
+            type="button"
+            onClick={onOpenJourney}
+            className="text-xs font-bold text-[#7857E8] hover:underline flex items-center gap-0.5"
+          >
+            <span>{t.seeAll}</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        )}
       </div>
 
-      {/* 2 Balanced Pastel Tiles */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {/* Apricot Tile: My Journey */}
-        <div
-          onClick={onOpenJourney}
-          className="relative overflow-hidden bg-[#FFD184] rounded-[26px] p-4 flex flex-col justify-between min-h-[170px] shadow-2xs cursor-pointer tactile group"
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => e.key === "Enter" && onOpenJourney()}
-          aria-label={t.myJourneyTitle}
-        >
-          {/* Text Header */}
-          <div className="relative z-10">
-            <h4
-              className="text-base font-black text-[#141426] leading-tight"
-              style={{ fontFamily: "var(--font-display)" }}
-            >
-              {t.myJourneyTitle}
-            </h4>
-            <span className="text-[11px] font-bold text-[#141426]/75 block mt-0.5">
-              {lang === "ml"
-                ? `മിഷൻ ${currentMissionIndex} / ${totalMissions}`
-                : `Mission ${currentMissionIndex} of ${totalMissions}`}
+      {/* Single Prominent Pastel Tile: Islamic Mini-Game (Earn XP) */}
+      <div
+        onClick={handleOpenGame}
+        className="relative overflow-hidden bg-gradient-to-r from-[#FFD184] via-[#FFE4B5] to-[#FFD184] rounded-[26px] p-5 shadow-2xs border border-[#FFBF5F]/40 cursor-pointer tactile group flex items-center justify-between"
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => e.key === "Enter" && handleOpenGame()}
+        aria-label={lang === "ml" ? "ഇസ്ലാമിക് ഗെയിംസ്" : "Islamic Mini-Games"}
+      >
+        <div className="relative z-10 max-w-[72%]">
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <span className="px-2.5 py-0.5 rounded-full bg-[#191A22] text-[#FFD184] text-[10px] font-black uppercase tracking-wider inline-flex items-center gap-1">
+              <Gamepad2 className="w-3 h-3" />
+              <span>+10 XP</span>
+            </span>
+            <span className="text-[10px] font-extrabold text-[#7A4B00]">
+              {lang === "ml" ? "മിനി ഗെയിംസ്" : "Mini Games"}
             </span>
           </div>
 
-          {/* Action Button & 3D Illustration */}
-          <div className="relative z-10 flex items-end justify-between mt-4">
-            <div className="w-8 h-8 rounded-full bg-[#191A22] text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
-              <ArrowRight className="w-4 h-4" />
-            </div>
+          <h4
+            className="text-lg font-black text-[#141426] leading-tight"
+            style={{ fontFamily: "var(--font-display)" }}
+          >
+            {lang === "ml" ? "ഇസ്ലാമിക് ഗെയിംസ്" : "Islamic Games & Quizzes"}
+          </h4>
 
-            {/* Illustration on the right */}
-            <div className="w-24 h-24 -mr-2 -mb-2 pointer-events-none">
-              <Illustration
-                role="journey"
-                className="w-full h-full object-contain drop-shadow-2xs"
-                alt="Winding path on rolling hill"
-              />
-            </div>
+          <p className="text-xs text-[#141426]/80 font-medium mt-1 leading-relaxed">
+            {lang === "ml"
+              ? "പ്രവാചക ക്വിസ്, അറബിക് വേഡ് മാച്ച്, സുന്നത്ത് ശീലങ്ങൾ കളിച്ച് XP നേടാം!"
+              : "Play Prophet stories quiz, Arabic word match & Sunnah catcher to earn XP!"}
+          </p>
+
+          <div className="mt-3.5 inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#191A22] text-[#FFD184] text-xs font-bold shadow-xs group-hover:scale-105 transition-transform">
+            <span>{lang === "ml" ? "കളിച്ചു തുടങ്ങാം" : "Play & Earn XP"}</span>
+            <ArrowRight className="w-3.5 h-3.5 text-white" />
           </div>
         </div>
 
-        {/* Sky-blue Tile: Quick Practice */}
-        <div
-          onClick={onOpenPractice}
-          className="relative overflow-hidden bg-[#BEDAFF] rounded-[26px] p-4 flex flex-col justify-between min-h-[170px] shadow-2xs cursor-pointer tactile group"
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => e.key === "Enter" && onOpenPractice()}
-          aria-label={t.quickPracticeTitle}
-        >
-          {/* Text Header */}
-          <div className="relative z-10">
-            <h4
-              className="text-base font-black text-[#141426] leading-tight"
-              style={{ fontFamily: "var(--font-display)" }}
-            >
-              {t.quickPracticeTitle}
-            </h4>
-            <div className="flex items-center gap-1 text-[11px] font-bold text-[#141426]/75 mt-0.5">
-              <Clock className="w-3 h-3" />
-              <span>
-                {dueReviews.length > 0
-                  ? `${dueReviews.length} ${t.dueRevisions}`
-                  : `3 ${t.minutes}`}
-              </span>
-            </div>
-          </div>
-
-          {/* Action Button & 3D Illustration */}
-          <div className="relative z-10 flex items-end justify-between mt-4">
-            <div className="w-8 h-8 rounded-full bg-[#191A22] text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
-              <ArrowRight className="w-4 h-4" />
-            </div>
-
-            {/* Illustration on the right */}
-            <div className="w-24 h-24 -mr-2 -mb-2 pointer-events-none">
-              <Illustration
-                role="practice"
-                className="w-full h-full object-contain drop-shadow-2xs"
-                alt="Yellow pencil drawing curve"
-              />
-            </div>
-          </div>
+        {/* Joyful Game Controller Icon */}
+        <div className="text-5xl sm:text-6xl -mr-1 select-none transform group-hover:scale-110 transition-transform drop-shadow-xs">
+          🎮
         </div>
       </div>
     </section>

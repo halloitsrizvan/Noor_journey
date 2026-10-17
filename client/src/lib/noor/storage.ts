@@ -5,9 +5,9 @@ const STORAGE_KEY = "noor_journey_state_v1";
 export function createDefaultProfile(): ChildProfile {
   return {
     id: "profile-demo-1",
-    nickname: "സയാൻ",
+    nickname: "Amina",
     ageBand: "10-11",
-    priorStandard: "3",
+    priorStandard: "4",
     avatarId: "lantern-noor",
     cosmeticId: null,
     weeklyGoal: 3,
@@ -33,14 +33,14 @@ export function createInitialState(): NoorState {
   const defaultProfile = createDefaultProfile();
   return {
     version: 1,
-    parentName: "ഫാത്തിമ",
+    parentName: "Fatima",
     profiles: [defaultProfile],
     activeProfileId: defaultProfile.id,
     progress: {
       [defaultProfile.id]: createInitialProgress(),
     },
     prefs: {
-      lang: "ml",
+      lang: "en",
       sound: true,
       reducedMotion: false,
     },

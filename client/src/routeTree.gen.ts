@@ -10,33 +10,167 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as CollectionRouteImport } from './routes/collection'
+import { Route as GamesRouteImport } from './routes/games'
+import { Route as JourneyRouteImport } from './routes/journey'
+import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as PracticeRouteImport } from './routes/practice'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as StudentLoginRouteImport } from './routes/student-login'
+import { Route as TajweedRouteImport } from './routes/tajweed'
+import { Route as TeacherLoginRouteImport } from './routes/teacher-login'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CollectionRoute = CollectionRouteImport.update({
+  id: '/collection',
+  path: '/collection',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GamesRoute = GamesRouteImport.update({
+  id: '/games',
+  path: '/games',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JourneyRoute = JourneyRouteImport.update({
+  id: '/journey',
+  path: '/journey',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LeaderboardRoute = LeaderboardRouteImport.update({
+  id: '/leaderboard',
+  path: '/leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PracticeRoute = PracticeRouteImport.update({
+  id: '/practice',
+  path: '/practice',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudentLoginRoute = StudentLoginRouteImport.update({
+  id: '/student-login',
+  path: '/student-login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TajweedRoute = TajweedRouteImport.update({
+  id: '/tajweed',
+  path: '/tajweed',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TeacherLoginRoute = TeacherLoginRouteImport.update({
+  id: '/teacher-login',
+  path: '/teacher-login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/collection': typeof CollectionRoute
+  '/games': typeof GamesRoute
+  '/journey': typeof JourneyRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/practice': typeof PracticeRoute
+  '/profile': typeof ProfileRoute
+  '/student-login': typeof StudentLoginRoute
+  '/tajweed': typeof TajweedRoute
+  '/teacher-login': typeof TeacherLoginRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/collection': typeof CollectionRoute
+  '/games': typeof GamesRoute
+  '/journey': typeof JourneyRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/practice': typeof PracticeRoute
+  '/profile': typeof ProfileRoute
+  '/student-login': typeof StudentLoginRoute
+  '/tajweed': typeof TajweedRoute
+  '/teacher-login': typeof TeacherLoginRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/collection': typeof CollectionRoute
+  '/games': typeof GamesRoute
+  '/journey': typeof JourneyRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/practice': typeof PracticeRoute
+  '/profile': typeof ProfileRoute
+  '/student-login': typeof StudentLoginRoute
+  '/tajweed': typeof TajweedRoute
+  '/teacher-login': typeof TeacherLoginRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/collection'
+    | '/games'
+    | '/journey'
+    | '/leaderboard'
+    | '/practice'
+    | '/profile'
+    | '/student-login'
+    | '/tajweed'
+    | '/teacher-login'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/admin'
+    | '/collection'
+    | '/games'
+    | '/journey'
+    | '/leaderboard'
+    | '/practice'
+    | '/profile'
+    | '/student-login'
+    | '/tajweed'
+    | '/teacher-login'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/collection'
+    | '/games'
+    | '/journey'
+    | '/leaderboard'
+    | '/practice'
+    | '/profile'
+    | '/student-login'
+    | '/tajweed'
+    | '/teacher-login'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
+  CollectionRoute: typeof CollectionRoute
+  GamesRoute: typeof GamesRoute
+  JourneyRoute: typeof JourneyRoute
+  LeaderboardRoute: typeof LeaderboardRoute
+  PracticeRoute: typeof PracticeRoute
+  ProfileRoute: typeof ProfileRoute
+  StudentLoginRoute: typeof StudentLoginRoute
+  TajweedRoute: typeof TajweedRoute
+  TeacherLoginRoute: typeof TeacherLoginRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +182,91 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/collection': {
+      id: '/collection'
+      path: '/collection'
+      fullPath: '/collection'
+      preLoaderRoute: typeof CollectionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/games': {
+      id: '/games'
+      path: '/games'
+      fullPath: '/games'
+      preLoaderRoute: typeof GamesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/journey': {
+      id: '/journey'
+      path: '/journey'
+      fullPath: '/journey'
+      preLoaderRoute: typeof JourneyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/leaderboard': {
+      id: '/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof LeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/practice': {
+      id: '/practice'
+      path: '/practice'
+      fullPath: '/practice'
+      preLoaderRoute: typeof PracticeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/student-login': {
+      id: '/student-login'
+      path: '/student-login'
+      fullPath: '/student-login'
+      preLoaderRoute: typeof StudentLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tajweed': {
+      id: '/tajweed'
+      path: '/tajweed'
+      fullPath: '/tajweed'
+      preLoaderRoute: typeof TajweedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/teacher-login': {
+      id: '/teacher-login'
+      path: '/teacher-login'
+      fullPath: '/teacher-login'
+      preLoaderRoute: typeof TeacherLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
+  CollectionRoute: CollectionRoute,
+  GamesRoute: GamesRoute,
+  JourneyRoute: JourneyRoute,
+  LeaderboardRoute: LeaderboardRoute,
+  PracticeRoute: PracticeRoute,
+  ProfileRoute: ProfileRoute,
+  StudentLoginRoute: StudentLoginRoute,
+  TajweedRoute: TajweedRoute,
+  TeacherLoginRoute: TeacherLoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

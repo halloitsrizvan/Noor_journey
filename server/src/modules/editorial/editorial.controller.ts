@@ -1,5 +1,6 @@
 import {
   Controller,
+  Get,
   Post,
   Param,
   Body,
@@ -20,6 +21,13 @@ import { Account, Role } from "@prisma/client";
 @Controller("editorial")
 export class EditorialController {
   constructor(private readonly editorialService: EditorialService) {}
+
+  @Roles(Role.ADMIN, Role.REVIEWER)
+  @Get("overview")
+  @ApiOperation({ summary: "Get editorial & system overview for Admin dashboard" })
+  async getOverview() {
+    return this.editorialService.getEditorialOverview();
+  }
 
   @Roles(Role.AUTHOR, Role.ADMIN)
   @Post("missions/:missionId/draft")

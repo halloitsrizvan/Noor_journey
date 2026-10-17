@@ -172,6 +172,63 @@ let EditorialService = class EditorialService {
             },
         });
     }
+    async getEditorialOverview() {
+        const [accounts, children, versions, missions, attempts] = await Promise.all([
+            this.prisma.account.findMany({
+                select: {
+                    id: true,
+                    email: true,
+                    role: true,
+                    createdAt: true,
+                    _count: { select: { children: true } },
+                },
+                orderBy: { createdAt: "desc" },
+            }),
+            this.prisma.childProfile.findMany({
+                include: {
+                    parentAccount: { select: { email: true } },
+                    _count: { select: { attempts: true } },
+                },
+                orderBy: { createdAt: "desc" },
+            }),
+            this.prisma.missionVersion.findMany({
+                include: {
+                    mission: {
+                        include: { learningChapter: { include: { world: true } } },
+                    },
+                    reviews: {
+                        include: { reviewer: { select: { email: true } } },
+                    },
+                    publications: true,
+                },
+                orderBy: { createdAt: "desc" },
+            }),
+            this.prisma.mission.findMany({
+                include: {
+                    learningChapter: { include: { world: true } },
+                    versions: true,
+                },
+            }),
+            this.prisma.missionAttempt.count(),
+        ]);
+        const stats = {
+            totalAccounts: accounts.length,
+            totalParents: accounts.filter((a) => a.role === "PARENT").length,
+            totalAdmins: accounts.filter((a) => a.role === "ADMIN").length,
+            totalChildren: children.length,
+            totalMissions: missions.length,
+            totalVersions: versions.length,
+            publishedVersions: versions.filter((v) => v.publishState === "PUBLISHED").length,
+            reviewPendingVersions: versions.filter((v) => v.publishState === "SUBMITTED" || v.reviewStatus === "AWAITING_REVIEW").length,
+            totalAttempts: attempts,
+        };
+        return {
+            stats,
+            versions,
+            accounts,
+            children,
+        };
+    }
 };
 exports.EditorialService = EditorialService;
 exports.EditorialService = EditorialService = __decorate([

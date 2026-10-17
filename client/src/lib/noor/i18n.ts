@@ -79,6 +79,15 @@ export interface TranslationDictionary {
   selectAgeBand: string;
   selectMadrasaStandard: string;
   weeklySessionsGoal: string;
+  // Walkthrough Keys
+  getStarted: string;
+  skip: string;
+  walkthrough1Title: string;
+  walkthrough1Desc: string;
+  walkthrough2Title: string;
+  walkthrough2Desc: string;
+  walkthrough3Title: string;
+  walkthrough3Desc: string;
   // Reference UI Keys
   heroHeadingStart: string;
   heroHeadingHighlight: string;
@@ -183,6 +192,14 @@ export const translations: Record<Lang, TranslationDictionary> = {
     enterChildName: "കുട്ടിയുടെ വിളിപ്പേര്",
     selectAgeBand: "പ്രായപരിധി",
     selectMadrasaStandard: "മുമ്പ് പഠിച്ച മദ്റസാ ക്ലാസ് (ഏകദേശം)",
+    getStarted: "തുടങ്ങാം",
+    skip: "ഒഴിവാക്കുക",
+    walkthrough1Title: "ദിവസേനയുള്ള ചെറിയ മിഷനുകൾ",
+    walkthrough1Desc: "നല്ല ശീലങ്ങളും ഇസ്ലാമിക മൂല്യങ്ങളും 5 മിനിറ്റ് കഥകളിലൂടെ പഠിക്കാം.",
+    walkthrough2Title: "സ്മാർട്ട് റിവിഷനും പരിശീലനവും",
+    walkthrough2Desc: "പഠിച്ച കാര്യങ്ങൾ മനസ്സിൽ ഉറപ്പിക്കാൻ രസകരമായ ചോദ്യങ്ങളും ഓർമ്മപ്പെടുത്തലുകളും.",
+    walkthrough3Title: "ബാഡ്ജുകളും അവതാറുകളും",
+    walkthrough3Desc: "അധ്യായങ്ങൾ പൂർത്തിയാക്കുമ്പോൾ അമൂല്യ ബാഡ്ജുകളും കുഞ്ഞു സുഹൃത്തുക്കളെയും സ്വന്തമാക്കാം.",
     beginAdventure: "യാത്ര ആരംഭിക്കാം",
     demoModeNotice: "ശ്രദ്ധിക്കുക: ഇതൊരു ഡെമോ പതിപ്പാണ്. പഠന ഉള്ളടക്കങ്ങൾ വിദ്യാഭ്യാസ വിദഗ്ദ്ധരുടെ പരിശോധനക്ക് വിധേയമാണ്.",
     familyPromptTitle: "കുടുംബത്തോടൊപ്പം ചെയ്യാം",
@@ -287,6 +304,14 @@ export const translations: Record<Lang, TranslationDictionary> = {
     enterChildName: "Child's Nickname",
     selectAgeBand: "Age Band",
     selectMadrasaStandard: "Approximate Prior Madrasa Standard",
+    getStarted: "Get Started",
+    skip: "Skip",
+    walkthrough1Title: "Daily Short Missions",
+    walkthrough1Desc: "Learn everyday Islamic values, kindness, and good character through quick 5-minute interactive stories.",
+    walkthrough2Title: "Smart Revision & Practice",
+    walkthrough2Desc: "Remember concepts with interactive exercises and smart spaced reviews that make learning stick.",
+    walkthrough3Title: "Earn Badges & Avatars",
+    walkthrough3Desc: "Collect honor milestone medals, unlock friendly companion avatars, and celebrate progress.",
     weeklySessionsGoal: "Weekly Goal (Sessions / Week)",
     beginAdventure: "Begin Adventure",
     demoModeNotice: "Notice: This is a frontend demo with fictional scenarios awaiting final educator review.",
