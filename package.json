@@ -1,0 +1,21 @@
+{
+  "name": "noor-journey",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Noor Journey - Children's Islamic Value & Knowledge Learning Platform",
+  "scripts": {
+    "dev": "npm run dev:all",
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "dev:all": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "build:server": "npm --prefix server run build",
+    "build:client": "npm --prefix client run build",
+    "build": "npm run build:server && npm run build:client",
+    "prisma:deploy": "npm --prefix server run prisma:deploy",
+    "prisma:generate": "npm --prefix server run prisma:generate",
+    "start:server": "npm --prefix server run start:prod"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

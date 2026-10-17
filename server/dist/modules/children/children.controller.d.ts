@@ -24,6 +24,8 @@ export declare class ChildrenController {
         weeklyGoal?: number;
     }): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         parentAccountId: string;
         nickname: string;
         ageBand: string;
@@ -32,8 +34,6 @@ export declare class ChildrenController {
         avatarKey: string;
         weeklyGoal: number;
         timezone: string;
-        createdAt: Date;
-        updatedAt: Date;
     } | null>;
     getChildren(user: Account): Promise<({
         completions: {
@@ -46,6 +46,8 @@ export declare class ChildrenController {
         }[];
     } & {
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         parentAccountId: string;
         nickname: string;
         ageBand: string;
@@ -54,11 +56,11 @@ export declare class ChildrenController {
         avatarKey: string;
         weeklyGoal: number;
         timezone: string;
-        createdAt: Date;
-        updatedAt: Date;
     })[]>;
     createChild(user: Account, dto: CreateChildProfileDto): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         parentAccountId: string;
         nickname: string;
         ageBand: string;
@@ -67,8 +69,6 @@ export declare class ChildrenController {
         avatarKey: string;
         weeklyGoal: number;
         timezone: string;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     getChild(user: Account, id: string): Promise<{
         completions: {
@@ -87,6 +87,8 @@ export declare class ChildrenController {
         }[];
     } & {
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         parentAccountId: string;
         nickname: string;
         ageBand: string;
@@ -95,11 +97,11 @@ export declare class ChildrenController {
         avatarKey: string;
         weeklyGoal: number;
         timezone: string;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     updateChild(user: Account, id: string, dto: UpdateChildProfileDto): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         parentAccountId: string;
         nickname: string;
         ageBand: string;
@@ -108,8 +110,6 @@ export declare class ChildrenController {
         avatarKey: string;
         weeklyGoal: number;
         timezone: string;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     deleteChild(user: Account, id: string): Promise<{
         success: boolean;
@@ -117,6 +117,8 @@ export declare class ChildrenController {
     }>;
     updateAvatar(user: Account, childId: string, dto: UpdateAvatarDto): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         parentAccountId: string;
         nickname: string;
         ageBand: string;
@@ -125,7 +127,5 @@ export declare class ChildrenController {
         avatarKey: string;
         weeklyGoal: number;
         timezone: string;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
 }

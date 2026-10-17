@@ -1,0 +1,41 @@
+services:
+  # Backend API Service (NestJS + Prisma)
+  - type: web
+    name: noor-journey-server
+    runtime: node
+    rootDir: server
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npm run start:prod
+    healthCheckPath: /api/v1/health
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: APP_TIMEZONE
+        value: Asia/Kolkata
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_URL_UNPOOLED
+        sync: false
+      - key: FRONTEND_ORIGINS
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+
+  # Frontend Web Service
+  - type: web
+    name: noor-journey-client
+    runtime: static
+    rootDir: client
+    buildCommand: npm install && npm run build
+    staticPublishPath: .output/public
+    pullRequestPreviewsEnabled: true
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE_URL
+        sync: false

@@ -9,6 +9,9 @@ export declare class MadrasaController {
     updateSubject(id: string, dto: UpdateSubjectDto): Promise<any>;
     deleteSubject(id: string): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        displayOrder: number;
         key: string;
         englishTitle: string;
         malayalamTitle: string;
@@ -22,43 +25,40 @@ export declare class MadrasaController {
         borderColor: string;
         textColor: string;
         accentBg: string;
-        displayOrder: number;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     createTopic(id: string, dto: CreateTopicDto): Promise<{
         id: string;
-        icon: string;
         createdAt: Date;
         updatedAt: Date;
+        titleMl: string;
+        titleEn: string;
         order: number;
         subjectId: string;
-        titleEn: string;
-        titleMl: string;
+        icon: string;
         descEn: string;
         descMl: string;
     }>;
     updateTopic(topicId: string, dto: UpdateTopicDto): Promise<{
         id: string;
-        icon: string;
         createdAt: Date;
         updatedAt: Date;
+        titleMl: string;
+        titleEn: string;
         order: number;
         subjectId: string;
-        titleEn: string;
-        titleMl: string;
+        icon: string;
         descEn: string;
         descMl: string;
     }>;
     deleteTopic(topicId: string): Promise<{
         id: string;
-        icon: string;
         createdAt: Date;
         updatedAt: Date;
+        titleMl: string;
+        titleEn: string;
         order: number;
         subjectId: string;
-        titleEn: string;
-        titleMl: string;
+        icon: string;
         descEn: string;
         descMl: string;
     }>;
@@ -66,27 +66,27 @@ export declare class MadrasaController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        verseNumber: number;
         arabicText: string;
         englishTranslation: string;
         malayalamTranslation: string;
         transliteration: string;
+        audioUrl: string | null;
+        verseNumber: number;
         tajweedRulesJson: import("@prisma/client/runtime/library").JsonValue | null;
         wordsJson: import("@prisma/client/runtime/library").JsonValue | null;
-        audioUrl: string | null;
     }[]>;
     updateFatihahVerse(verseId: string, dto: UpdateVerseDto): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        verseNumber: number;
         arabicText: string;
         englishTranslation: string;
         malayalamTranslation: string;
         transliteration: string;
+        audioUrl: string | null;
+        verseNumber: number;
         tajweedRulesJson: import("@prisma/client/runtime/library").JsonValue | null;
         wordsJson: import("@prisma/client/runtime/library").JsonValue | null;
-        audioUrl: string | null;
     }>;
     getAvailableQaris(): import("./madrasa.service").QariProfile[];
     getFatihahAudio(qari: string): Promise<{

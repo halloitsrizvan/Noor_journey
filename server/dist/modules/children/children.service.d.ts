@@ -14,6 +14,8 @@ export declare class ChildrenService {
         }[];
     } & {
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         parentAccountId: string;
         nickname: string;
         ageBand: string;
@@ -22,8 +24,6 @@ export declare class ChildrenService {
         avatarKey: string;
         weeklyGoal: number;
         timezone: string;
-        createdAt: Date;
-        updatedAt: Date;
     })[]>;
     getChild(parentAccountId: string, childId: string): Promise<{
         completions: {
@@ -42,6 +42,8 @@ export declare class ChildrenService {
         }[];
     } & {
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         parentAccountId: string;
         nickname: string;
         ageBand: string;
@@ -50,11 +52,11 @@ export declare class ChildrenService {
         avatarKey: string;
         weeklyGoal: number;
         timezone: string;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     createChild(parentAccountId: string, dto: CreateChildProfileDto): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         parentAccountId: string;
         nickname: string;
         ageBand: string;
@@ -63,11 +65,11 @@ export declare class ChildrenService {
         avatarKey: string;
         weeklyGoal: number;
         timezone: string;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     updateChild(parentAccountId: string, childId: string, dto: UpdateChildProfileDto): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         parentAccountId: string;
         nickname: string;
         ageBand: string;
@@ -76,8 +78,6 @@ export declare class ChildrenService {
         avatarKey: string;
         weeklyGoal: number;
         timezone: string;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     deleteChild(parentAccountId: string, childId: string): Promise<{
         success: boolean;
@@ -85,6 +85,8 @@ export declare class ChildrenService {
     }>;
     updateAvatar(parentAccountId: string, childId: string, avatarKey: string): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         parentAccountId: string;
         nickname: string;
         ageBand: string;
@@ -93,8 +95,6 @@ export declare class ChildrenService {
         avatarKey: string;
         weeklyGoal: number;
         timezone: string;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     getLeaderboard(): Promise<{
         rank: number;
@@ -116,6 +116,8 @@ export declare class ChildrenService {
         weeklyGoal?: number;
     }): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         parentAccountId: string;
         nickname: string;
         ageBand: string;
@@ -124,7 +126,5 @@ export declare class ChildrenService {
         avatarKey: string;
         weeklyGoal: number;
         timezone: string;
-        createdAt: Date;
-        updatedAt: Date;
     } | null>;
 }
