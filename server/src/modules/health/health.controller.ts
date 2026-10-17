@@ -9,6 +9,16 @@ export class HealthController {
   constructor(private readonly prisma: PrismaService) {}
 
   @Public()
+  @Get()
+  @ApiOperation({ summary: "Health probe" })
+  getHealth() {
+    return {
+      status: "ok",
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  @Public()
   @Get("live")
   @ApiOperation({ summary: "Liveness probe" })
   getLiveness() {

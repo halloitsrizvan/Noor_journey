@@ -55,11 +55,23 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup("api/v1/docs", app, document);
+  // Fallback root health check endpoint for cloud load balancers / uptime probes
+  try {
+    const httpAdapter = app.getHttpAdapter();
+    const instance = httpAdapter?.getInstance?.();
+    if (instance && typeof instance.get === "function") {
+      instance.get("/health", (_req: any, res: any) => {
+        res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+      });
+    }
+  } catch (err) {
+    // Non-blocking fallback
+  }
 
-  await app.listen(config.port);
-  logger.log(`Noor Journey backend running at http://localhost:${config.port}/api/v1`);
-  logger.log(`OpenAPI documentation available at http://localhost:${config.port}/api/v1/docs`);
+  const port = config.port;
+  await app.listen(port, "0.0.0.0");
+  logger.log(`Noor Journey backend running on http://0.0.0.0:${port}/api/v1`);
+  logger.log(`OpenAPI documentation available at http://0.0.0.0:${port}/api/v1/docs`);
 }
 
 bootstrap();
