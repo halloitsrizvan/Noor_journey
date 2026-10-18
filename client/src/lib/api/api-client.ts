@@ -16,6 +16,23 @@ export interface ApiError {
 
 class ApiClient {
   private csrfToken: string | null = null;
+  private sessionToken: string | null =
+    typeof window !== "undefined" ? localStorage.getItem("noor_auth_token") : null;
+
+  setSessionToken(token: string | null) {
+    this.sessionToken = token;
+    if (typeof window !== "undefined") {
+      if (token) localStorage.setItem("noor_auth_token", token);
+      else localStorage.removeItem("noor_auth_token");
+    }
+  }
+
+  getSessionToken(): string | null {
+    if (!this.sessionToken && typeof window !== "undefined") {
+      this.sessionToken = localStorage.getItem("noor_auth_token");
+    }
+    return this.sessionToken;
+  }
 
   private async request<T>(
     endpoint: string,
@@ -27,6 +44,12 @@ class ApiClient {
     // Ensure JSON
     if (!headers.has("Content-Type") && options.body && typeof options.body === "string") {
       headers.set("Content-Type", "application/json");
+    }
+
+    // Attach Bearer token if available
+    const token = this.getSessionToken();
+    if (token && !headers.has("Authorization")) {
+      headers.set("Authorization", `Bearer ${token}`);
     }
 
     // Attach CSRF token on mutating methods
@@ -82,31 +105,50 @@ class ApiClient {
     }
   }
 
+  // Health Endpoints
+  health = {
+    check: () => this.request<{ status: string; timestamp: string }>("/health"),
+    checkLive: () => this.request<{ status: string; timestamp: string }>("/health/live"),
+    checkReady: () => this.request<{ status: string; database: string }>("/health/ready"),
+  };
+
   // Auth Endpoints
   auth = {
     register: async (email: string, password: string) => {
-      const res = await this.request<{ account: any; csrfToken: string }>("/auth/register", {
+      const res = await this.request<{ account: any; csrfToken: string; sessionToken?: string }>("/auth/register", {
         method: "POST",
         body: JSON.stringify({ email, password }),
       });
       this.csrfToken = res.csrfToken;
+      if (res.sessionToken) {
+        this.setSessionToken(res.sessionToken);
+      }
       return res;
     },
     login: async (email: string, password: string) => {
-      const res = await this.request<{ account: any; csrfToken: string }>("/auth/login", {
+      const res = await this.request<{ account: any; csrfToken: string; sessionToken?: string }>("/auth/login", {
         method: "POST",
         body: JSON.stringify({ email, password }),
       });
       this.csrfToken = res.csrfToken;
+      if (res.sessionToken) {
+        this.setSessionToken(res.sessionToken);
+      }
       return res;
     },
     logout: async () => {
-      await this.request<{ success: boolean }>("/auth/logout", { method: "POST" });
+      try {
+        await this.request<{ success: boolean }>("/auth/logout", { method: "POST" });
+      } catch {}
       this.csrfToken = null;
+      this.setSessionToken(null);
     },
     logoutAll: async () => {
-      await this.request<{ success: boolean }>("/auth/logout-all", { method: "POST" });
+      try {
+        await this.request<{ success: boolean }>("/auth/logout-all", { method: "POST" });
+      } catch {}
       this.csrfToken = null;
+      this.setSessionToken(null);
     },
     getMe: () => this.request<any>("/auth/me"),
     reauthenticate: (password: string) =>
@@ -149,12 +191,31 @@ class ApiClient {
     syncStudent: (data: {
       nickname: string;
       email?: string | undefined;
+      password?: string | undefined;
       ageBand?: string | undefined;
       priorStandard?: string | undefined;
       avatarKey?: string | undefined;
+      avatarUrl?: string | null | undefined;
       weeklyGoal?: number | undefined;
+      progress?: any;
     }) =>
       this.request<any>("/children/sync-student", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    studentLogin: (data: { email: string; password?: string }) =>
+      this.request<{ success: boolean; student?: any; error?: string }>("/children/student-login", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    syncProgress: (data: {
+      studentEmail?: string;
+      profileId?: string;
+      progress: any;
+      avatarUrl?: string | null;
+      avatarKey?: string;
+    }) =>
+      this.request<{ success: boolean }>("/children/sync-progress", {
         method: "POST",
         body: JSON.stringify(data),
       }),
@@ -345,6 +406,14 @@ class ApiClient {
     withdraw: (versionId: string) =>
       this.request<any>(`/editorial/versions/${versionId}/withdraw`, {
         method: "POST",
+      }),
+    deleteStudent: (studentId: string) =>
+      this.request<{ success: boolean }>(`/editorial/students/${studentId}`, {
+        method: "DELETE",
+      }),
+    deleteAllStudents: () =>
+      this.request<{ success: boolean }>("/editorial/students", {
+        method: "DELETE",
       }),
   };
 

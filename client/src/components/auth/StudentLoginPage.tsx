@@ -22,7 +22,7 @@ export const StudentLoginPage: React.FC<StudentLoginPageProps> = ({
   onEnterChildSpace,
   onBackToWelcome,
 }) => {
-  const { lang, loginStudent, createProfile } = useNoor();
+  const { lang, state, activeProfile, loginStudent, createProfile } = useNoor();
 
   // Auth Mode: "login" | "signup"
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
@@ -33,8 +33,10 @@ export const StudentLoginPage: React.FC<StudentLoginPageProps> = ({
   const [studentPassword, setStudentPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
   // Handle Login
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!studentEmail.trim()) {
       setErrorMessage(lang === "ml" ? "ദയവായി ഇമെയിൽ നൽകുക" : "Please enter your email.");
@@ -46,22 +48,39 @@ export const StudentLoginPage: React.FC<StudentLoginPageProps> = ({
     }
 
     setErrorMessage(null);
+    setIsLoggingIn(true);
 
-    // Extract student name from email or profile
-    const derivedName = studentName.trim() || studentEmail.split("@")[0] || "Explorer";
+    try {
+      const cleanEmail = studentEmail.trim().toLowerCase();
 
-    loginStudent({
-      nickname: derivedName,
-      email: studentEmail.trim(),
-      ageBand: "8-9",
-      priorStandard: "3",
-    });
+      const res = await loginStudent({
+        email: cleanEmail,
+        password: studentPassword,
+      });
 
-    setStudentSession(derivedName, studentEmail.trim());
-    onEnterChildSpace();
+      if (!res.success) {
+        setErrorMessage(
+          lang === "ml"
+            ? res.error?.includes("password") || res.error?.includes("Incorrect")
+              ? "തെറ്റായ പാസ്‌വേഡ് നൽകി. ദയവായി വീണ്ടും ശ്രമിക്കുക."
+              : "ഈ ഇമെയിൽ വിലാസത്തിൽ അക്കൗണ്ട് കണ്ടെത്താനായില്ല. ദയവായി അക്കൗണ്ട് ഉണ്ടാക്കുക."
+            : res.error || "No student account found with this email. Please check your email or create an account."
+        );
+        return;
+      }
+
+      // Success! Lookup student nickname from registered profile
+      const profile = state.profiles.find((p) => p.id === res.profileId) || activeProfile;
+      const derivedName = profile?.nickname || cleanEmail.split("@")[0] || "Explorer";
+
+      setStudentSession(derivedName, cleanEmail);
+      onEnterChildSpace();
+    } finally {
+      setIsLoggingIn(false);
+    }
   };
 
-  // Handle Signup: Enter Account Details -> Create account & jump directly to dashboard
+  // Handle Signup: Enter Account Details -> Enforce unique email -> jump to dashboard & popup
   const handleSignupSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!studentName.trim()) {
@@ -80,26 +99,44 @@ export const StudentLoginPage: React.FC<StudentLoginPageProps> = ({
     setErrorMessage(null);
 
     const cleanName = studentName.trim();
-    const cleanEmail = studentEmail.trim();
+    const cleanEmail = studentEmail.trim().toLowerCase();
 
-    // Create the child profile with standard defaults; class & age will popup from bottom to center on dashboard
-    createProfile({
-      nickname: cleanName,
-      email: cleanEmail,
-      ageBand: "8-9",
-      priorStandard: "3",
-      avatarId: "lantern-noor",
-      weeklyGoal: 3,
-    });
+    // Security Check: Enforce email uniqueness so users cannot register twice with the same email
+    const emailAlreadyExists = state.profiles.some(
+      (p) => p.email && p.email.toLowerCase() === cleanEmail
+    );
+    if (emailAlreadyExists) {
+      setErrorMessage(
+        lang === "ml"
+          ? "ഈ ഇമെയിൽ വിലാസത്തിൽ ഇതിനകം ഒരു അക്കൗണ്ട് നിലവിലുണ്ട്. ദയവായി ലോഗിൻ ചെയ്യുക."
+          : "An account with this email address already exists. Please sign in instead."
+      );
+      return;
+    }
 
-    setStudentSession(cleanName, cleanEmail);
-
-    // Flag to trigger the bottom-to-center popup on dashboard
     try {
-      sessionStorage.setItem("noor_show_child_onboarding_popup", "true");
-    } catch {}
+      // Create the child profile with password; class, age & avatar will popup from bottom to center on dashboard
+      createProfile({
+        nickname: cleanName,
+        email: cleanEmail,
+        password: studentPassword,
+        ageBand: "8-9",
+        priorStandard: "3",
+        avatarId: "lantern-noor",
+        weeklyGoal: 3,
+      });
 
-    onEnterChildSpace();
+      setStudentSession(cleanName, cleanEmail);
+
+      // Flag to trigger the bottom-to-center popup on dashboard
+      try {
+        sessionStorage.setItem("noor_show_child_onboarding_popup", "true");
+      } catch {}
+
+      onEnterChildSpace();
+    } catch (err: any) {
+      setErrorMessage(err.message || "Failed to create account.");
+    }
   };
 
   return (

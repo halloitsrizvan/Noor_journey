@@ -135,12 +135,15 @@ export class ChildrenService {
   async syncStudent(dto: {
     nickname: string;
     email?: string;
+    password?: string;
     ageBand?: string;
     priorStandard?: string;
     avatarKey?: string;
+    avatarUrl?: string | null;
     weeklyGoal?: number;
+    progress?: any;
   }) {
-    if (!dto.nickname?.trim()) {
+    if (!dto.nickname?.trim() && !dto.email?.trim()) {
       return null;
     }
 
@@ -154,21 +157,39 @@ export class ChildrenService {
       return null;
     }
 
-    const cleanNick = dto.nickname.trim();
-    const existing = await this.prisma.childProfile.findFirst({
-      where: {
-        nickname: { equals: cleanNick, mode: "insensitive" },
-      },
-    });
+    const cleanEmail = dto.email?.trim().toLowerCase();
+    const cleanNick = dto.nickname?.trim() || cleanEmail?.split("@")[0] || "Explorer";
+
+    // Find by email or nickname
+    let existing: any = null;
+    if (cleanEmail) {
+      existing = await this.prisma.childProfile.findFirst({
+        where: {
+          email: { equals: cleanEmail, mode: "insensitive" },
+        },
+      });
+    }
+    if (!existing && cleanNick) {
+      existing = await this.prisma.childProfile.findFirst({
+        where: {
+          nickname: { equals: cleanNick, mode: "insensitive" },
+        },
+      });
+    }
 
     if (existing) {
       return this.prisma.childProfile.update({
         where: { id: existing.id },
         data: {
+          nickname: cleanNick,
+          email: cleanEmail || existing.email,
+          passwordHash: dto.password || existing.passwordHash,
+          avatarUrl: dto.avatarUrl !== undefined ? dto.avatarUrl : existing.avatarUrl,
+          avatarKey: dto.avatarKey || existing.avatarKey,
           ageBand: dto.ageBand || existing.ageBand,
           priorStandard: dto.priorStandard || existing.priorStandard,
-          avatarKey: dto.avatarKey || existing.avatarKey,
           weeklyGoal: dto.weeklyGoal || existing.weeklyGoal,
+          progressData: dto.progress ? (dto.progress as any) : existing.progressData,
         },
       });
     }
@@ -177,13 +198,95 @@ export class ChildrenService {
       data: {
         parentAccountId: parent.id,
         nickname: cleanNick,
+        email: cleanEmail || null,
+        passwordHash: dto.password || null,
+        avatarKey: dto.avatarKey || "lantern-noor",
+        avatarUrl: dto.avatarUrl || null,
         ageBand: dto.ageBand || "10-11",
         preferredLanguage: "en",
         priorStandard: dto.priorStandard || "4",
-        avatarKey: dto.avatarKey || "lantern-noor",
         weeklyGoal: dto.weeklyGoal || 3,
+        progressData: dto.progress ? (dto.progress as any) : null,
       },
     });
+  }
+
+  async studentLogin(emailOrNick: string, password?: string) {
+    const clean = (emailOrNick || "").trim();
+    if (!clean) {
+      return { success: false, error: "Please enter your email or nickname." };
+    }
+
+    const cleanEmail = clean.toLowerCase();
+
+    const student = await this.prisma.childProfile.findFirst({
+      where: {
+        OR: [
+          { email: { equals: cleanEmail, mode: "insensitive" } },
+          { nickname: { equals: clean, mode: "insensitive" } },
+        ],
+      },
+    });
+
+    if (!student) {
+      return { success: false, error: "No student account found with this email." };
+    }
+
+    if (student.passwordHash && password && student.passwordHash !== password) {
+      return { success: false, error: "Incorrect password. Please verify your password and try again." };
+    }
+
+    return {
+      success: true,
+      student: {
+        id: student.id,
+        nickname: student.nickname,
+        email: student.email,
+        ageBand: student.ageBand,
+        priorStandard: student.priorStandard,
+        avatarId: student.avatarKey,
+        avatarUrl: student.avatarUrl,
+        weeklyGoal: student.weeklyGoal,
+        progress: student.progressData,
+      },
+    };
+  }
+
+  async syncProgress(data: {
+    studentEmail?: string;
+    profileId?: string;
+    progress: any;
+    avatarUrl?: string | null;
+    avatarKey?: string;
+  }) {
+    let student: any = null;
+    if (data.studentEmail) {
+      student = await this.prisma.childProfile.findFirst({
+        where: { email: { equals: data.studentEmail.trim(), mode: "insensitive" } },
+      });
+    }
+    if (!student && data.profileId) {
+      student = await this.prisma.childProfile.findUnique({
+        where: { id: data.profileId },
+      });
+    }
+
+    if (!student) {
+      return { success: false, message: "Student profile not found." };
+    }
+
+    const updateData: any = {
+      progressData: data.progress,
+    };
+    if (data.avatarUrl !== undefined) updateData.avatarUrl = data.avatarUrl;
+    if (data.avatarKey) updateData.avatarKey = data.avatarKey;
+
+    await this.prisma.childProfile.update({
+      where: { id: student.id },
+      data: updateData,
+    });
+
+    return { success: true };
   }
 }
 

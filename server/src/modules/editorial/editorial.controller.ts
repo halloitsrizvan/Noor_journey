@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
   Param,
   Body,
   UseGuards,
@@ -84,5 +85,19 @@ export class EditorialController {
   @ApiOperation({ summary: "Safety withdrawal of a mission version" })
   async withdrawVersion(@Param("versionId") versionId: string) {
     return this.editorialService.withdrawVersion(versionId);
+  }
+
+  @Roles(Role.ADMIN)
+  @Delete("students/:studentId")
+  @ApiOperation({ summary: "Admin delete a student profile" })
+  async deleteStudent(@Param("studentId") studentId: string) {
+    return this.editorialService.deleteStudent(studentId);
+  }
+
+  @Roles(Role.ADMIN)
+  @Delete("students")
+  @ApiOperation({ summary: "Admin delete all student profiles" })
+  async deleteAllStudents() {
+    return this.editorialService.deleteAllStudents();
   }
 }

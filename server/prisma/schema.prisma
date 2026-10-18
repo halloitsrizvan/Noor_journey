@@ -60,6 +60,10 @@ model ChildProfile {
   preferredLanguage String    @default("ml") // "ml", "en"
   priorStandard     String?   // "1", "2", "3", "none", "not-sure"
   avatarKey         String    @default("lantern-noor")
+  avatarUrl         String?
+  email             String?
+  passwordHash      String?
+  progressData      Json?
   weeklyGoal        Int       @default(3) // 2, 3, or 5
   timezone          String    @default("Asia/Kolkata")
   createdAt         DateTime  @default(now())

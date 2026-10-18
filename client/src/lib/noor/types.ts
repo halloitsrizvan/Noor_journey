@@ -109,14 +109,15 @@ export type PriorStandard = "none" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "
 export interface ChildProfile {
   id: string;
   nickname: string;
-  email?: string;
+  email?: string | undefined;
+  password?: string | undefined;
   ageBand: AgeBand;
   priorStandard: PriorStandard;
   avatarId: string;
-  avatarUrl?: string | null;
+  avatarUrl?: string | null | undefined;
   cosmeticId: string | null;
   weeklyGoal: 2 | 3 | 5;
-  recommendedStart?: string;
+  recommendedStart?: string | undefined;
   createdAt: number;
 }
 

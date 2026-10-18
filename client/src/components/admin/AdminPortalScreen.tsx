@@ -35,7 +35,7 @@ import {
 
 export const AdminPortalScreen: React.FC = () => {
   const navigate = useNavigate();
-  const { lang, setLang, authAccount, login, logout, isBackendConnected, state } = useNoor();
+  const { lang, setLang, authAccount, login, logout, isBackendConnected, state, deleteProfile, deleteAllStudents } = useNoor();
 
   const [activeTab, setActiveTab] = useState<"metrics" | "madrasa" | "curriculum" | "users" | "system">("madrasa");
   const [adminEmail, setAdminEmail] = useState("");
@@ -335,6 +335,38 @@ export const AdminPortalScreen: React.FC = () => {
     } catch (err: any) {
       alert(err.message || "Withdraw action failed");
     }
+  };
+
+  const handleDeleteLearner = async (learner: any) => {
+    if (!window.confirm(`Are you sure you want to delete student "${learner.nickname}"?`)) {
+      return;
+    }
+    deleteProfile(learner.id);
+    try {
+      await api.editorial.deleteStudent(learner.id);
+    } catch {}
+    setOverviewData((prev: any) => ({
+      ...prev,
+      children: (prev?.children || []).filter((c: any) => c.id !== learner.id),
+    }));
+    setActionSuccessMessage(`Student "${learner.nickname}" deleted successfully.`);
+    setTimeout(() => setActionSuccessMessage(null), 3000);
+  };
+
+  const handleClearAllStudents = async () => {
+    if (!window.confirm("Are you sure you want to remove ALL student accounts? This will delete all student profiles and records.")) {
+      return;
+    }
+    deleteAllStudents();
+    try {
+      await api.editorial.deleteAllStudents();
+    } catch {}
+    setOverviewData((prev: any) => ({
+      ...prev,
+      children: [],
+    }));
+    setActionSuccessMessage("All student learners deleted successfully.");
+    setTimeout(() => setActionSuccessMessage(null), 3000);
   };
 
   return (
@@ -1046,7 +1078,9 @@ export const AdminPortalScreen: React.FC = () => {
                   _count: { attempts: 0 },
                   isLocal: true,
                 }));
-              const allLearners = [...dbChildren, ...localLearners];
+              const allLearners = [...dbChildren, ...localLearners].filter(
+                (c: any) => !["rizzo", "സയാൻ", "amina"].includes(c.nickname?.trim().toLowerCase())
+              );
 
               return (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1057,39 +1091,66 @@ export const AdminPortalScreen: React.FC = () => {
                       <Users className="w-5 h-5 text-[#7857E8]" />
                       Student Learners ({allLearners.length})
                     </h3>
-                    <span className="text-xs text-[#626273]">Neon DB & Active Profiles</span>
+                    <div className="flex items-center gap-2">
+                      {allLearners.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={handleClearAllStudents}
+                          className="text-xs font-bold text-[#B93848] hover:bg-[#FFE5E8] px-2.5 py-1 rounded-xl transition-all tactile"
+                        >
+                          Clear All
+                        </button>
+                      )}
+                      <span className="text-xs text-[#626273]">Neon DB & Active Profiles</span>
+                    </div>
                   </div>
 
                   <div className="space-y-2.5">
-                    {allLearners.map((c: any) => (
-                      <div
-                        key={c.id}
-                        className="p-3.5 bg-[#F8F7F9] border border-[#E4E0E9] rounded-2xl flex items-center justify-between gap-3 shadow-2xs"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-[#E3D4FF] text-[#7857E8] flex items-center justify-center font-black text-sm">
-                            {c.nickname.slice(0, 1).toUpperCase()}
+                    {allLearners.length === 0 ? (
+                      <div className="py-8 text-center text-[#626273] text-xs font-semibold">
+                        No student learners registered. Ready for new students to join!
+                      </div>
+                    ) : (
+                      allLearners.map((c: any) => (
+                        <div
+                          key={c.id}
+                          className="p-3.5 bg-[#F8F7F9] border border-[#E4E0E9] rounded-2xl flex items-center justify-between gap-3 shadow-2xs"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-[#E3D4FF] text-[#7857E8] flex items-center justify-center font-black text-sm">
+                              {c.nickname.slice(0, 1).toUpperCase()}
+                            </div>
+                            <div>
+                              <span className="font-black text-sm text-[#141426] flex items-center gap-2">
+                                {c.nickname}
+                                {c.isLocal && (
+                                  <span className="text-[10px] font-bold text-[#7857E8] bg-[#F0E9FF] px-2 py-0.5 rounded-full">
+                                    Current Device
+                                  </span>
+                                )}
+                              </span>
+                              <span className="text-xs text-[#626273]">
+                                Age: {c.ageBand} • Lang: {c.preferredLanguage}
+                              </span>
+                            </div>
                           </div>
-                          <div>
-                            <span className="font-black text-sm text-[#141426] flex items-center gap-2">
-                              {c.nickname}
-                              {c.isLocal && (
-                                <span className="text-[10px] font-bold text-[#7857E8] bg-[#F0E9FF] px-2 py-0.5 rounded-full">
-                                  Current Device
-                                </span>
-                              )}
+
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-black px-2.5 py-1 rounded-full bg-[#EAF8E8] text-[#20721E]">
+                              {c._count?.attempts ?? 0} Attempts
                             </span>
-                            <span className="text-xs text-[#626273]">
-                              Age: {c.ageBand} • Lang: {c.preferredLanguage}
-                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteLearner(c)}
+                              className="p-2 text-[#626273] hover:text-[#B93848] hover:bg-[#FFE5E8] rounded-xl transition-all tactile"
+                              title="Delete student"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
                           </div>
                         </div>
-
-                        <span className="text-xs font-black px-2.5 py-1 rounded-full bg-[#EAF8E8] text-[#20721E]">
-                          {c._count?.attempts ?? 0} Attempts
-                        </span>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 </div>
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNoor } from "@/lib/noor/state";
-import { Check, Calendar } from "lucide-react";
+import { Check, Calendar, Sparkles } from "lucide-react";
 
 interface IbadahHabit {
   id: string;
@@ -55,7 +55,7 @@ const DAILY_HABITS: IbadahHabit[] = [
 ];
 
 export const DailyIbadahRevisionTracker: React.FC = () => {
-  const { lang, activeProfile } = useNoor();
+  const { lang, activeProfile, awardXp } = useNoor();
 
   // Format today's date key: YYYY-MM-DD
   const todayDate = new Date();
@@ -74,6 +74,8 @@ export const DailyIbadahRevisionTracker: React.FC = () => {
     }
   });
 
+  const [justAwardedId, setJustAwardedId] = useState<string | null>(null);
+
   useEffect(() => {
     try {
       const raw = localStorage.getItem(storageKey);
@@ -86,16 +88,27 @@ export const DailyIbadahRevisionTracker: React.FC = () => {
   }, [storageKey]);
 
   const toggleHabit = (id: string) => {
+    const isNowDone = !completedMap[id];
     setCompletedMap((prev) => {
       const updated = {
         ...prev,
-        [id]: !prev[id],
+        [id]: isNowDone,
       };
       try {
         localStorage.setItem(storageKey, JSON.stringify(updated));
       } catch {}
       return updated;
     });
+
+    if (isNowDone) {
+      // Award 2 XP per marked worship/revision habit for today (deduplicated per child, date & habit)
+      const dedupeKey = `ibadah-${childId}-${todayKey}-${id}`;
+      awardXp(2, "activity", dedupeKey);
+      setJustAwardedId(id);
+      setTimeout(() => {
+        setJustAwardedId((curr) => (curr === id ? null : curr));
+      }, 2500);
+    }
   };
 
   const completedCount = DAILY_HABITS.filter((h) => !!completedMap[h.id]).length;
@@ -128,15 +141,17 @@ export const DailyIbadahRevisionTracker: React.FC = () => {
             <span>{lang === "ml" ? `ഇന്ന്: ${formattedDate}` : `Today: ${formattedDate}`}</span>
             <span className="text-[#626273]/40">•</span>
             <span className="text-[#141426] font-bold">
-              {lang === "ml" ? "ഇന്നത്തെത് മാത്രം രേഖപ്പെടുത്തൂ" : "Mark today only"}
+              {lang === "ml" ? "ഓരോന്നിനും +2 XP" : "+2 XP for each"}
             </span>
           </div>
         </div>
 
         {/* Calm Completion Pill */}
         <div className="text-right shrink-0">
-          <span className="text-xs font-black text-[#141426] bg-[#F3F1F4] border border-[#E4E0E9] px-2.5 py-1 rounded-full">
-            {completedCount} / {totalCount}
+          <span className="text-xs font-black text-[#141426] bg-[#F3F1F4] border border-[#E4E0E9] px-2.5 py-1 rounded-full flex items-center gap-1.5">
+            <span>{completedCount} / {totalCount}</span>
+            <span className="text-[#626273]/40">•</span>
+            <span className="text-[#5B21B6] font-black">+{completedCount * 2} XP</span>
           </span>
         </div>
       </div>
@@ -192,29 +207,47 @@ export const DailyIbadahRevisionTracker: React.FC = () => {
                 </div>
               </div>
 
-              {/* Right: "Yes" Pill Button / Checkbox */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleHabit(habit.id);
-                }}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all tactile shrink-0 ${
-                  isDone
-                    ? "bg-[#191A22] text-white shadow-2xs"
-                    : "bg-[#F3F1F4] hover:bg-[#EAE8ED] text-[#626273] border border-[#E4E0E9]"
-                }`}
-                aria-label={`${lang === "ml" ? habit.nameMl : habit.nameEn}: ${isDone ? "Yes" : "Mark Yes"}`}
-              >
-                {isDone ? (
-                  <>
-                    <Check className="w-3.5 h-3.5 stroke-[3]" />
-                    <span>{lang === "ml" ? "പൂർത്തിയായി" : "Yes"}</span>
-                  </>
+              {/* Right: +2 XP Badge & "Yes" Button */}
+              <div className="flex items-center gap-2 shrink-0">
+                {justAwardedId === habit.id ? (
+                  <span className="px-2 py-0.5 rounded-full bg-[#FFD184] text-[#191A22] text-[10px] font-black animate-bounce shadow-2xs">
+                    +2 XP! 🌟
+                  </span>
                 ) : (
-                  <span>{lang === "ml" ? "രേഖപ്പെടുത്തൂ" : "Mark Yes"}</span>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-black border transition-all ${
+                      isDone
+                        ? "bg-[#EAF8E8] text-[#1C6918] border-[#B7E8B1]"
+                        : "bg-[#F0E9FF] text-[#5B21B6] border-[#E3D4FF]"
+                    }`}
+                  >
+                    {isDone ? "+2 XP ✓" : "+2 XP"}
+                  </span>
                 )}
-              </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleHabit(habit.id);
+                  }}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all tactile shrink-0 ${
+                    isDone
+                      ? "bg-[#191A22] text-white shadow-2xs"
+                      : "bg-[#F3F1F4] hover:bg-[#EAE8ED] text-[#626273] border border-[#E4E0E9]"
+                  }`}
+                  aria-label={`${lang === "ml" ? habit.nameMl : habit.nameEn}: ${isDone ? "Yes" : "Mark Yes"}`}
+                >
+                  {isDone ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      <span>{lang === "ml" ? "പൂർത്തിയായി" : "Yes"}</span>
+                    </>
+                  ) : (
+                    <span>{lang === "ml" ? "രേഖപ്പെടുത്തൂ" : "Mark Yes"}</span>
+                  )}
+                </button>
+              </div>
             </div>
           );
         })}
@@ -222,11 +255,14 @@ export const DailyIbadahRevisionTracker: React.FC = () => {
 
       {/* Encouragement Footer */}
       {completedCount === totalCount && (
-        <div className="p-3 bg-[#F8F8FA] border border-[#E4E0E9] rounded-2xl text-center animate-fade-in">
-          <p className="text-xs font-bold text-[#141426]">
-            {lang === "ml"
-              ? "മാശാ അല്ലാഹ്! ഇന്നത്തെ എല്ലാ ഇബാദത്തുകളും നിങ്ങൾ പൂർത്തിയാക്കി 🌟"
-              : "MashaAllah! You completed all of today's worship and daily revisions 🌟"}
+        <div className="p-3.5 bg-gradient-to-r from-[#EAF8E8] to-[#D5F2D2] border border-[#B7E8B1] rounded-2xl text-center shadow-2xs animate-fade-in space-y-0.5">
+          <p className="text-xs font-black text-[#1C6918] flex items-center justify-center gap-1.5">
+            <Sparkles className="w-4 h-4 text-[#F59E0B]" />
+            <span>
+              {lang === "ml"
+                ? "മാശാ അല്ലാഹ്! ഇന്നത്തെ എല്ലാ ഇബാദത്തുകളും പൂർത്തിയാക്കി +10 XP നേടി 🌟"
+                : "MashaAllah! You completed all of today's worship and daily revisions (+10 XP earned) 🌟"}
+            </span>
           </p>
         </div>
       )}

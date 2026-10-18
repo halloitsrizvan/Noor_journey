@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as CollectionRouteImport } from './routes/collection'
+import { Route as CurriculumRouteImport } from './routes/curriculum'
 import { Route as GamesRouteImport } from './routes/games'
 import { Route as JourneyRouteImport } from './routes/journey'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
@@ -20,6 +21,7 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as StudentLoginRouteImport } from './routes/student-login'
 import { Route as TajweedRouteImport } from './routes/tajweed'
 import { Route as TeacherLoginRouteImport } from './routes/teacher-login'
+import { Route as SubjectKeyRouteImport } from './routes/subject.$key'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,6 +36,11 @@ const AdminRoute = AdminRouteImport.update({
 const CollectionRoute = CollectionRouteImport.update({
   id: '/collection',
   path: '/collection',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CurriculumRoute = CurriculumRouteImport.update({
+  id: '/curriculum',
+  path: '/curriculum',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GamesRoute = GamesRouteImport.update({
@@ -76,11 +83,17 @@ const TeacherLoginRoute = TeacherLoginRouteImport.update({
   path: '/teacher-login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SubjectKeyRoute = SubjectKeyRouteImport.update({
+  id: '/subject/$key',
+  path: '/subject/$key',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/collection': typeof CollectionRoute
+  '/curriculum': typeof CurriculumRoute
   '/games': typeof GamesRoute
   '/journey': typeof JourneyRoute
   '/leaderboard': typeof LeaderboardRoute
@@ -89,11 +102,13 @@ export interface FileRoutesByFullPath {
   '/student-login': typeof StudentLoginRoute
   '/tajweed': typeof TajweedRoute
   '/teacher-login': typeof TeacherLoginRoute
+  '/subject/$key': typeof SubjectKeyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/collection': typeof CollectionRoute
+  '/curriculum': typeof CurriculumRoute
   '/games': typeof GamesRoute
   '/journey': typeof JourneyRoute
   '/leaderboard': typeof LeaderboardRoute
@@ -102,12 +117,14 @@ export interface FileRoutesByTo {
   '/student-login': typeof StudentLoginRoute
   '/tajweed': typeof TajweedRoute
   '/teacher-login': typeof TeacherLoginRoute
+  '/subject/$key': typeof SubjectKeyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/collection': typeof CollectionRoute
+  '/curriculum': typeof CurriculumRoute
   '/games': typeof GamesRoute
   '/journey': typeof JourneyRoute
   '/leaderboard': typeof LeaderboardRoute
@@ -116,6 +133,7 @@ export interface FileRoutesById {
   '/student-login': typeof StudentLoginRoute
   '/tajweed': typeof TajweedRoute
   '/teacher-login': typeof TeacherLoginRoute
+  '/subject/$key': typeof SubjectKeyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -123,6 +141,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/collection'
+    | '/curriculum'
     | '/games'
     | '/journey'
     | '/leaderboard'
@@ -131,11 +150,13 @@ export interface FileRouteTypes {
     | '/student-login'
     | '/tajweed'
     | '/teacher-login'
+    | '/subject/$key'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/admin'
     | '/collection'
+    | '/curriculum'
     | '/games'
     | '/journey'
     | '/leaderboard'
@@ -144,11 +165,13 @@ export interface FileRouteTypes {
     | '/student-login'
     | '/tajweed'
     | '/teacher-login'
+    | '/subject/$key'
   id:
     | '__root__'
     | '/'
     | '/admin'
     | '/collection'
+    | '/curriculum'
     | '/games'
     | '/journey'
     | '/leaderboard'
@@ -157,12 +180,14 @@ export interface FileRouteTypes {
     | '/student-login'
     | '/tajweed'
     | '/teacher-login'
+    | '/subject/$key'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   CollectionRoute: typeof CollectionRoute
+  CurriculumRoute: typeof CurriculumRoute
   GamesRoute: typeof GamesRoute
   JourneyRoute: typeof JourneyRoute
   LeaderboardRoute: typeof LeaderboardRoute
@@ -171,6 +196,7 @@ export interface RootRouteChildren {
   StudentLoginRoute: typeof StudentLoginRoute
   TajweedRoute: typeof TajweedRoute
   TeacherLoginRoute: typeof TeacherLoginRoute
+  SubjectKeyRoute: typeof SubjectKeyRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -194,6 +220,13 @@ declare module '@tanstack/react-router' {
       path: '/collection'
       fullPath: '/collection'
       preLoaderRoute: typeof CollectionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/curriculum': {
+      id: '/curriculum'
+      path: '/curriculum'
+      fullPath: '/curriculum'
+      preLoaderRoute: typeof CurriculumRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/games': {
@@ -252,6 +285,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TeacherLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/subject/$key': {
+      id: '/subject/$key'
+      path: '/subject/$key'
+      fullPath: '/subject/$key'
+      preLoaderRoute: typeof SubjectKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -259,6 +299,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   CollectionRoute: CollectionRoute,
+  CurriculumRoute: CurriculumRoute,
   GamesRoute: GamesRoute,
   JourneyRoute: JourneyRoute,
   LeaderboardRoute: LeaderboardRoute,
@@ -267,6 +308,7 @@ const rootRouteChildren: RootRouteChildren = {
   StudentLoginRoute: StudentLoginRoute,
   TajweedRoute: TajweedRoute,
   TeacherLoginRoute: TeacherLoginRoute,
+  SubjectKeyRoute: SubjectKeyRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

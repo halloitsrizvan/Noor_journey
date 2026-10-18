@@ -37,24 +37,33 @@ export interface NoorContextValue {
   toggleReducedMotion: () => void;
   setActiveProfileId: (id: string) => void;
   loginStudent: (data: {
-    nickname: string;
-    email?: string;
-    ageBand: AgeBand;
-    priorStandard: PriorStandard;
-  }) => string;
+    nickname?: string;
+    email: string;
+    password?: string;
+    ageBand?: AgeBand;
+    priorStandard?: PriorStandard;
+  }) => Promise<{ success: boolean; error?: string; profileId?: string }>;
   createProfile: (data: {
     nickname: string;
     email?: string;
+    password?: string;
     ageBand: AgeBand;
     priorStandard: PriorStandard;
     avatarId: string;
+    avatarUrl?: string | null;
     weeklyGoal: 2 | 3 | 5;
   }) => string;
   deleteProfile: (id: string) => void;
+  deleteAllStudents: () => void;
   updateWeeklyGoal: (goal: 2 | 3 | 5) => void;
   updateAvatar: (avatarId: string) => void;
   updateProfileImage: (avatarUrl: string | null) => void;
-  updateStudentDetails: (details: { ageBand: AgeBand; priorStandard: PriorStandard }) => void;
+  updateStudentDetails: (details: {
+    ageBand: AgeBand;
+    priorStandard: PriorStandard;
+    avatarId?: string | undefined;
+    avatarUrl?: string | null | undefined;
+  }) => void;
   awardXp: (
     amount: number,
     reason?: "mission" | "review" | "chapter-review" | "tajweed" | "quiz" | "activity" | "fatihah",
@@ -80,48 +89,66 @@ const NoorContext = createContext<NoorContextValue | null>(null);
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
+function loadStoredAuthAccount(): any | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem("noor_auth_account");
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
 export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = useState<NoorState>(() => loadStoredState());
   const [isBackendConnected, setIsBackendConnected] = useState<boolean>(false);
-  const [authAccount, setAuthAccount] = useState<any | null>(null);
+  const [authAccount, setAuthAccount] = useState<any | null>(() => loadStoredAuthAccount());
 
-  // Probe backend health and session
+  // Probe backend health and validate session
   useEffect(() => {
     let mounted = true;
     async function checkBackend() {
+      // 1. Health probe
       try {
         const live = await api.health.checkLive();
         if (mounted && live?.status === "ok") {
           setIsBackendConnected(true);
-          // Sync any local student profiles to backend database
-          if (Array.isArray(state.profiles)) {
-            state.profiles.forEach((p) => {
-              if (p.nickname) {
-                api.children
-                  .syncStudent({
-                    nickname: p.nickname,
-                    email: p.email,
-                    ageBand: p.ageBand,
-                    priorStandard: p.priorStandard,
-                    avatarKey: p.avatarId,
-                    weeklyGoal: p.weeklyGoal,
-                  })
-                  .catch(() => {});
-              }
-            });
-          }
-          // Check if session exists
-          try {
-            const me = await api.auth.getMe();
-            if (mounted && me?.id) {
-              setAuthAccount(me);
-            }
-          } catch {
-            // Not logged in to server yet; normal
-          }
         }
       } catch {
         if (mounted) setIsBackendConnected(false);
+      }
+
+      // 2. Validate/refresh session if we have a token or cached account
+      const token = api.getSessionToken();
+      const cached = loadStoredAuthAccount();
+      if (token || cached) {
+        try {
+          const me = await api.auth.getMe();
+          if (mounted && me?.id) {
+            setAuthAccount(me);
+            if (typeof window !== "undefined") {
+              localStorage.setItem("noor_auth_account", JSON.stringify(me));
+            }
+          }
+        } catch (err: any) {
+          // If session expired or was revoked on the server, clear authentication
+          const code = err?.code;
+          if (
+            mounted &&
+            (code === "HTTP_401" ||
+              code === "UNAUTHORIZED" ||
+              code === "SESSION_REVOKED" ||
+              code === "SESSION_EXPIRED" ||
+              code === "ACCOUNT_NOT_FOUND")
+          ) {
+            setAuthAccount(null);
+            if (typeof window !== "undefined") {
+              localStorage.removeItem("noor_auth_account");
+              localStorage.removeItem("noor_auth_token");
+            }
+          }
+        }
       }
     }
     checkBackend();
@@ -134,6 +161,30 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     saveStoredState(state);
   }, [state]);
+
+  // Auto-sync active student progress & avatar to central cloud database (debounced 1.5s)
+  useEffect(() => {
+    if (!activeProfile || !activeProgress) return;
+    const timer = setTimeout(() => {
+      api.children
+        .syncProgress({
+          studentEmail: activeProfile.email,
+          profileId: activeProfile.id,
+          progress: activeProgress,
+          avatarUrl: activeProfile.avatarUrl,
+          avatarKey: activeProfile.avatarId,
+        })
+        .catch(() => {});
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [
+    activeProfile?.id,
+    activeProfile?.email,
+    activeProfile?.avatarUrl,
+    activeProfile?.avatarId,
+    activeProgress,
+  ]);
 
   const lang = state.prefs.lang;
   const effectiveNow = useMemo(() => {
@@ -164,6 +215,9 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const res = await api.auth.login(email, pass);
       setAuthAccount(res.account);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("noor_auth_account", JSON.stringify(res.account));
+      }
       // Fetch server children if any
       const serverChildren = await api.children.list();
       if (serverChildren && serverChildren.length > 0) {
@@ -192,6 +246,9 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const res = await api.auth.register(email, pass);
       setAuthAccount(res.account);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("noor_auth_account", JSON.stringify(res.account));
+      }
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err.message || "Registration failed" };
@@ -205,6 +262,10 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // ignore
     }
     setAuthAccount(null);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("noor_auth_account");
+      localStorage.removeItem("noor_auth_token");
+    }
   }, []);
 
   const setLang = useCallback((newLang: Lang) => {
@@ -239,34 +300,51 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
     (data: {
       nickname: string;
       email?: string;
+      password?: string;
       ageBand: AgeBand;
       priorStandard: PriorStandard;
       avatarId: string;
+      avatarUrl?: string | null;
       weeklyGoal: 2 | 3 | 5;
     }) => {
+      const cleanEmail = data.email?.trim().toLowerCase();
+      if (cleanEmail) {
+        const existing = state.profiles.find(
+          (p) => p.email && p.email.toLowerCase() === cleanEmail
+        );
+        if (existing) {
+          throw new Error("An account with this email address already exists.");
+        }
+      }
+
       const id = `profile-${Date.now()}`;
       const newProfile: ChildProfile = {
         id,
         nickname: data.nickname || "കുട്ടി",
-        email: data.email,
+        email: cleanEmail,
+        password: data.password,
         ageBand: data.ageBand,
         priorStandard: data.priorStandard,
         avatarId: data.avatarId || "lantern-noor",
+        avatarUrl: data.avatarUrl || null,
         cosmeticId: null,
         weeklyGoal: data.weeklyGoal,
         recommendedStart: "akhlaq-small-actions",
         createdAt: effectiveNow,
       };
 
-      // Always sync creation to backend
+      // Always sync creation to central backend database
       api.children
         .syncStudent({
           nickname: newProfile.nickname,
           email: newProfile.email,
+          password: newProfile.password,
           ageBand: newProfile.ageBand,
           priorStandard: newProfile.priorStandard,
           avatarKey: newProfile.avatarId,
+          avatarUrl: newProfile.avatarUrl,
           weeklyGoal: newProfile.weeklyGoal,
+          progress: createInitialProgress(),
         })
         .catch(() => {});
 
@@ -294,51 +372,142 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }));
       return id;
     },
-    [effectiveNow, isBackendConnected, authAccount]
+    [effectiveNow, isBackendConnected, authAccount, state.profiles]
   );
 
   const loginStudent = useCallback(
-    (data: {
-      nickname: string;
-      email?: string;
-      ageBand: AgeBand;
-      priorStandard: PriorStandard;
-    }) => {
-      const cleanName = data.nickname.trim();
-      const cleanEmail = data.email?.trim();
-      const existing = state.profiles.find(
-        (p) =>
-          p.nickname.toLowerCase() === cleanName.toLowerCase() ||
-          (cleanEmail && p.email?.toLowerCase() === cleanEmail.toLowerCase())
-      );
-      if (existing) {
-        setState((prev) => ({
-          ...prev,
-          activeProfileId: existing.id,
-          profiles: prev.profiles.map((p) =>
-            p.id === existing.id
-              ? {
-                  ...p,
-                  email: cleanEmail || p.email,
-                  ageBand: data.ageBand,
-                  priorStandard: data.priorStandard,
-                }
-              : p
-          ),
-        }));
-        return existing.id;
-      } else {
-        return createProfile({
-          nickname: cleanName,
-          email: cleanEmail,
-          ageBand: data.ageBand,
-          priorStandard: data.priorStandard,
-          avatarId: "lantern-noor",
-          weeklyGoal: 3,
-        });
+    async (data: {
+      nickname?: string;
+      email: string;
+      password?: string;
+      ageBand?: AgeBand;
+      priorStandard?: PriorStandard;
+    }): Promise<{ success: boolean; error?: string; profileId?: string }> => {
+      const cleanEmail = data.email?.trim().toLowerCase();
+      if (!cleanEmail) {
+        return {
+          success: false,
+          error: "Please enter your email.",
+        };
       }
+
+      const cleanName = data.nickname?.trim();
+
+      // 1. First check local storage profiles
+      let existing = state.profiles.find(
+        (p) =>
+          (p.email && p.email.toLowerCase() === cleanEmail) ||
+          (cleanName && p.nickname.toLowerCase() === cleanName.toLowerCase())
+      );
+
+      // 2. If not found in local storage (e.g. in production or on another device), query central database!
+      if (!existing) {
+        try {
+          const res = await api.children.studentLogin({
+            email: cleanEmail,
+            password: data.password,
+          });
+
+          if (res?.success && res.student) {
+            const s = res.student;
+            const newProfile: ChildProfile = {
+              id: s.id,
+              nickname: s.nickname || "Explorer",
+              email: s.email || cleanEmail,
+              password: data.password,
+              ageBand: (s.ageBand || "10-11") as AgeBand,
+              priorStandard: (s.priorStandard || "none") as PriorStandard,
+              avatarId: s.avatarId || "lantern-noor",
+              avatarUrl: s.avatarUrl || null,
+              cosmeticId: null,
+              weeklyGoal: (s.weeklyGoal || 3) as 2 | 3 | 5,
+              recommendedStart: "akhlaq-small-actions",
+              createdAt: Date.now(),
+            };
+
+            const restoredProgress: ChildProgress = s.progress || createInitialProgress();
+
+            setState((prev) => ({
+              ...prev,
+              profiles: [...prev.profiles.filter((p) => p.id !== s.id), newProfile],
+              activeProfileId: s.id,
+              progress: {
+                ...prev.progress,
+                [s.id]: restoredProgress,
+              },
+            }));
+
+            return { success: true, profileId: s.id };
+          } else if (res?.error) {
+            return { success: false, error: res.error };
+          }
+        } catch {
+          // Server offline or network issue
+        }
+
+        return {
+          success: false,
+          error: "No student account found with this email. Please check your email or create an account.",
+        };
+      }
+
+      // Check password if profile has a password stored
+      if (existing.password && data.password && existing.password !== data.password) {
+        return {
+          success: false,
+          error: "Incorrect password. Please verify your password and try again.",
+        };
+      }
+
+      // Switch active profile
+      setState((prev) => ({
+        ...prev,
+        activeProfileId: existing.id,
+        profiles: prev.profiles.map((p) =>
+          p.id === existing.id
+            ? {
+                ...p,
+                email: cleanEmail || p.email,
+                ageBand: data.ageBand || p.ageBand,
+                priorStandard: data.priorStandard || p.priorStandard,
+              }
+            : p
+        ),
+      }));
+
+      // Background sync latest progress and avatar from database if available
+      api.children
+        .studentLogin({ email: cleanEmail, password: data.password })
+        .then((res) => {
+          if (res?.success && res.student) {
+            setState((prev) => ({
+              ...prev,
+              profiles: prev.profiles.map((p) =>
+                p.id === existing.id
+                  ? {
+                      ...p,
+                      avatarUrl: res.student.avatarUrl !== undefined ? res.student.avatarUrl : p.avatarUrl,
+                      avatarId: res.student.avatarId || p.avatarId,
+                    }
+                  : p
+              ),
+              progress: res.student.progress
+                ? {
+                    ...prev.progress,
+                    [existing.id]: {
+                      ...(prev.progress[existing.id] || {}),
+                      ...res.student.progress,
+                    },
+                  }
+                : prev.progress,
+            }));
+          }
+        })
+        .catch(() => {});
+
+      return { success: true, profileId: existing.id };
     },
-    [state.profiles, createProfile]
+    [state.profiles]
   );
 
   const deleteProfile = useCallback((id: string) => {
@@ -358,6 +527,24 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
     });
   }, [isBackendConnected, authAccount]);
+
+  const deleteAllStudents = useCallback(() => {
+    setState((prev) => ({
+      ...prev,
+      profiles: [],
+      activeProfileId: null as any,
+      progress: {},
+    }));
+    try {
+      localStorage.removeItem("noor_journey_state_v1");
+      localStorage.removeItem("noor_journey_state_v2");
+      sessionStorage.removeItem("noor_active_student_session");
+      sessionStorage.removeItem("noor_active_student_email");
+      localStorage.removeItem("noor_active_student_session");
+      localStorage.removeItem("noor_active_student_name");
+      localStorage.removeItem("noor_active_student_email");
+    } catch {}
+  }, []);
 
   const updateWeeklyGoal = useCallback((goal: 2 | 3 | 5) => {
     setState((prev) => {
@@ -398,19 +585,40 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   }, []);
 
-  const updateStudentDetails = useCallback((details: { ageBand: AgeBand; priorStandard: PriorStandard }) => {
-    setState((prev) => {
-      if (!prev.activeProfileId) return prev;
-      return {
-        ...prev,
-        profiles: prev.profiles.map((p) =>
-          p.id === prev.activeProfileId
-            ? { ...p, ageBand: details.ageBand, priorStandard: details.priorStandard }
-            : p
-        ),
-      };
-    });
-  }, []);
+  const updateStudentDetails = useCallback(
+    (details: {
+      ageBand: AgeBand;
+      priorStandard: PriorStandard;
+      avatarId?: string | undefined;
+      avatarUrl?: string | null | undefined;
+    }) => {
+      setState((prev) => {
+        if (!prev.activeProfileId) return prev;
+        return {
+          ...prev,
+          profiles: prev.profiles.map((p) =>
+            p.id === prev.activeProfileId
+              ? {
+                  ...p,
+                  ageBand: details.ageBand,
+                  priorStandard: details.priorStandard,
+                  avatarId: details.avatarId || p.avatarId,
+                  avatarUrl: details.avatarUrl !== undefined ? details.avatarUrl : p.avatarUrl,
+                }
+              : p
+          ),
+        };
+      });
+
+      if (details.avatarId) {
+        updateAvatar(details.avatarId);
+      }
+      if (details.avatarUrl !== undefined) {
+        updateProfileImage(details.avatarUrl);
+      }
+    },
+    [updateAvatar, updateProfileImage]
+  );
 
   const completeMission = useCallback(
     (missionId: string, checkpointScore: number): { xpAwarded: number; newBadge: boolean } => {
@@ -760,6 +968,7 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
       loginStudent,
       createProfile,
       deleteProfile,
+      deleteAllStudents,
       updateWeeklyGoal,
       updateAvatar,
       updateProfileImage,
@@ -797,9 +1006,11 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
       loginStudent,
       createProfile,
       deleteProfile,
+      deleteAllStudents,
       updateWeeklyGoal,
       updateAvatar,
       updateProfileImage,
+      updateStudentDetails,
       awardXp,
       completeMission,
       completeReview,

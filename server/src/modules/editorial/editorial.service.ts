@@ -256,4 +256,35 @@ export class EditorialService {
       children,
     };
   }
+
+  async deleteStudent(studentId: string) {
+    const studentIds = [studentId];
+    await this.prisma.rewardTransaction.deleteMany({ where: { childProfileId: { in: studentIds } } }).catch(() => {});
+    await this.prisma.badgeAward.deleteMany({ where: { childProfileId: { in: studentIds } } }).catch(() => {});
+    await this.prisma.cosmeticUnlock.deleteMany({ where: { childProfileId: { in: studentIds } } }).catch(() => {});
+    await this.prisma.reviewAttempt.deleteMany({ where: { childProfileId: { in: studentIds } } }).catch(() => {});
+    await this.prisma.reviewSchedule.deleteMany({ where: { childProfileId: { in: studentIds } } }).catch(() => {});
+    await this.prisma.objectiveMastery.deleteMany({ where: { childProfileId: { in: studentIds } } }).catch(() => {});
+    await this.prisma.missionCompletion.deleteMany({ where: { childProfileId: { in: studentIds } } }).catch(() => {});
+    await this.prisma.missionAttempt.deleteMany({ where: { childProfileId: { in: studentIds } } }).catch(() => {});
+    await this.prisma.familyReflection.deleteMany({ where: { childProfileId: { in: studentIds } } }).catch(() => {});
+    await this.prisma.guardianConsentRecord.deleteMany({ where: { childProfileId: { in: studentIds } } }).catch(() => {});
+    await this.prisma.childProfile.delete({ where: { id: studentId } }).catch(() => {});
+    return { success: true };
+  }
+
+  async deleteAllStudents() {
+    await this.prisma.rewardTransaction.deleteMany().catch(() => {});
+    await this.prisma.badgeAward.deleteMany().catch(() => {});
+    await this.prisma.cosmeticUnlock.deleteMany().catch(() => {});
+    await this.prisma.reviewAttempt.deleteMany().catch(() => {});
+    await this.prisma.reviewSchedule.deleteMany().catch(() => {});
+    await this.prisma.objectiveMastery.deleteMany().catch(() => {});
+    await this.prisma.missionCompletion.deleteMany().catch(() => {});
+    await this.prisma.missionAttempt.deleteMany().catch(() => {});
+    await this.prisma.familyReflection.deleteMany().catch(() => {});
+    await this.prisma.guardianConsentRecord.deleteMany().catch(() => {});
+    await this.prisma.childProfile.deleteMany().catch(() => {});
+    return { success: true };
+  }
 }

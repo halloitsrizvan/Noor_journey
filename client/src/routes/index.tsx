@@ -36,8 +36,7 @@ function IndexRoute() {
   return (
     <WelcomeAuthScreen
       onEnterChildSpace={() => {
-        setStudentSession("Amina");
-        navigate({ to: "/journey" });
+        navigate({ to: "/student-login" });
       }}
       onGoToStudentLogin={() => navigate({ to: "/student-login" })}
     />

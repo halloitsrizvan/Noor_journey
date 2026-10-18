@@ -23,7 +23,19 @@ async function bootstrap() {
 
   // CORS
   app.enableCors({
-    origin: config.frontendOrigins,
+    origin: (origin, callback) => {
+      if (
+        !origin ||
+        !config.isProduction ||
+        origin.startsWith("http://localhost:") ||
+        origin.startsWith("http://127.0.0.1:") ||
+        config.frontendOrigins.includes(origin)
+      ) {
+        callback(null, true);
+      } else {
+        callback(new Error(`Origin ${origin} not allowed by CORS`));
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token", "idempotency-key", "x-request-id"],

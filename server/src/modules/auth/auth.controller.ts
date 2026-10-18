@@ -45,6 +45,7 @@ export class AuthController {
     return {
       account: result.account,
       csrfToken: result.csrfToken,
+      sessionToken: result.sessionToken,
     };
   }
 
@@ -66,6 +67,7 @@ export class AuthController {
     return {
       account: result.account,
       csrfToken: result.csrfToken,
+      sessionToken: result.sessionToken,
     };
   }
 

@@ -1,6 +1,6 @@
 import type { ChildProfile, ChildProgress, NoorState } from "./types";
 
-const STORAGE_KEY = "noor_journey_state_v1";
+const STORAGE_KEY = "noor_journey_state_v2";
 
 export function createDefaultProfile(): ChildProfile {
   return {
@@ -30,15 +30,12 @@ export function createInitialProgress(): ChildProgress {
 }
 
 export function createInitialState(): NoorState {
-  const defaultProfile = createDefaultProfile();
   return {
     version: 1,
-    parentName: "Fatima",
-    profiles: [defaultProfile],
-    activeProfileId: defaultProfile.id,
-    progress: {
-      [defaultProfile.id]: createInitialProgress(),
-    },
+    parentName: "Parent",
+    profiles: [],
+    activeProfileId: "",
+    progress: {},
     prefs: {
       lang: "en",
       sound: true,
@@ -54,11 +51,24 @@ export function loadStoredState(): NoorState {
     return createInitialState();
   }
   try {
+    // Clear legacy v1 state if present
+    localStorage.removeItem("noor_journey_state_v1");
+
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return createInitialState();
     const parsed = JSON.parse(raw);
     if (parsed && parsed.version === 1 && Array.isArray(parsed.profiles)) {
-      return parsed as NoorState;
+      const cleanedProfiles = parsed.profiles.filter(
+        (p: any) =>
+          p &&
+          p.nickname &&
+          !["rizzo", "സയാൻ", "amina"].includes(p.nickname.trim().toLowerCase())
+      );
+      return {
+        ...parsed,
+        profiles: cleanedProfiles,
+        activeProfileId: cleanedProfiles[0]?.id || "",
+      } as NoorState;
     }
     return createInitialState();
   } catch (err) {

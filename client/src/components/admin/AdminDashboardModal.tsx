@@ -533,7 +533,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                   <div>
                     <h5 className="font-black text-sm text-[#141426] mb-2 flex items-center gap-1.5">
                       <Users className="w-4 h-4 text-[#7857E8]" />
-                      Student Learners ({overviewData?.children?.length ?? 2})
+                      Student Learners ({overviewData?.children?.length ?? 0})
                     </h5>
                     <div className="space-y-2">
                       {overviewData?.children?.map((c: any) => (

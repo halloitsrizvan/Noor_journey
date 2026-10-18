@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useNavigate } from "@tanstack/react-router";
 import { useNoor } from "@/lib/noor/state";
 import { api } from "@/lib/api/api-client";
 import { akhlaqMissions } from "@/content/chapter-akhlaq";
@@ -371,14 +372,13 @@ export const MadrasaSubjects: React.FC<MadrasaSubjectsProps> = ({
     (m) => activeProgress?.missions[m.id]?.passedAt
   ).length;
 
+  const navigate = useNavigate();
+
   const handleSubjectClick = (subj: SubjectDetail) => {
-    if (subj.key === "tajweed") {
-      onOpenTajweed();
-    } else if (subj.key === "akhlaq") {
-      onOpenAkhlaq();
-    } else {
-      setActiveModalSubject(subj);
-    }
+    navigate({
+      to: "/subject/$key",
+      params: { key: subj.key },
+    });
   };
 
   return (

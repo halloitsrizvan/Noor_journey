@@ -43,13 +43,45 @@ export class ChildrenController {
     dto: {
       nickname: string;
       email?: string;
+      password?: string;
       ageBand?: string;
       priorStandard?: string;
       avatarKey?: string;
+      avatarUrl?: string | null;
       weeklyGoal?: number;
+      progress?: any;
     }
   ) {
     return this.childrenService.syncStudent(dto);
+  }
+
+  @Post("student-login")
+  @Public()
+  @ApiOperation({ summary: "Student learner login using database" })
+  async studentLogin(
+    @Body()
+    dto: {
+      email: string;
+      password?: string;
+    }
+  ) {
+    return this.childrenService.studentLogin(dto.email, dto.password);
+  }
+
+  @Post("sync-progress")
+  @Public()
+  @ApiOperation({ summary: "Sync student progress & avatar to database" })
+  async syncProgress(
+    @Body()
+    dto: {
+      studentEmail?: string;
+      profileId?: string;
+      progress: any;
+      avatarUrl?: string | null;
+      avatarKey?: string;
+    }
+  ) {
+    return this.childrenService.syncProgress(dto);
   }
 
   @Get()
