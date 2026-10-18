@@ -17,6 +17,7 @@ import {
   ArrowRight,
   Flame,
 } from "lucide-react";
+import { sfx } from "@/lib/sound/sfx";
 
 // ================= TYPES =================
 type GameMode = "menu" | "quiz" | "word-match" | "sunnah-catcher";
@@ -256,6 +257,7 @@ export const IslamicGamesScreen: React.FC = () => {
 
   // Handle XP award on game finish
   const handleGameComplete = (xpEarned: number) => {
+    sfx.complete();
     const awarded = awardXp(xpEarned, "quiz");
     setXpWonThisSession((prev) => prev + (awarded || xpEarned));
     setShowCelebration(true);
@@ -268,11 +270,15 @@ export const IslamicGamesScreen: React.FC = () => {
     setShowExplanation(true);
     const isCorrect = index === QUIZ_QUESTIONS[quizIndex].correctIndex;
     if (isCorrect) {
+      sfx.correct();
       setQuizScore((prev) => prev + 1);
+    } else {
+      sfx.incorrect();
     }
   };
 
   const handleNextQuizQuestion = () => {
+    sfx.click();
     if (quizIndex + 1 < QUIZ_QUESTIONS.length) {
       setQuizIndex((prev) => prev + 1);
       setSelectedOption(null);

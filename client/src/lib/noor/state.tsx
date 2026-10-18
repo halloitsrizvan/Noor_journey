@@ -19,6 +19,7 @@ import {
 import { akhlaqMissions } from "@/content/chapter-akhlaq";
 import { akhlaqChapter } from "@/content/worlds-data";
 import { api } from "@/lib/api/api-client";
+import { sfx } from "@/lib/sound/sfx";
 
 export interface NoorContextValue {
   state: NoorState;
@@ -160,31 +161,8 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Save to localStorage on state changes
   useEffect(() => {
     saveStoredState(state);
+    sfx.setEnabled(state.prefs.sound);
   }, [state]);
-
-  // Auto-sync active student progress & avatar to central cloud database (debounced 1.5s)
-  useEffect(() => {
-    if (!activeProfile || !activeProgress) return;
-    const timer = setTimeout(() => {
-      api.children
-        .syncProgress({
-          studentEmail: activeProfile.email,
-          profileId: activeProfile.id,
-          progress: activeProgress,
-          avatarUrl: activeProfile.avatarUrl,
-          avatarKey: activeProfile.avatarId,
-        })
-        .catch(() => {});
-    }, 1500);
-
-    return () => clearTimeout(timer);
-  }, [
-    activeProfile?.id,
-    activeProfile?.email,
-    activeProfile?.avatarUrl,
-    activeProfile?.avatarId,
-    activeProgress,
-  ]);
 
   const lang = state.prefs.lang;
   const effectiveNow = useMemo(() => {
@@ -210,6 +188,30 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
       reflections: Array.isArray(prog.reflections) ? prog.reflections : [],
     };
   }, [state.progress, activeProfile]);
+
+  // Auto-sync active student progress & avatar to central cloud database (debounced 1.5s)
+  useEffect(() => {
+    if (!activeProfile || !activeProgress) return;
+    const timer = setTimeout(() => {
+      api.children
+        .syncProgress({
+          studentEmail: activeProfile.email,
+          profileId: activeProfile.id,
+          progress: activeProgress,
+          avatarUrl: activeProfile.avatarUrl,
+          avatarKey: activeProfile.avatarId,
+        })
+        .catch(() => {});
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [
+    activeProfile?.id,
+    activeProfile?.email,
+    activeProfile?.avatarUrl,
+    activeProfile?.avatarId,
+    activeProgress,
+  ]);
 
   const login = useCallback(async (email: string, pass: string) => {
     try {

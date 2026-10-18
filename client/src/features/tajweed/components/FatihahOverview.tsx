@@ -52,7 +52,7 @@ export const FatihahOverview: React.FC<FatihahOverviewProps> = ({
           className="inline-flex items-center gap-1.5 text-xs font-bold text-[#626273] hover:text-[#141426] px-3 py-1.5 rounded-full hover:bg-[#F3F1F4] tactile transition-all"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span>{lang === "ml" ? "← മദ്‌റസ വിഷയങ്ങളിലേക്ക് മടങ്ങുക" : "← Back to Madrasa Subjects"}</span>
+          <span>{lang === "ml" ? "← മദ്‌റസ വിഷയങ്ങളിലേക്ക് മടങ്ങുക" : "Back to Madrasa Subjects"}</span>
         </button>
       </div>
 
@@ -153,20 +153,18 @@ export const FatihahOverview: React.FC<FatihahOverviewProps> = ({
               <div
                 key={verse.id}
                 onClick={() => onSelectVerse(verse.id)}
-                className={`p-4 rounded-[24px] border-2 transition-all tactile cursor-pointer flex items-center justify-between gap-3 shadow-2xs ${
-                  isExplored
+                className={`p-4 rounded-[24px] border-2 transition-all tactile cursor-pointer flex items-center justify-between gap-3 shadow-2xs ${isExplored
                     ? "bg-white border-[#7857E8]/40 hover:border-[#7857E8]"
                     : "bg-white border-[#E4E0E9] hover:border-[#FFD184]"
-                }`}
+                  }`}
               >
                 {/* Left: Verse Badge + Snippet */}
                 <div className="flex items-center gap-3 min-w-0">
                   <div
-                    className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-xs shrink-0 shadow-2xs ${
-                      isExplored
+                    className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-xs shrink-0 shadow-2xs ${isExplored
                         ? "bg-[#7857E8] text-white"
                         : "bg-[#F3F1F4] text-[#141426]"
-                    }`}
+                      }`}
                   >
                     <span>{verse.number}</span>
                   </div>

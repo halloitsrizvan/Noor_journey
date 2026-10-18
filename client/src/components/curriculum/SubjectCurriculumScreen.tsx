@@ -19,12 +19,17 @@ import {
   Shield,
   Layers,
   ArrowRight,
+  Lock,
 } from "lucide-react";
 import {
   getCompletedSubjectRoadmaps,
   setSubjectRoadmapCompleted,
+  getSubjectLessonProgress,
+  markSubjectLessonCompleted,
   type SubjectRoadmapStatus,
 } from "@/lib/noor/curriculumRoadmap";
+import { LessonQuizModal } from "./LessonQuizModal";
+import { sfx } from "@/lib/sound/sfx";
 
 export type SubjectKey = "tajweed" | "aqeedah" | "fiqh" | "lisanul-quran" | "akhlaq";
 
@@ -439,10 +444,22 @@ export const SubjectCurriculumScreen: React.FC<SubjectCurriculumScreenProps> = (
   const [currentKey, setCurrentKey] = useState<SubjectKey>(sanitizedKey);
   const [subjectsData, setSubjectsData] = useState<SubjectFullDetail[]>(CURRICULUM_SUBJECTS_DATA);
   const [dbSubjects, setDbSubjects] = useState<any[]>([]);
-  const [reviewedTopics, setReviewedTopics] = useState<Record<string, boolean>>({});
   const [showXpCelebration, setShowXpCelebration] = useState<{ amount: number; title: string } | null>(null);
+  const [lockedNotice, setLockedNotice] = useState<string | null>(null);
 
   const childId = activeProfile?.id || "default";
+
+  // Persistent completed topic indices for current subject
+  const [completedTopicIndices, setCompletedTopicIndices] = useState<number[]>(() =>
+    getSubjectLessonProgress(childId, currentKey)
+  );
+
+  // Active quiz modal topic
+  const [selectedQuizTopic, setSelectedQuizTopic] = useState<{
+    index: number;
+    topic: CurriculumTopic;
+  } | null>(null);
+
   const [roadmapStatus, setRoadmapStatus] = useState<SubjectRoadmapStatus>(() =>
     getCompletedSubjectRoadmaps(childId, activeProgress)
   );
@@ -453,6 +470,12 @@ export const SubjectCurriculumScreen: React.FC<SubjectCurriculumScreenProps> = (
       setCurrentKey(initialSubjectKey as SubjectKey);
     }
   }, [initialSubjectKey]);
+
+  // Sync progress when subject or child changes
+  useEffect(() => {
+    setCompletedTopicIndices(getSubjectLessonProgress(childId, currentKey));
+    setRoadmapStatus(getCompletedSubjectRoadmaps(childId, activeProgress));
+  }, [currentKey, childId, activeProgress]);
 
   // Load dynamic DB topics
   useEffect(() => {
@@ -470,19 +493,19 @@ export const SubjectCurriculumScreen: React.FC<SubjectCurriculumScreenProps> = (
             const dbTopics: CurriculumTopic[] =
               Array.isArray(dbMatch.topics) && dbMatch.topics.length > 0
                 ? dbMatch.topics.map((t: any, idx: number) => ({
-                    titleEn: t.titleEn || t.title || `Lesson ${idx + 1}`,
-                    titleMl: t.titleMl || t.titleEn || `പാഠം ${idx + 1}`,
-                    arabicTitle: t.arabicTitle || "",
-                    descriptionEn: t.description || t.descEn || cur.topics[idx]?.descriptionEn || "",
-                    descriptionMl: t.descMl || t.description || cur.topics[idx]?.descriptionMl || "",
-                    icon: t.iconName || t.icon || cur.topics[idx]?.icon || "📜",
-                    durationMinutes: Number(t.durationMinutes) || 15,
-                    xpReward: Number(t.xpReward) || 25,
-                    learningPoints: cur.topics[idx]?.learningPoints || [
-                      { en: "Understanding core tenets and evidence", ml: "പ്രധാന ആശയങ്ങളും തെളിവുകളും ഗ്രഹിക്കൽ" },
-                      { en: "Practical application in daily Islamic life", ml: "നിത്യജീവിതത്തിലെ പ്രായോഗിക രീതികൾ" },
-                    ],
-                  }))
+                  titleEn: t.titleEn || t.title || `Lesson ${idx + 1}`,
+                  titleMl: t.titleMl || t.titleEn || `പാഠം ${idx + 1}`,
+                  arabicTitle: t.arabicTitle || "",
+                  descriptionEn: t.description || t.descEn || cur.topics[idx]?.descriptionEn || "",
+                  descriptionMl: t.descMl || t.description || cur.topics[idx]?.descriptionMl || "",
+                  icon: t.iconName || t.icon || cur.topics[idx]?.icon || "📜",
+                  durationMinutes: Number(t.durationMinutes) || 15,
+                  xpReward: Number(t.xpReward) || 25,
+                  learningPoints: cur.topics[idx]?.learningPoints || [
+                    { en: "Understanding core tenets and evidence", ml: "പ്രധാന ആശയങ്ങളും തെളിവുകളും ഗ്രഹിക്കൽ" },
+                    { en: "Practical application in daily Islamic life", ml: "നിത്യജീവിതത്തിലെ പ്രായോഗിക രീതികൾ" },
+                  ],
+                }))
                 : cur.topics;
 
             return {
@@ -516,38 +539,92 @@ export const SubjectCurriculumScreen: React.FC<SubjectCurriculumScreenProps> = (
   const activeSubject =
     subjectsData.find((s) => s.key === currentKey) || subjectsData[0];
 
-  const isRoadmapCompleted = !!roadmapStatus[currentKey];
+  const totalLessons = activeSubject.topics.length;
+  const completedLessonsCount = activeSubject.topics.filter((_, idx) =>
+    completedTopicIndices.includes(idx)
+  ).length;
 
-  const handleToggleRoadmap = () => {
-    const nextState = !isRoadmapCompleted;
-    const updated = setSubjectRoadmapCompleted(childId, currentKey, nextState);
-    setRoadmapStatus(updated);
-    if (nextState) {
-      awardXp(50, "mission", `roadmap-${currentKey}-${Date.now()}`);
-      setShowXpCelebration({
-        amount: 50,
-        title: lang === "ml" ? `${activeSubject.malayalamTitle} റോഡ്മാപ്പ് പൂർത്തിയായി!` : `${activeSubject.englishTitle} Roadmap Completed!`,
-      });
-      setTimeout(() => setShowXpCelebration(null), 3500);
-    }
+  const isRoadmapCompleted =
+    (totalLessons > 0 && completedLessonsCount >= totalLessons) || !!roadmapStatus[currentKey];
+
+  const progressPercent =
+    totalLessons > 0 ? Math.round((completedLessonsCount / totalLessons) * 100) : 0;
+
+  // Sequential progression rules
+  const isTopicUnlocked = (index: number) => {
+    if (index === 0) return true;
+    return completedTopicIndices.includes(index - 1);
   };
 
-  const handleToggleTopicReview = (topicIdx: number, topic: CurriculumTopic) => {
-    const topicKey = `${currentKey}-topic-${topicIdx}`;
-    const currentlyReviewed = !!reviewedTopics[topicKey];
-    setReviewedTopics((prev) => ({ ...prev, [topicKey]: !currentlyReviewed }));
+  const isTopicCompleted = (index: number) => {
+    return completedTopicIndices.includes(index);
+  };
 
-    if (!currentlyReviewed) {
-      awardXp(topic.xpReward, "review", `topic-review-${topicKey}`);
+  const handleTopicClick = (index: number, topic: CurriculumTopic) => {
+    if (!isTopicUnlocked(index)) {
+      sfx.lock();
+      setLockedNotice(
+        lang === "ml"
+          ? `ഈ പാഠം അൺലോക്ക് ചെയ്യാൻ പാഠം ${index} പൂർത്തിയാക്കി ക്വിസ് പാസ്സാകൂ! 🗝️`
+          : `Complete Lesson ${index} and pass its quiz to unlock this step! 🗝️`
+      );
+      setTimeout(() => setLockedNotice(null), 3500);
+      return;
+    }
+    sfx.click();
+    setSelectedQuizTopic({ index, topic });
+  };
+
+  const handleLessonCompleted = (topicIndex: number, xpReward: number) => {
+    const { completedIndices, newlyCompletedRoadmap } = markSubjectLessonCompleted(
+      childId,
+      currentKey,
+      topicIndex,
+      activeSubject.topics.length
+    );
+    setCompletedTopicIndices(completedIndices);
+    setRoadmapStatus(getCompletedSubjectRoadmaps(childId, activeProgress));
+
+    // Award topic XP
+    awardXp(xpReward, "quiz", `lesson-quiz-${currentKey}-${topicIndex}-${childId}`);
+
+    if (newlyCompletedRoadmap) {
+      sfx.complete();
+      awardXp(50, "mission", `roadmap-${currentKey}-${Date.now()}`);
       setShowXpCelebration({
-        amount: topic.xpReward,
-        title: lang === "ml" ? `${topic.titleMl} പഠനം പൂർത്തിയായി!` : `${topic.titleEn} Completed!`,
+        amount: 50 + xpReward,
+        title:
+          lang === "ml"
+            ? `${activeSubject.malayalamTitle} റോഡ്മാപ്പ് പൂർത്തിയായി! (+50 XP ബോണസ്)`
+            : `${activeSubject.englishTitle} Roadmap Completed! (+50 XP Bonus)`,
+      });
+      setTimeout(() => setShowXpCelebration(null), 4000);
+    } else {
+      sfx.xp();
+      setShowXpCelebration({
+        amount: xpReward,
+        title:
+          lang === "ml"
+            ? `${activeSubject.topics[topicIndex]?.titleMl || "പാഠം"} ക്വിസ് പൂർത്തിയായി!`
+            : `${activeSubject.topics[topicIndex]?.titleEn || "Lesson"} Quiz Passed!`,
       });
       setTimeout(() => setShowXpCelebration(null), 3000);
     }
   };
 
-  const totalLessons = activeSubject.topics.length;
+  const handleNextLesson = () => {
+    if (!selectedQuizTopic) return;
+    const nextIdx = selectedQuizTopic.index + 1;
+    if (nextIdx < activeSubject.topics.length) {
+      setSelectedQuizTopic({
+        index: nextIdx,
+        topic: activeSubject.topics[nextIdx],
+      });
+    } else {
+      setSelectedQuizTopic(null);
+    }
+  };
+
   const totalXp = activeSubject.topics.reduce((acc, t) => acc + (t.xpReward || 20), 0);
   const totalTime = activeSubject.topics.reduce((acc, t) => acc + (t.durationMinutes || 15), 0);
 
@@ -570,23 +647,21 @@ export const SubjectCurriculumScreen: React.FC<SubjectCurriculumScreenProps> = (
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <button
           type="button"
-          onClick={() => navigate({ to: "/journey" })}
+          onClick={() => {
+            sfx.click();
+            navigate({ to: "/journey" });
+          }}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white border border-[#E4E0E9] hover:bg-[#F3F1F4] text-[#141426] text-xs font-black transition-all tactile shadow-2xs group"
         >
           <ArrowLeft className="w-4 h-4 text-[#7857E8] group-hover:-translate-x-0.5 transition-transform" />
-          <span>{lang === "ml" ? "← മദ്‌റസ വിഷയങ്ങളിലേക്ക് മടങ്ങുക" : "← Back to Madrasa Subjects"}</span>
+          <span>{lang === "ml" ? "← മദ്‌റസ വിഷയങ്ങളിലേക്ക് മടങ്ങുക" : "Back to Madrasa Subjects"}</span>
         </button>
 
-        <div className="flex items-center gap-2">
-          <span className="px-3 py-1 rounded-full bg-[#F0E9FF] border border-[#E3D4FF] text-[#5B21B6] text-xs font-black flex items-center gap-1.5">
-            <Compass className="w-3.5 h-3.5 text-[#7857E8]" />
-            <span>{activeSubject.syllabusLevel[lang]}</span>
-          </span>
-        </div>
+        
       </div>
 
       {/* Horizontal Subject Switcher Pills */}
-      <div className="bg-white p-2.5 rounded-[24px] border border-[#E4E0E9] shadow-2xs overflow-x-auto no-scrollbar">
+      {/* <div className="bg-white p-2.5 rounded-[24px] border border-[#E4E0E9] shadow-2xs overflow-x-auto no-scrollbar">
         <div className="flex items-center gap-2 min-w-max">
           {subjectsData.map((subj) => {
             const isActive = subj.key === currentKey;
@@ -597,11 +672,10 @@ export const SubjectCurriculumScreen: React.FC<SubjectCurriculumScreenProps> = (
                 key={subj.key}
                 type="button"
                 onClick={() => setCurrentKey(subj.key)}
-                className={`px-3.5 py-2 rounded-2xl text-xs font-black transition-all tactile flex items-center gap-2 ${
-                  isActive
+                className={`px-3.5 py-2 rounded-2xl text-xs font-black transition-all tactile flex items-center gap-2 ${isActive
                     ? `${subj.accentBg} text-white shadow-xs scale-102`
                     : "bg-[#F7F6F9] text-[#626273] hover:text-[#141426] hover:bg-[#EAE8ED]"
-                }`}
+                  }`}
               >
                 <span className="text-base">{subj.icon}</span>
                 <span>{lang === "ml" ? subj.malayalamTitle : subj.englishTitle}</span>
@@ -612,7 +686,7 @@ export const SubjectCurriculumScreen: React.FC<SubjectCurriculumScreenProps> = (
             );
           })}
         </div>
-      </div>
+      </div> */}
 
       {/* Main Subject Hero Card */}
       <div
@@ -683,7 +757,10 @@ export const SubjectCurriculumScreen: React.FC<SubjectCurriculumScreenProps> = (
             {activeSubject.key === "tajweed" && (
               <button
                 type="button"
-                onClick={() => navigate({ to: "/tajweed" })}
+                onClick={() => {
+                  sfx.click();
+                  navigate({ to: "/tajweed" });
+                }}
                 className="w-full sm:w-auto px-5 py-3.5 rounded-2xl bg-[#191A22] text-[#FFD184] hover:bg-black font-black text-xs transition-all shadow-sm tactile flex items-center justify-center gap-2"
               >
                 <Volume2 className="w-4 h-4 text-[#FFD184]" />
@@ -694,7 +771,10 @@ export const SubjectCurriculumScreen: React.FC<SubjectCurriculumScreenProps> = (
             {activeSubject.key === "akhlaq" && (
               <button
                 type="button"
-                onClick={() => navigate({ to: "/practice" })}
+                onClick={() => {
+                  sfx.click();
+                  navigate({ to: "/practice" });
+                }}
                 className="w-full sm:w-auto px-5 py-3.5 rounded-2xl bg-[#191A22] text-[#FFD184] hover:bg-black font-black text-xs transition-all shadow-sm tactile flex items-center justify-center gap-2"
               >
                 <Sparkles className="w-4 h-4 text-[#FFD184]" />
@@ -702,27 +782,35 @@ export const SubjectCurriculumScreen: React.FC<SubjectCurriculumScreenProps> = (
               </button>
             )}
 
-            {/* Toggle Roadmap Completion Button */}
-            <button
-              type="button"
-              onClick={handleToggleRoadmap}
-              className={`w-full sm:w-auto px-5 py-3 rounded-2xl font-black text-xs transition-all tactile flex items-center justify-center gap-2 border-2 ${
-                isRoadmapCompleted
-                  ? "bg-[#EAF8E8] text-[#1C6918] border-[#B7E8B1] hover:bg-[#D8F2D4]"
-                  : "bg-white text-[#141426] border-white/80 hover:bg-white/90 shadow-2xs"
-              }`}
-            >
-              <CheckCircle2 className="w-4 h-4 text-current" />
-              <span>
-                {isRoadmapCompleted
-                  ? lang === "ml"
-                    ? "റോഡ്മാപ്പ് പൂർത്തിയായി ✓"
-                    : "Roadmap Complete ✓"
-                  : lang === "ml"
-                  ? "റോഡ്മാപ്പ് പൂർത്തിയായി എന്ന് രേഖപ്പെടുത്തുക"
-                  : "Mark Roadmap Complete (+50 XP)"}
-              </span>
-            </button>
+            {/* Automatic Subject Roadmap Completion / Progress Status (No manual button) */}
+            {isRoadmapCompleted ? (
+              <div className="w-full sm:w-auto px-5 py-3 rounded-2xl font-black text-xs flex items-center justify-center gap-2.5 bg-[#EAF8E8] text-[#1C6918] border-2 border-[#B7E8B1] shadow-2xs animate-pop">
+                <CheckCircle2 className="w-4 h-4 text-[#1C6918]" />
+                <div className="flex flex-col text-left">
+                  <span>{lang === "ml" ? "റോഡ്മാപ്പ് പൂർത്തിയായി ✓" : "Roadmap Completed ✓"}</span>
+                  <span className="text-[10px] text-[#287553] font-bold">
+                    {totalLessons}/{totalLessons} {lang === "ml" ? "പാഠങ്ങൾ പൂർത്തിയായി" : "Lessons Mastered"}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="w-full sm:w-auto px-4 py-3 rounded-2xl bg-white/90 backdrop-blur-xs border border-[#E4E0E9] flex items-center gap-3 shadow-2xs">
+                <div className="flex flex-col text-left">
+                  <span className="text-[10px] font-bold text-[#626273] uppercase tracking-wider">
+                    {lang === "ml" ? "വിഷയ പുരോഗതി" : "Subject Progress"}
+                  </span>
+                  <span className="text-xs font-black text-[#141426]">
+                    {completedLessonsCount} / {totalLessons} {lang === "ml" ? "പാഠങ്ങൾ" : "Lessons"} ({progressPercent}%)
+                  </span>
+                </div>
+                <div className="w-20 sm:w-28 h-2.5 bg-[#E4E0E9] rounded-full overflow-hidden shrink-0">
+                  <div
+                    className="h-full bg-[#287553] rounded-full transition-all duration-500"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -741,46 +829,86 @@ export const SubjectCurriculumScreen: React.FC<SubjectCurriculumScreenProps> = (
           </div>
           <p className="text-xs text-[#626273] font-semibold mt-0.5">
             {lang === "ml"
-              ? "ഓരോ പാഠത്തിലെയും പ്രധാന വിഷയങ്ങളും പഠന ലക്ഷ്യങ്ങളും"
-              : "Explore the structured lessons, key takeaways, and learning objectives"}
+              ? "ഓരോ പാഠവും പഠിച്ച് ക്വിസ് പാസ്സായി അടുത്ത പാഠത്തിലേക്ക് മുന്നേറൂ"
+              : "Complete each lesson & pass its quiz to unlock the next level"}
           </p>
         </div>
 
         <span className="text-xs font-black text-[#7857E8] bg-[#F0E9FF] border border-[#E3D4FF] px-3 py-1 rounded-full">
-          {activeSubject.topics.length} {lang === "ml" ? "പാഠങ്ങൾ" : "Lessons"}
+          {completedLessonsCount}/{totalLessons} {lang === "ml" ? "പാഠങ്ങൾ പൂർത്തിയായി" : "Lessons Done"}
         </span>
       </div>
 
-      {/* Structured Curriculum Topics List */}
+      {/* Structured Curriculum Topics List with Sequential Progression */}
       <div className="space-y-4">
         {activeSubject.topics.map((topic, index) => {
-          const topicKey = `${currentKey}-topic-${index}`;
-          const isReviewed = !!reviewedTopics[topicKey];
+          const isUnlocked = isTopicUnlocked(index);
+          const isCompleted = isTopicCompleted(index);
+          const isUpNext = isUnlocked && !isCompleted;
 
           return (
             <div
               key={index}
-              className="bg-white border-2 border-[#E4E0E9] rounded-[28px] p-5 sm:p-6 shadow-2xs hover:shadow-xs transition-all space-y-4"
+              onClick={() => handleTopicClick(index, topic)}
+              className={`rounded-[28px] p-5 sm:p-6 transition-all space-y-4 ${
+                !isUnlocked
+                  ? "bg-[#F8F7FA] border-2 border-dashed border-[#DDD9E4] opacity-80 cursor-not-allowed"
+                  : isUpNext
+                  ? "bg-white border-2 border-[#7857E8] shadow-xs cursor-pointer ring-2 ring-[#7857E8]/10 hover:shadow-md"
+                  : "bg-white border-2 border-[#B7E8B1] hover:border-[#287553] shadow-2xs cursor-pointer"
+              }`}
             >
               {/* Topic Header Row */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div className="flex items-start sm:items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-[#F4F3F7] border border-[#E4E0E9] flex items-center justify-center text-2xl shrink-0">
-                    {topic.icon}
+                  <div
+                    className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0 border ${
+                      !isUnlocked
+                        ? "bg-[#ECEAF0] border-[#DDD9E4] text-[#8C8CA1]"
+                        : isCompleted
+                        ? "bg-[#EAF8E8] border-[#B7E8B1]"
+                        : "bg-[#F4F3F7] border-[#E4E0E9]"
+                    }`}
+                  >
+                    {!isUnlocked ? <Lock className="w-5 h-5 text-[#8C8CA1]" /> : topic.icon}
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="px-2 py-0.5 rounded-lg bg-[#191A22] text-[#FFD184] text-[10px] font-black uppercase">
                         {lang === "ml" ? `പാഠം ${index + 1}` : `Lesson ${index + 1}`}
                       </span>
+
+                      {!isUnlocked ? (
+                        <span className="px-2 py-0.5 rounded-lg bg-[#ECEAF0] text-[#626273] text-[10px] font-black flex items-center gap-1 border border-[#DDD9E4]">
+                          <Lock className="w-3 h-3 text-[#626273]" />
+                          <span>
+                            {lang === "ml"
+                              ? `പാഠം ${index} പൂർത്തിയാക്കൂ`
+                              : `Complete Lesson ${index} to Unlock`}
+                          </span>
+                        </span>
+                      ) : isCompleted ? (
+                        <span className="px-2 py-0.5 rounded-lg bg-[#EAF8E8] text-[#1C6918] text-[10px] font-black flex items-center gap-1 border border-[#B7E8B1]">
+                          <CheckCircle2 className="w-3 h-3 text-[#1C6918]" />
+                          <span>{lang === "ml" ? "പൂർത്തിയായി" : "Completed"}</span>
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-lg bg-[#F0E9FF] text-[#7857E8] text-[10px] font-black flex items-center gap-1 border border-[#E3D4FF] animate-pulse">
+                          <span>★ {lang === "ml" ? "ഇപ്പോഴത്തെ പാഠം" : "Ready to Learn"}</span>
+                        </span>
+                      )}
+
                       {topic.arabicTitle && (
                         <span className="text-xs font-bold text-[#7857E8] font-arabic">
                           {topic.arabicTitle}
                         </span>
                       )}
                     </div>
+
                     <h3
-                      className="text-base sm:text-lg font-black text-[#141426] mt-0.5"
+                      className={`text-base sm:text-lg font-black mt-0.5 ${
+                        !isUnlocked ? "text-[#626273]" : "text-[#141426]"
+                      }`}
                       style={{ fontFamily: "var(--font-display)" }}
                     >
                       {lang === "ml" ? topic.titleMl : topic.titleEn}
@@ -801,21 +929,44 @@ export const SubjectCurriculumScreen: React.FC<SubjectCurriculumScreenProps> = (
 
                   <button
                     type="button"
-                    onClick={() => handleToggleTopicReview(index, topic)}
-                    className={`px-3 py-1 rounded-xl text-xs font-black transition-all tactile flex items-center gap-1.5 border ${
-                      isReviewed
-                        ? "bg-[#EAF8E8] text-[#1C6918] border-[#B7E8B1]"
-                        : "bg-[#F3F1F4] hover:bg-[#EAE8ED] text-[#141426] border-[#E4E0E9]"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleTopicClick(index, topic);
+                    }}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all tactile flex items-center gap-1.5 border shadow-2xs ${
+                      !isUnlocked
+                        ? "bg-[#ECEAF0] text-[#8C8CA1] border-[#DDD9E4] cursor-not-allowed"
+                        : isCompleted
+                        ? "bg-[#EAF8E8] hover:bg-[#D8F2D4] text-[#1C6918] border-[#B7E8B1]"
+                        : "bg-[#7857E8] hover:bg-[#6846D4] text-white border-[#7857E8] shadow-xs"
                     }`}
                   >
-                    <Check className="w-3.5 h-3.5" />
-                    <span>{isReviewed ? (lang === "ml" ? "പൂർത്തിയായി ✓" : "Reviewed ✓") : (lang === "ml" ? "പഠിച്ചു" : "Mark Reviewed")}</span>
+                    {!isUnlocked ? (
+                      <>
+                        <Lock className="w-3.5 h-3.5" />
+                        <span>{lang === "ml" ? "ലോക്ക്" : "Locked"}</span>
+                      </>
+                    ) : isCompleted ? (
+                      <>
+                        <Check className="w-3.5 h-3.5" />
+                        <span>{lang === "ml" ? "റിവിഷൻ & ക്വിസ്" : "Review & Quiz"}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-3.5 h-3.5 text-[#FFD184]" />
+                        <span>{lang === "ml" ? "പാഠം & ക്വിസ് ചെയ്യൂ" : "Start Lesson & Quiz"}</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
 
               {/* Detailed Explanation */}
-              <p className="text-xs sm:text-sm text-[#4A4A5A] font-medium leading-relaxed pl-1">
+              <p
+                className={`text-xs sm:text-sm font-medium leading-relaxed pl-1 ${
+                  !isUnlocked ? "text-[#7A7A8E]" : "text-[#4A4A5A]"
+                }`}
+              >
                 {lang === "ml" ? topic.descriptionMl : topic.descriptionEn}
               </p>
 
@@ -830,10 +981,20 @@ export const SubjectCurriculumScreen: React.FC<SubjectCurriculumScreenProps> = (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                     {topic.learningPoints.map((pt, pIdx) => (
                       <div key={pIdx} className="flex items-start gap-2">
-                        <div className="w-4 h-4 rounded-full bg-[#EAF8E8] text-[#287553] flex items-center justify-center text-[10px] font-black shrink-0 mt-0.5">
+                        <div
+                          className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 mt-0.5 ${
+                            !isUnlocked
+                              ? "bg-[#EAE8ED] text-[#8C8CA1]"
+                              : "bg-[#EAF8E8] text-[#287553]"
+                          }`}
+                        >
                           ✓
                         </div>
-                        <span className="text-xs text-[#20202E] font-medium leading-relaxed">
+                        <span
+                          className={`text-xs font-medium leading-relaxed ${
+                            !isUnlocked ? "text-[#7A7A8E]" : "text-[#20202E]"
+                          }`}
+                        >
                           {lang === "ml" ? pt.ml : pt.en}
                         </span>
                       </div>
@@ -872,6 +1033,30 @@ export const SubjectCurriculumScreen: React.FC<SubjectCurriculumScreenProps> = (
           </button>
         </div>
       </div>
+
+      {/* Interactive Lesson & Quiz Modal */}
+      {selectedQuizTopic && (
+        <LessonQuizModal
+          isOpen={!!selectedQuizTopic}
+          onClose={() => setSelectedQuizTopic(null)}
+          subjectKey={currentKey}
+          topicIndex={selectedQuizTopic.index}
+          topic={selectedQuizTopic.topic}
+          lang={lang}
+          isAlreadyCompleted={isTopicCompleted(selectedQuizTopic.index)}
+          onLessonCompleted={handleLessonCompleted}
+          onNextLesson={handleNextLesson}
+          hasNextLesson={selectedQuizTopic.index + 1 < activeSubject.topics.length}
+        />
+      )}
+
+      {/* Floating Locked Notice Toast */}
+      {lockedNotice && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 bg-[#191A22] text-white border-2 border-[#FFD184] rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs font-bold animate-bounce max-w-[90vw]">
+          <Lock className="w-4 h-4 text-[#FFD184] shrink-0" />
+          <span>{lockedNotice}</span>
+        </div>
+      )}
     </div>
   );
 };

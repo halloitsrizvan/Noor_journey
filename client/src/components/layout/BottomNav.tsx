@@ -2,6 +2,7 @@ import React from "react";
 import { useNoor } from "@/lib/noor/state";
 import { translations } from "@/lib/noor/i18n";
 import { Home, BookOpen, Trophy, User } from "lucide-react";
+import { sfx } from "@/lib/sound/sfx";
 
 export type NavTab = "journey" | "practice" | "collection" | "profile";
 
@@ -59,6 +60,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
               key={tab.id}
               type="button"
               onClick={() => {
+                sfx.tab();
                 if (tab.id === "profile" && onOpenProfile) {
                   onOpenProfile();
                 } else {

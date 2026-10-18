@@ -106,3 +106,73 @@ export function setSubjectRoadmapCompleted(
 
   return getCompletedSubjectRoadmaps(childId);
 }
+
+const LESSON_PROGRESS_PREFIX = "noor_subject_lesson_progress_";
+
+export interface SubjectLessonProgressMap {
+  [subjectKey: string]: {
+    completedTopicIndices: number[];
+  };
+}
+
+export function getSubjectLessonProgress(childId: string, subjectKey: string): number[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(`${LESSON_PROGRESS_PREFIX}${childId}`);
+    if (raw) {
+      const parsed: SubjectLessonProgressMap = JSON.parse(raw);
+      return Array.isArray(parsed[subjectKey]?.completedTopicIndices)
+        ? parsed[subjectKey].completedTopicIndices
+        : [];
+    }
+  } catch {}
+  return [];
+}
+
+export function markSubjectLessonCompleted(
+  childId: string,
+  subjectKey: "tajweed" | "aqeedah" | "fiqh" | "lisanul-quran" | "akhlaq",
+  topicIndex: number,
+  totalTopicsCount?: number
+): { completedIndices: number[]; newlyCompletedRoadmap: boolean } {
+  if (typeof window === "undefined") {
+    return { completedIndices: [topicIndex], newlyCompletedRoadmap: false };
+  }
+
+  let parsed: SubjectLessonProgressMap = {};
+  try {
+    const raw = localStorage.getItem(`${LESSON_PROGRESS_PREFIX}${childId}`);
+    if (raw) parsed = JSON.parse(raw);
+  } catch {}
+
+  if (!parsed[subjectKey]) {
+    parsed[subjectKey] = { completedTopicIndices: [] };
+  }
+
+  if (!parsed[subjectKey].completedTopicIndices.includes(topicIndex)) {
+    parsed[subjectKey].completedTopicIndices.push(topicIndex);
+    parsed[subjectKey].completedTopicIndices.sort((a, b) => a - b);
+  }
+
+  try {
+    localStorage.setItem(`${LESSON_PROGRESS_PREFIX}${childId}`, JSON.stringify(parsed));
+  } catch {}
+
+  const currentIndices = parsed[subjectKey].completedTopicIndices;
+  let newlyCompletedRoadmap = false;
+
+  // Check if all lessons are now complete
+  if (totalTopicsCount && totalTopicsCount > 0) {
+    const hasAll = Array.from({ length: totalTopicsCount }).every((_, i) => currentIndices.includes(i));
+    if (hasAll) {
+      const currentRoadmaps = getCompletedSubjectRoadmaps(childId);
+      if (!currentRoadmaps[subjectKey]) {
+        newlyCompletedRoadmap = true;
+        setSubjectRoadmapCompleted(childId, subjectKey, true);
+      }
+    }
+  }
+
+  window.dispatchEvent(new Event("noor-curriculum-roadmap-updated"));
+  return { completedIndices: currentIndices, newlyCompletedRoadmap };
+}

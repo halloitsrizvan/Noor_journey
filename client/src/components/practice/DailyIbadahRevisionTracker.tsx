@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNoor } from "@/lib/noor/state";
 import { Check, Calendar, Sparkles } from "lucide-react";
+import { sfx } from "@/lib/sound/sfx";
 
 interface IbadahHabit {
   id: string;
@@ -101,6 +102,7 @@ export const DailyIbadahRevisionTracker: React.FC = () => {
     });
 
     if (isNowDone) {
+      sfx.xp();
       // Award 2 XP per marked worship/revision habit for today (deduplicated per child, date & habit)
       const dedupeKey = `ibadah-${childId}-${todayKey}-${id}`;
       awardXp(2, "activity", dedupeKey);
@@ -108,6 +110,8 @@ export const DailyIbadahRevisionTracker: React.FC = () => {
       setTimeout(() => {
         setJustAwardedId((curr) => (curr === id ? null : curr));
       }, 2500);
+    } else {
+      sfx.click();
     }
   };
 

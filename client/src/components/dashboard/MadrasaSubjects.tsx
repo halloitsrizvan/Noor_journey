@@ -25,6 +25,7 @@ import {
   setSubjectRoadmapCompleted,
   type SubjectRoadmapStatus,
 } from "@/lib/noor/curriculumRoadmap";
+import { sfx } from "@/lib/sound/sfx";
 
 interface MadrasaSubjectsProps {
   onOpenTajweed: () => void;
@@ -375,6 +376,7 @@ export const MadrasaSubjects: React.FC<MadrasaSubjectsProps> = ({
   const navigate = useNavigate();
 
   const handleSubjectClick = (subj: SubjectDetail) => {
+    sfx.click();
     navigate({
       to: "/subject/$key",
       params: { key: subj.key },

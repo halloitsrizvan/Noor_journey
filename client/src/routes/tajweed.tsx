@@ -18,6 +18,7 @@ import {
   CheckCircle2,
   Play,
 } from "lucide-react";
+import { sfx } from "@/lib/sound/sfx";
 
 export const Route = createFileRoute("/tajweed")({
   component: TajweedRoute,
@@ -73,14 +74,17 @@ function TajweedRoute() {
           <div className="flex items-center justify-between">
             <button
               type="button"
-              onClick={() => navigate({ to: "/journey" })}
+              onClick={() => {
+                sfx.click();
+                navigate({ to: "/journey" });
+              }}
               className="inline-flex items-center gap-1.5 text-xs font-bold text-[#626273] hover:text-[#141426] px-3 py-1.5 rounded-full hover:bg-[#F3F1F4] tactile transition-all"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>
                 {lang === "ml"
                   ? "← മദ്‌റസ വിഷയങ്ങളിലേക്ക് മടങ്ങുക"
-                  : "← Back to Madrasa Subjects"}
+                  : "Back to Madrasa Subjects"}
               </span>
             </button>
 
@@ -135,16 +139,14 @@ function TajweedRoute() {
                     return (
                       <div
                         key={verse.id}
-                        className={`flex-1 h-2 rounded-full transition-all ${
-                          isPassed
+                        className={`flex-1 h-2 rounded-full transition-all ${isPassed
                             ? "bg-[#287553]"
                             : isExplored
-                            ? "bg-[#7857E8]"
-                            : "bg-white/60"
-                        }`}
-                        title={`Verse ${idx + 1}: ${
-                          isPassed ? "Mastered" : isExplored ? "Explored" : "Not yet explored"
-                        }`}
+                              ? "bg-[#7857E8]"
+                              : "bg-white/60"
+                          }`}
+                        title={`Verse ${idx + 1}: ${isPassed ? "Mastered" : isExplored ? "Explored" : "Not yet explored"
+                          }`}
                       />
                     );
                   })}
