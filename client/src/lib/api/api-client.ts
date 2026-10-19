@@ -3,9 +3,31 @@
  * Supports HttpOnly cookie authentication, session-bound CSRF, and Idempotency keys.
  */
 
-const BASE_URL =
-  (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_BASE_URL) ||
-  "http://localhost:4000/api/v1";
+function getBaseUrl(): string {
+  const envUrl = typeof import.meta !== "undefined" ? import.meta.env?.VITE_API_BASE_URL : null;
+  if (envUrl && typeof envUrl === "string" && envUrl.trim()) {
+    return envUrl.trim().replace(/\/+$/, "");
+  }
+
+  if (typeof window !== "undefined") {
+    const isLocal =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1" ||
+      window.location.hostname.endsWith(".local");
+
+    if (!isLocal) {
+      console.warn(
+        "[Noor Journey] VITE_API_BASE_URL is not set for production. " +
+        "Please configure VITE_API_BASE_URL in your Render/Vercel dashboard pointing to your backend URL (e.g. https://your-server.onrender.com/api/v1)."
+      );
+      return "/api/v1";
+    }
+  }
+
+  return "http://localhost:4000/api/v1";
+}
+
+const BASE_URL = getBaseUrl();
 
 export interface ApiError {
   code: string;

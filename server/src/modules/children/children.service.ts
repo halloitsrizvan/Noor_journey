@@ -111,15 +111,38 @@ export class ChildrenService {
     });
 
     const entries = children.map((c) => {
-      const totalXp = c.rewards.reduce((acc, r) => acc + r.amount, 0);
+      let totalXp = c.rewards.reduce((acc, r) => acc + r.amount, 0);
+      let completedCount = c.completions.length;
+      let badgesCount = c.badgeAwards.length;
+
+      // Also extract XP & stats from progressData JSON if available
+      const prog = c.progressData as any;
+      if (prog) {
+        if (Array.isArray(prog.xp) && prog.xp.length > 0) {
+          const jsonXp = prog.xp.reduce((acc: number, x: any) => acc + (Number(x?.amount) || 0), 0);
+          totalXp = Math.max(totalXp, jsonXp);
+        }
+        if (prog.missions && typeof prog.missions === "object") {
+          const count = Object.values(prog.missions).filter((m: any) => m?.status === "completed").length;
+          completedCount = Math.max(completedCount, count);
+        }
+        if (Array.isArray(prog.badges) && prog.badges.length > 0) {
+          badgesCount = Math.max(badgesCount, prog.badges.length);
+        }
+      }
+
       return {
         id: c.id,
         name: c.nickname,
         avatar: c.avatarKey || "lantern-noor",
+        avatarUrl: c.avatarUrl || null,
         totalXp,
         stars: Math.floor(totalXp / 10),
-        badgesCount: c.badgeAwards.length,
-        completedCount: c.completions.length,
+        badgesCount,
+        completedCount,
+        standard: c.priorStandard && c.priorStandard !== "not-sure" && c.priorStandard !== "none"
+          ? `Class ${c.priorStandard}`
+          : "Class 3",
         createdAt: c.createdAt,
       };
     });
@@ -153,8 +176,15 @@ export class ChildrenService {
     if (!parent) {
       parent = await this.prisma.account.findFirst();
     }
+    // If no account exists in the database, auto-create a default system parent so student creation succeeds
     if (!parent) {
-      return null;
+      parent = await this.prisma.account.create({
+        data: {
+          email: "system-parent@noorjourney.org",
+          passwordHash: "system-managed-parent-placeholder",
+          role: "PARENT",
+        },
+      });
     }
 
     const cleanEmail = dto.email?.trim().toLowerCase();

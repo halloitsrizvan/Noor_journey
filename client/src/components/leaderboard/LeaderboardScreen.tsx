@@ -92,88 +92,12 @@ export const LeaderboardScreen: React.FC = () => {
       ? `Class ${activeProfile.priorStandard}`
       : "Class 3";
 
-  // Pre-populated peer classmates for a rich, engaging Madrasa classroom experience
-  const defaultPeers: Omit<LeaderboardStudent, "isCurrentUser">[] = [
-    {
-      id: "peer-1",
-      name: "Amina K.",
-      xp: 140,
-      streak: 6,
-      standard: "Class 3",
-      badge: { en: "Tajweed Star 🎙️", ml: "തജ്‌വീദ് താരം 🎙️" },
-      avatarEmoji: "🧕",
-      avatarBg: "#E3D4FF",
-    },
-    {
-      id: "peer-2",
-      name: "Zayan M.",
-      xp: 100,
-      streak: 5,
-      standard: "Class 3",
-      badge: { en: "Akhlaq Champion 💛", ml: "സൽസ്വഭാവി 💛" },
-      avatarEmoji: "👦",
-      avatarBg: "#FFD184",
-    },
-    {
-      id: "peer-3",
-      name: "Maryam S.",
-      xp: 80,
-      streak: 4,
-      standard: "Class 2",
-      badge: { en: "Quran Reader 📖", ml: "ഖുർആൻ പഠിതാവ് 📖" },
-      avatarEmoji: "🌸",
-      avatarBg: "#BEDAFF",
-    },
-    {
-      id: "peer-4",
-      name: "Omar Farooq",
-      xp: 60,
-      streak: 3,
-      standard: "Class 3",
-      badge: { en: "Consistent Learner ⚡", ml: "പഠന മിടുക്കൻ ⚡" },
-      avatarEmoji: "🦁",
-      avatarBg: "#C7EBD1",
-    },
-    {
-      id: "peer-5",
-      name: "Aysha Noor",
-      xp: 40,
-      streak: 3,
-      standard: "Class 3",
-      badge: { en: "Kindness Hero 🌱", ml: "കാരുണ്യശീലി 🌱" },
-      avatarEmoji: "🌙",
-      avatarBg: "#FDE68A",
-    },
-    {
-      id: "peer-6",
-      name: "Ibrahim R.",
-      xp: 20,
-      streak: 2,
-      standard: "Class 1",
-      badge: { en: "Early Explorer 🐣", ml: "തുടക്കക്കാരൻ 🐣" },
-      avatarEmoji: "⭐",
-      avatarBg: "#FED7AA",
-    },
-  ];
-
-  // Adjust points according to timeframe filter for realism
-  const getAdjustedXp = (baseXp: number, isSelf: boolean) => {
-    if (isSelf) {
-      if (timeframe === "week") return Math.max(20, Math.round(currentPoints * 0.75));
-      if (timeframe === "class") return currentPoints;
-      return currentPoints;
-    }
-    if (timeframe === "week") return Math.round(baseXp * 0.7);
-    if (timeframe === "class") return baseXp;
-    return baseXp;
-  };
-
   // Build current user entry
   const currentUserEntry: LeaderboardStudent = {
     id: activeProfile?.id || "current-user",
     name: currentStudentName,
     isCurrentUser: true,
-    xp: getAdjustedXp(currentPoints, true),
+    xp: currentPoints,
     streak: Math.max(1, Math.round(currentPoints / 20)),
     standard: currentStudentStandard,
     badge: { en: "Noor Seeker ✨", ml: "നൂർ അൻവേഷകൻ ✨" },
@@ -184,23 +108,23 @@ export const LeaderboardScreen: React.FC = () => {
 
   // Build dynamic student list combining DB real users and current student
   const mappedDbStudents: LeaderboardStudent[] = dbStudents.map((d, idx) => {
-    const isSelf = activeProfile && (d.id === activeProfile.id || d.name === activeProfile.nickname);
-    const baseXp = isSelf ? Math.max(currentPoints, d.totalXp || 0) : d.totalXp || (120 - idx * 25);
+    const isSelf = activeProfile && (d.id === activeProfile.id || (activeProfile.email && d.email === activeProfile.email) || d.name === activeProfile.nickname);
+    const baseXp = isSelf ? Math.max(currentPoints, Number(d.totalXp) || 0) : (Number(d.totalXp) || 0);
     const calculatedStars = Math.floor(baseXp / 10);
     return {
       id: d.id,
       name: isSelf ? currentStudentName : d.name,
       isCurrentUser: !!isSelf,
-      xp: getAdjustedXp(baseXp, !!isSelf),
+      xp: baseXp,
       streak: Math.max(1, d.completedCount || 1),
-      standard: isSelf ? currentStudentStandard : "Class 3",
+      standard: isSelf ? currentStudentStandard : (d.standard || "Class 3"),
       badge: {
         en: `${calculatedStars} Noor Stars ⭐`,
         ml: `${calculatedStars} നൂർ നക്ഷത്രങ്ങൾ ⭐`,
       },
       avatarEmoji: idx % 2 === 0 ? "🧕" : "👦",
       avatarBg: idx % 2 === 0 ? "#E3D4FF" : "#FFD184",
-      avatarUrl: isSelf ? activeProfile?.avatarUrl : null,
+      avatarUrl: isSelf ? activeProfile?.avatarUrl : (d.avatarUrl || null),
     };
   });
 
@@ -208,14 +132,7 @@ export const LeaderboardScreen: React.FC = () => {
 
   const baseList: LeaderboardStudent[] = mappedDbStudents.length > 0
     ? (hasSelfInDb ? mappedDbStudents : [currentUserEntry, ...mappedDbStudents])
-    : [
-        currentUserEntry,
-        ...defaultPeers.map((p) => ({
-          ...p,
-          xp: getAdjustedXp(p.xp, false),
-          isCurrentUser: false,
-        })),
-      ];
+    : [currentUserEntry];
 
   const allStudents: LeaderboardStudent[] = baseList
     .filter((p) => (timeframe === "class" ? p.standard === currentStudentStandard : true))
@@ -346,16 +263,10 @@ export const LeaderboardScreen: React.FC = () => {
             {/* Ambient Background Glow */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 bg-[#FFD184]/30 rounded-full blur-2xl pointer-events-none" />
 
-            {/* <div className="text-center mb-6 relative z-10">
-              <span className="text-[10px] font-black uppercase tracking-wider text-[#7857E8] bg-white/80 px-3 py-1 rounded-full shadow-2xs inline-block">
-                {lang === "ml" ? "ആഴ്ചയിലെ ജേതാക്കൾ" : "Top Madrasa Champions"}
-              </span>
-            </div> */}
-
             {/* Podium Columns Grid (2nd, 1st, 3rd) */}
             <div className="grid grid-cols-3 gap-2 sm:gap-4 items-end max-w-lg mx-auto relative z-10 pt-4">
               {/* 2ND PLACE PODIUM (Left) */}
-              {top2 && (
+              {top2 ? (
                 <div className="flex flex-col items-center animate-pop">
                   <div className="relative mb-2 flex flex-col items-center">
                     <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-3 border-[#CBD5E1] bg-[#F1F5F9] shadow-sm flex items-center justify-center text-2xl overflow-hidden relative">
@@ -385,6 +296,18 @@ export const LeaderboardScreen: React.FC = () => {
 
                   {/* Podium Base */}
                   <div className="w-full h-24 sm:h-28 bg-gradient-to-t from-[#CBD5E1]/70 to-[#E2E8F0] border-t-2 border-[#94A3B8] rounded-t-2xl mt-3 flex items-center justify-center font-black text-xl text-[#475569]">
+                    2
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center opacity-60">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-dashed border-[#CBD5E1] bg-[#F1F5F9]/60 flex items-center justify-center text-xl text-[#94A3B8]">
+                    🥈
+                  </div>
+                  <span className="text-[10px] font-bold text-[#626273] mt-2 text-center">
+                    {lang === "ml" ? "കൂട്ടുകാരെ കാത്തിരിക്കുന്നു" : "Open Slot"}
+                  </span>
+                  <div className="w-full h-24 sm:h-28 bg-[#CBD5E1]/30 border-t-2 border-dashed border-[#CBD5E1] rounded-t-2xl mt-3 flex items-center justify-center font-bold text-lg text-[#94A3B8]">
                     2
                   </div>
                 </div>
@@ -431,7 +354,7 @@ export const LeaderboardScreen: React.FC = () => {
               )}
 
               {/* 3RD PLACE PODIUM (Right) */}
-              {top3 && (
+              {top3 ? (
                 <div className="flex flex-col items-center animate-pop">
                   <div className="relative mb-2 flex flex-col items-center">
                     <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-3 border-[#D97706]/40 bg-[#FFF7ED] shadow-sm flex items-center justify-center text-2xl overflow-hidden relative">
@@ -460,7 +383,19 @@ export const LeaderboardScreen: React.FC = () => {
                   </span>
 
                   {/* Podium Base */}
-                  <div className="w-full h-20 sm:h-24 bg-gradient-to-t from-[#FED7AA]/70 to-[#FFEDD5] border-t-2 border-[#F97316]/50 rounded-t-2xl mt-3 flex items-center justify-center font-black text-xl text-[#9A3412]">
+                  <div className="w-full h-20 sm:h-24 bg-gradient-to-t from-[#FED7AA]/60 to-[#FFEDD5] border-t-2 border-[#D97706]/50 rounded-t-2xl mt-3 flex items-center justify-center font-black text-lg text-[#9A3412]">
+                    3
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center opacity-60">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-dashed border-[#FED7AA] bg-[#FFF7ED]/60 flex items-center justify-center text-xl text-[#D97706]/60">
+                    🥉
+                  </div>
+                  <span className="text-[10px] font-bold text-[#626273] mt-2 text-center">
+                    {lang === "ml" ? "കൂട്ടുകാരെ കാത്തിരിക്കുന്നു" : "Open Slot"}
+                  </span>
+                  <div className="w-full h-20 sm:h-24 bg-[#FED7AA]/30 border-t-2 border-dashed border-[#FED7AA] rounded-t-2xl mt-3 flex items-center justify-center font-bold text-lg text-[#D97706]/60">
                     3
                   </div>
                 </div>
@@ -517,6 +452,20 @@ export const LeaderboardScreen: React.FC = () => {
             </h3>
 
             <div className="space-y-2">
+              {allStudents.length === 1 && (
+                <div className="bg-[#FAF8FF] border border-[#E9E4F5] rounded-2xl p-4 text-center space-y-1">
+                  <p className="text-xs font-black text-[#7857E8]">
+                    {lang === "ml"
+                      ? "മാശാ അല്ലാഹ്! നിങ്ങളാണ് ഈ ക്ലാസിലെ ആദ്യത്തെ വിദ്യാർത്ഥി! 🌟"
+                      : "Masha Allah! You are the first learner in this Madrasa! 🌟"}
+                  </p>
+                  <p className="text-[11px] text-[#626273]">
+                    {lang === "ml"
+                      ? "കൂടുതൽ മിഷനുകൾ ചെയ്ത് നൂർ നക്ഷത്രങ്ങൾ സ്വന്തമാക്കൂ!"
+                      : "Complete daily lessons to earn more Noor Stars and set the benchmark!"}
+                  </p>
+                </div>
+              )}
               {allStudents.map((student, idx) => {
                 const rankNumber = idx + 1;
                 const isUser = student.isCurrentUser;

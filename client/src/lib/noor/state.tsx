@@ -348,6 +348,21 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
           weeklyGoal: newProfile.weeklyGoal,
           progress: createInitialProgress(),
         })
+        .then((dbStudent: any) => {
+          if (dbStudent && dbStudent.id) {
+            setState((prev) => ({
+              ...prev,
+              profiles: prev.profiles.map((p) =>
+                p.id === id ? { ...p, id: dbStudent.id } : p
+              ),
+              activeProfileId: prev.activeProfileId === id ? dbStudent.id : prev.activeProfileId,
+              progress: {
+                ...prev.progress,
+                [dbStudent.id]: prev.progress[id] || createInitialProgress(),
+              },
+            }));
+          }
+        })
         .catch(() => {});
 
       if (isBackendConnected && authAccount) {
@@ -443,8 +458,13 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } else if (res?.error) {
             return { success: false, error: res.error };
           }
-        } catch {
-          // Server offline or network issue
+        } catch (err: any) {
+          return {
+            success: false,
+            error:
+              err?.message ||
+              "Unable to reach the server. Please check your network or ensure the backend is active.",
+          };
         }
 
         return {

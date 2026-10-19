@@ -63,6 +63,8 @@ export const StudentLoginPage: React.FC<StudentLoginPageProps> = ({
           lang === "ml"
             ? res.error?.includes("password") || res.error?.includes("Incorrect")
               ? "തെറ്റായ പാസ്‌വേഡ് നൽകി. ദയവായി വീണ്ടും ശ്രമിക്കുക."
+              : res.error?.includes("reach the server") || res.error?.includes("network")
+              ? "സെർവറുമായി ബന്ധപ്പെടാൻ സാധിക്കുന്നില്ല. ദയവായി അല്പം കഴിഞ്ഞ് ശ്രമിക്കുക."
               : "ഈ ഇമെയിൽ വിലാസത്തിൽ അക്കൗണ്ട് കണ്ടെത്താനായില്ല. ദയവായി അക്കൗണ്ട് ഉണ്ടാക്കുക."
             : res.error || "No student account found with this email. Please check your email or create an account."
         );
