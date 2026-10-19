@@ -22,7 +22,7 @@ export const ChildHeader: React.FC<ChildHeaderProps> = ({
   const currentAvatar =
     avatarOptions.find((a) => a.id === activeProfile?.avatarId) ?? avatarOptions[0];
 
-  const childName = activeProfile?.nickname || (lang === "ml" ? "സയാൻ" : "Amina");
+  const childName = activeProfile?.nickname || (lang === "ml" ? "വിദ്യാർത്ഥി" : "Student");
 
   return (
     <div className="w-full flex items-center justify-between py-2 px-0.5">

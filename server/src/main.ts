@@ -14,6 +14,20 @@ async function bootstrap() {
 
   const config = app.get(AppConfigService);
 
+  // Transparent rewrite: route calls missing /api/v1 prefix to /api/v1/...
+  app.use((req: any, _res: any, next: any) => {
+    const rawUrl: string = req.url || "";
+    if (
+      !rawUrl.startsWith("/api/v1") &&
+      !rawUrl.startsWith("/api/docs") &&
+      !rawUrl.startsWith("/health") &&
+      !rawUrl.startsWith("/favicon.ico")
+    ) {
+      req.url = `/api/v1${rawUrl.startsWith("/") ? rawUrl : `/${rawUrl}`}`;
+    }
+    next();
+  });
+
   // Prefix
   app.setGlobalPrefix("api/v1");
 

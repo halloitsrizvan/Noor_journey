@@ -212,7 +212,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
             className="text-2xl sm:text-3xl font-black text-[#141426] leading-tight"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            {activeProfile?.nickname || (lang === "ml" ? "അമീന" : "Amina")}
+            {activeProfile?.nickname || (lang === "ml" ? "വിദ്യാർത്ഥി" : "Student")}
           </h1>
 
           {/* Student Email Badge */}

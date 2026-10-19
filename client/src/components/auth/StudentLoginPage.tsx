@@ -22,7 +22,7 @@ export const StudentLoginPage: React.FC<StudentLoginPageProps> = ({
   onEnterChildSpace,
   onBackToWelcome,
 }) => {
-  const { lang, state, activeProfile, loginStudent, createProfile } = useNoor();
+  const { lang, state, activeProfile, loginStudent, registerStudent, createProfile } = useNoor();
 
   // Auth Mode: "login" | "signup"
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
@@ -82,8 +82,8 @@ export const StudentLoginPage: React.FC<StudentLoginPageProps> = ({
     }
   };
 
-  // Handle Signup: Enter Account Details -> Enforce unique email -> jump to dashboard & popup
-  const handleSignupSubmit = (e: React.FormEvent) => {
+  // Handle Signup: Enter Account Details -> Enforce unique email in database -> jump to dashboard & popup
+  const handleSignupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!studentName.trim()) {
       setErrorMessage(lang === "ml" ? "ദയവായി വിദ്യാർത്ഥിയുടെ പേര് നൽകുക" : "Please enter your name.");
@@ -99,15 +99,17 @@ export const StudentLoginPage: React.FC<StudentLoginPageProps> = ({
     }
 
     setErrorMessage(null);
+    setIsLoggingIn(true);
 
     const cleanName = studentName.trim();
     const cleanEmail = studentEmail.trim().toLowerCase();
 
-    // Security Check: Enforce email uniqueness so users cannot register twice with the same email
-    const emailAlreadyExists = state.profiles.some(
+    // 1. Security Check: Enforce email uniqueness locally first
+    const emailAlreadyExistsLocal = state.profiles.some(
       (p) => p.email && p.email.toLowerCase() === cleanEmail
     );
-    if (emailAlreadyExists) {
+    if (emailAlreadyExistsLocal) {
+      setIsLoggingIn(false);
       setErrorMessage(
         lang === "ml"
           ? "ഈ ഇമെയിൽ വിലാസത്തിൽ ഇതിനകം ഒരു അക്കൗണ്ട് നിലവിലുണ്ട്. ദയവായി ലോഗിൻ ചെയ്യുക."
@@ -117,8 +119,8 @@ export const StudentLoginPage: React.FC<StudentLoginPageProps> = ({
     }
 
     try {
-      // Create the child profile with password; class, age & avatar will popup from bottom to center on dashboard
-      createProfile({
+      // 2. Validate with central database and register learner
+      const res = await registerStudent({
         nickname: cleanName,
         email: cleanEmail,
         password: studentPassword,
@@ -127,6 +129,15 @@ export const StudentLoginPage: React.FC<StudentLoginPageProps> = ({
         avatarId: "lantern-noor",
         weeklyGoal: 3,
       });
+
+      if (!res.success) {
+        setErrorMessage(
+          lang === "ml" && (res.error?.includes("already exists") || res.error?.includes("നിലവിലുണ്ട്"))
+            ? "ഈ ഇമെയിൽ വിലാസത്തിൽ ഇതിനകം ഒരു അക്കൗണ്ട് നിലവിലുണ്ട്. ദയവായി ലോഗിൻ ചെയ്യുക."
+            : res.error || "Failed to create account."
+        );
+        return;
+      }
 
       setStudentSession(cleanName, cleanEmail);
 
@@ -138,6 +149,8 @@ export const StudentLoginPage: React.FC<StudentLoginPageProps> = ({
       onEnterChildSpace();
     } catch (err: any) {
       setErrorMessage(err.message || "Failed to create account.");
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 

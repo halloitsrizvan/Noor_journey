@@ -6,7 +6,11 @@
 function getBaseUrl(): string {
   const envUrl = typeof import.meta !== "undefined" ? import.meta.env?.VITE_API_BASE_URL : null;
   if (envUrl && typeof envUrl === "string" && envUrl.trim()) {
-    return envUrl.trim().replace(/\/+$/, "");
+    let clean = envUrl.trim().replace(/\/+$/, "");
+    if (!clean.endsWith("/api/v1")) {
+      clean = `${clean}/api/v1`;
+    }
+    return clean;
   }
 
   if (typeof window !== "undefined") {
@@ -16,10 +20,6 @@ function getBaseUrl(): string {
       window.location.hostname.endsWith(".local");
 
     if (!isLocal) {
-      console.warn(
-        "[Noor Journey] VITE_API_BASE_URL is not set for production. " +
-        "Please configure VITE_API_BASE_URL in your Render/Vercel dashboard pointing to your backend URL (e.g. https://your-server.onrender.com/api/v1)."
-      );
       return "/api/v1";
     }
   }
@@ -230,6 +230,24 @@ class ApiClient {
         method: "POST",
         body: JSON.stringify(data),
       }),
+    studentRegister: (data: {
+      nickname: string;
+      email: string;
+      password?: string;
+      ageBand?: string;
+      priorStandard?: string;
+      avatarKey?: string;
+      avatarUrl?: string | null;
+      weeklyGoal?: number;
+    }) =>
+      this.request<{ success: boolean; student?: any; error?: string }>("/children/student-register", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    getStudentProfile: (email: string) =>
+      this.request<{ success: boolean; student?: any; error?: string }>(
+        `/children/student-profile/${encodeURIComponent(email)}`
+      ),
     syncProgress: (data: {
       studentEmail?: string;
       profileId?: string;

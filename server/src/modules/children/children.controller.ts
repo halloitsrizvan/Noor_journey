@@ -68,6 +68,32 @@ export class ChildrenController {
     return this.childrenService.studentLogin(dto.email, dto.password);
   }
 
+  @Post("student-register")
+  @Public()
+  @ApiOperation({ summary: "Register a new student learner with email uniqueness enforcement" })
+  async studentRegister(
+    @Body()
+    dto: {
+      nickname: string;
+      email: string;
+      password?: string;
+      ageBand?: string;
+      priorStandard?: string;
+      avatarKey?: string;
+      avatarUrl?: string | null;
+      weeklyGoal?: number;
+    }
+  ) {
+    return this.childrenService.studentRegister(dto);
+  }
+
+  @Get("student-profile/:email")
+  @Public()
+  @ApiOperation({ summary: "Retrieve student learner profile and progress from database" })
+  async getStudentProfile(@Param("email") email: string) {
+    return this.childrenService.getStudentByEmail(email);
+  }
+
   @Post("sync-progress")
   @Public()
   @ApiOperation({ summary: "Sync student progress & avatar to database" })

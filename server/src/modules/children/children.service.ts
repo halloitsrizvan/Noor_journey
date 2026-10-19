@@ -236,7 +236,7 @@ export class ChildrenService {
         preferredLanguage: "en",
         priorStandard: dto.priorStandard || "4",
         weeklyGoal: dto.weeklyGoal || 3,
-        progressData: dto.progress ? (dto.progress as any) : null,
+        progressData: dto.progress ? (dto.progress as any) : undefined,
       },
     });
   }
@@ -264,6 +264,116 @@ export class ChildrenService {
 
     if (student.passwordHash && password && student.passwordHash !== password) {
       return { success: false, error: "Incorrect password. Please verify your password and try again." };
+    }
+
+    return {
+      success: true,
+      student: {
+        id: student.id,
+        nickname: student.nickname,
+        email: student.email,
+        ageBand: student.ageBand,
+        priorStandard: student.priorStandard,
+        avatarId: student.avatarKey,
+        avatarUrl: student.avatarUrl,
+        weeklyGoal: student.weeklyGoal,
+        progress: student.progressData,
+      },
+    };
+  }
+
+  async studentRegister(dto: {
+    nickname: string;
+    email: string;
+    password?: string;
+    ageBand?: string;
+    priorStandard?: string;
+    avatarKey?: string;
+    avatarUrl?: string | null;
+    weeklyGoal?: number;
+  }) {
+    const cleanEmail = dto.email?.trim().toLowerCase();
+    if (!cleanEmail) {
+      return { success: false, error: "Email is required." };
+    }
+
+    const cleanNick = dto.nickname?.trim() || cleanEmail.split("@")[0] || "Explorer";
+
+    // Enforce email uniqueness in the database
+    const existing = await this.prisma.childProfile.findFirst({
+      where: {
+        email: { equals: cleanEmail, mode: "insensitive" },
+      },
+    });
+
+    if (existing) {
+      return {
+        success: false,
+        error: "An account with this email address already exists. Please log in instead.",
+      };
+    }
+
+    let parent = await this.prisma.account.findFirst({
+      where: { role: "PARENT" },
+    });
+    if (!parent) {
+      parent = await this.prisma.account.findFirst();
+    }
+    if (!parent) {
+      parent = await this.prisma.account.create({
+        data: {
+          email: "system-parent@noorjourney.org",
+          passwordHash: "system-managed-parent-placeholder",
+          role: "PARENT",
+        },
+      });
+    }
+
+    const created = await this.prisma.childProfile.create({
+      data: {
+        parentAccountId: parent.id,
+        nickname: cleanNick,
+        email: cleanEmail,
+        passwordHash: dto.password || null,
+        avatarKey: dto.avatarKey || "lantern-noor",
+        avatarUrl: dto.avatarUrl || null,
+        ageBand: dto.ageBand || "8-9",
+        preferredLanguage: "en",
+        priorStandard: dto.priorStandard || "3",
+        weeklyGoal: dto.weeklyGoal || 3,
+      },
+    });
+
+    return {
+      success: true,
+      student: {
+        id: created.id,
+        nickname: created.nickname,
+        email: created.email,
+        ageBand: created.ageBand,
+        priorStandard: created.priorStandard,
+        avatarId: created.avatarKey,
+        avatarUrl: created.avatarUrl,
+        weeklyGoal: created.weeklyGoal,
+        progress: null,
+      },
+    };
+  }
+
+  async getStudentByEmail(email: string) {
+    const clean = (email || "").trim().toLowerCase();
+    if (!clean) {
+      return { success: false, error: "Email is required." };
+    }
+
+    const student = await this.prisma.childProfile.findFirst({
+      where: {
+        email: { equals: clean, mode: "insensitive" },
+      },
+    });
+
+    if (!student) {
+      return { success: false, error: "No student profile found with this email." };
     }
 
     return {

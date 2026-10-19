@@ -44,6 +44,15 @@ export interface NoorContextValue {
     ageBand?: AgeBand;
     priorStandard?: PriorStandard;
   }) => Promise<{ success: boolean; error?: string; profileId?: string }>;
+  registerStudent: (data: {
+    nickname: string;
+    email: string;
+    password?: string;
+    ageBand?: AgeBand;
+    priorStandard?: PriorStandard;
+    avatarId?: string;
+    weeklyGoal?: 2 | 3 | 5;
+  }) => Promise<{ success: boolean; error?: string; profileId?: string }>;
   createProfile: (data: {
     nickname: string;
     email?: string;
@@ -150,6 +159,55 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
           }
         }
+      }
+
+      // 3. Restore and sync active student profile & progress directly from database
+      const savedStudentEmail =
+        typeof window !== "undefined"
+          ? localStorage.getItem("noor_active_student_email") ||
+            sessionStorage.getItem("noor_active_student_email")
+          : null;
+
+      if (savedStudentEmail) {
+        try {
+          const res = await api.children.getStudentProfile(savedStudentEmail);
+          if (mounted && res?.success && res.student) {
+            const s = res.student;
+            const restoredProfile: ChildProfile = {
+              id: s.id,
+              nickname: s.nickname || "Explorer",
+              email: s.email || savedStudentEmail,
+              ageBand: (s.ageBand || "8-9") as AgeBand,
+              priorStandard: (s.priorStandard || "3") as PriorStandard,
+              avatarId: s.avatarId || "lantern-noor",
+              avatarUrl: s.avatarUrl || null,
+              cosmeticId: null,
+              weeklyGoal: (s.weeklyGoal || 3) as 2 | 3 | 5,
+              recommendedStart: "akhlaq-small-actions",
+              createdAt: Date.now(),
+            };
+
+            const restoredProgress: ChildProgress = s.progress || createInitialProgress();
+
+            setState((prev) => {
+              const otherProfiles = prev.profiles.filter(
+                (p) => p.id !== s.id && (!p.email || p.email.toLowerCase() !== s.email?.toLowerCase())
+              );
+              return {
+                ...prev,
+                profiles: [restoredProfile, ...otherProfiles],
+                activeProfileId: s.id,
+                progress: {
+                  ...prev.progress,
+                  [s.id]: {
+                    ...(prev.progress[s.id] || {}),
+                    ...(restoredProgress || {}),
+                  },
+                },
+              };
+            });
+          }
+        } catch {}
       }
     }
     checkBackend();
@@ -528,6 +586,87 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .catch(() => {});
 
       return { success: true, profileId: existing.id };
+    },
+    [state.profiles]
+  );
+
+  const registerStudent = useCallback(
+    async (data: {
+      nickname: string;
+      email: string;
+      password?: string;
+      ageBand?: AgeBand;
+      priorStandard?: PriorStandard;
+      avatarId?: string;
+      weeklyGoal?: 2 | 3 | 5;
+    }): Promise<{ success: boolean; error?: string; profileId?: string }> => {
+      const cleanEmail = data.email?.trim().toLowerCase();
+      if (!cleanEmail) {
+        return { success: false, error: "Please enter your email." };
+      }
+
+      // 1. Check local profiles
+      const localExists = state.profiles.some(
+        (p) => p.email && p.email.toLowerCase() === cleanEmail
+      );
+      if (localExists) {
+        return {
+          success: false,
+          error: "An account with this email address already exists. Please log in instead.",
+        };
+      }
+
+      // 2. Validate with central database and register
+      try {
+        const res = await api.children.studentRegister({
+          nickname: data.nickname,
+          email: cleanEmail,
+          password: data.password,
+          ageBand: data.ageBand || "8-9",
+          priorStandard: data.priorStandard || "3",
+          avatarKey: data.avatarId || "lantern-noor",
+          weeklyGoal: data.weeklyGoal || 3,
+        });
+
+        if (!res.success) {
+          return { success: false, error: res.error || "Registration failed." };
+        }
+
+        const s = res.student;
+        const newProfile: ChildProfile = {
+          id: s.id,
+          nickname: s.nickname || data.nickname,
+          email: cleanEmail,
+          password: data.password,
+          ageBand: (s.ageBand || data.ageBand || "8-9") as AgeBand,
+          priorStandard: (s.priorStandard || data.priorStandard || "3") as PriorStandard,
+          avatarId: s.avatarId || data.avatarId || "lantern-noor",
+          avatarUrl: s.avatarUrl || null,
+          cosmeticId: null,
+          weeklyGoal: (s.weeklyGoal || data.weeklyGoal || 3) as 2 | 3 | 5,
+          recommendedStart: "akhlaq-small-actions",
+          createdAt: Date.now(),
+        };
+
+        setState((prev) => ({
+          ...prev,
+          profiles: [...prev.profiles.filter((p) => p.email !== cleanEmail), newProfile],
+          activeProfileId: newProfile.id,
+          progress: {
+            ...prev.progress,
+            [newProfile.id]: createInitialProgress(),
+          },
+        }));
+
+        return { success: true, profileId: newProfile.id };
+      } catch (err: any) {
+        return {
+          success: false,
+          error:
+            err?.message ||
+            "Unable to connect to the server. Please verify your connection and try again.",
+        };
+      }
     },
     [state.profiles]
   );
@@ -988,6 +1127,7 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toggleReducedMotion,
       setActiveProfileId,
       loginStudent,
+      registerStudent,
       createProfile,
       deleteProfile,
       deleteAllStudents,
@@ -1026,6 +1166,7 @@ export const NoorProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toggleReducedMotion,
       setActiveProfileId,
       loginStudent,
+      registerStudent,
       createProfile,
       deleteProfile,
       deleteAllStudents,
