@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useNoor } from "@/lib/noor/state";
 import {
@@ -16,11 +16,14 @@ import {
   Layers,
   ArrowRight,
   Flame,
+  Award,
 } from "lucide-react";
 import { sfx } from "@/lib/sound/sfx";
+import { NoorDinoRunner } from "./NoorDinoRunner";
 
 // ================= TYPES =================
-type GameMode = "menu" | "quiz" | "word-match" | "sunnah-catcher";
+export type GameKey = "quiz" | "word-match" | "sunnah-catcher" | "dino-runner";
+type GameMode = "menu" | GameKey;
 
 interface QuizQuestion {
   question: { en: string; ml: string };
@@ -230,11 +233,26 @@ const SUNNAH_ITEMS: SunnahItem[] = [
 
 export const IslamicGamesScreen: React.FC = () => {
   const navigate = useNavigate();
-  const { lang, activeProfile, awardXp, getTotalXp, getNoorStars } = useNoor();
+  const { lang, activeProfile, activeProgress, awardXp, getTotalXp, getNoorStars } = useNoor();
 
   const [mode, setMode] = useState<GameMode>("menu");
   const [xpWonThisSession, setXpWonThisSession] = useState<number>(0);
   const [showCelebration, setShowCelebration] = useState<boolean>(false);
+  const [completionInfo, setCompletionInfo] = useState<{
+    gameKey: GameKey;
+    isFirstTime: boolean;
+    xpAwarded: number;
+  } | null>(null);
+
+  // Check if current user profile has already claimed XP for a specific game
+  const isGameClaimed = useCallback(
+    (gameKey: GameKey): boolean => {
+      if (!activeProfile || !activeProgress?.xp) return false;
+      const targetKey = `game-reward-${activeProfile.id}-${gameKey}`;
+      return activeProgress.xp.some((tx) => tx.id === targetKey);
+    },
+    [activeProfile, activeProgress]
+  );
 
   // ---------- QUIZ STATE ----------
   const [quizIndex, setQuizIndex] = useState(0);
@@ -255,11 +273,23 @@ export const IslamicGamesScreen: React.FC = () => {
     text: string;
   } | null>(null);
 
-  // Handle XP award on game finish
-  const handleGameComplete = (xpEarned: number) => {
+  // Handle XP award on game finish (strictly one-time per user profile)
+  const handleGameComplete = (gameKey: GameKey, xpEarned: number = 10) => {
     sfx.complete();
-    const awarded = awardXp(xpEarned, "quiz");
-    setXpWonThisSession((prev) => prev + (awarded || xpEarned));
+    const targetKey = `game-reward-${activeProfile?.id}-${gameKey}`;
+    const alreadyClaimed = isGameClaimed(gameKey);
+
+    let awarded = 0;
+    if (!alreadyClaimed) {
+      awarded = awardXp(xpEarned, "quiz", targetKey);
+      setXpWonThisSession((prev) => prev + (awarded || xpEarned));
+    }
+
+    setCompletionInfo({
+      gameKey,
+      isFirstTime: !alreadyClaimed,
+      xpAwarded: awarded,
+    });
     setShowCelebration(true);
   };
 
@@ -285,7 +315,7 @@ export const IslamicGamesScreen: React.FC = () => {
       setShowExplanation(false);
     } else {
       // Quiz finished
-      handleGameComplete(10);
+      handleGameComplete("quiz", 10);
     }
   };
 
@@ -311,7 +341,7 @@ export const IslamicGamesScreen: React.FC = () => {
       setMatchedIds(updated);
       setSelectedArabicId(null);
       if (updated.length === MATCH_PAIRS.length) {
-        handleGameComplete(10);
+        handleGameComplete("word-match", 10);
       }
     } else {
       // Wrong match
@@ -348,7 +378,7 @@ export const IslamicGamesScreen: React.FC = () => {
     if (sunnahIndex + 1 < SUNNAH_ITEMS.length) {
       setSunnahIndex((prev) => prev + 1);
     } else {
-      handleGameComplete(10);
+      handleGameComplete("sunnah-catcher", 10);
     }
   };
 
@@ -421,115 +451,195 @@ export const IslamicGamesScreen: React.FC = () => {
       {/* VIEW: MAIN GAMES MENU                                          */}
       {/* ============================================================== */}
       {mode === "menu" && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-          {/* Card 1: Prophets Quiz */}
-          <div
-            onClick={() => {
-              restartQuiz();
-              setMode("quiz");
-            }}
-            className="bg-white border-2 border-[#E4E0E9] hover:border-[#7857E8] rounded-[24px] p-4.5 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-all cursor-pointer tactile group"
-          >
-            <div>
-              <div className="w-12 h-12 rounded-2xl bg-[#E3D4FF] text-[#7857E8] flex items-center justify-center text-2xl mb-3 group-hover:scale-105 transition-transform">
-                📜
-              </div>
-              <div className="flex items-center gap-1.5 mb-1">
-                <span className="px-2 py-0.5 rounded-full bg-[#FFE4B5] text-[#7A4B00] text-[10px] font-black">
-                  +10 XP
-                </span>
-                <span className="text-[10px] font-bold text-[#626273]">5 Questions</span>
-              </div>
-              <h3
-                className="text-base font-black text-[#141426] group-hover:text-[#7857E8] transition-colors"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                {lang === "ml" ? "പ്രവാചക ക്വിസ്" : "Prophets Quest Quiz"}
-              </h3>
-              <p className="text-xs text-[#626273] font-medium mt-1 leading-relaxed">
-                {lang === "ml"
-                  ? "പ്രവാചകന്മാരും അവരുടെ മുഅ്ജിസത്തുകളും കണ്ടെത്തി സമ്മാനം നേടുക."
-                  : "Test your knowledge of the noble Prophets and their miraculous signs."}
-              </p>
-            </div>
-
-            <div className="mt-4 pt-3 border-t border-[#F3F1F4] flex items-center justify-between text-xs font-bold text-[#7857E8]">
-              <span>{lang === "ml" ? "കളിച്ചു തുടങ്ങാം" : "Play Now"}</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </div>
+        <div className="space-y-4">
+          {/* One-Time XP Notice Banner */}
+          <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-[#F0FDF4] border border-[#BBF7D0] text-[#166534] text-xs font-semibold shadow-2xs">
+            <Sparkles className="w-4 h-4 text-[#16A34A] shrink-0" />
+            <span>
+              {lang === "ml"
+                ? "ഓരോ ഗെയിമിൽ നിന്നും ഒരു തവണ 10 XP വീതം നേടാം. അറിവ് കൂടുതൽ ഉറപ്പിക്കാൻ എത്ര തവണ വേണമെങ്കിലും വീണ്ടും കളിക്കാം!"
+                : "Earn +10 XP once from each mini-game! Unlimited replay is always available for practice and revision."}
+            </span>
           </div>
 
-          {/* Card 2: Arabic Word Match */}
-          <div
-            onClick={() => {
-              restartWordMatch();
-              setMode("word-match");
-            }}
-            className="bg-white border-2 border-[#E4E0E9] hover:border-[#287553] rounded-[24px] p-4.5 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-all cursor-pointer tactile group"
-          >
-            <div>
-              <div className="w-12 h-12 rounded-2xl bg-[#D2F4DE] text-[#287553] flex items-center justify-center text-2xl mb-3 group-hover:scale-105 transition-transform">
-                🧩
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            {/* Card 1: Prophets Quiz */}
+            <div
+              onClick={() => {
+                restartQuiz();
+                setMode("quiz");
+              }}
+              className="bg-white border-2 border-[#E4E0E9] hover:border-[#7857E8] rounded-[24px] p-4.5 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-all cursor-pointer tactile group"
+            >
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-[#E3D4FF] text-[#7857E8] flex items-center justify-center text-2xl mb-3 group-hover:scale-105 transition-transform">
+                  📜
+                </div>
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  {isGameClaimed("quiz") ? (
+                    <span className="px-2 py-0.5 rounded-full bg-[#D2F4DE] text-[#287553] text-[10px] font-black inline-flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      <span>{lang === "ml" ? "നേടി (10 XP)" : "Claimed (+10 XP)"}</span>
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded-full bg-[#FFE4B5] text-[#7A4B00] text-[10px] font-black inline-flex items-center gap-1">
+                      <Sparkles className="w-3 h-3 text-[#FF9800]" />
+                      <span>+10 XP</span>
+                    </span>
+                  )}
+                  <span className="text-[10px] font-bold text-[#626273]">5 Questions</span>
+                </div>
+                <h3
+                  className="text-base font-black text-[#141426] group-hover:text-[#7857E8] transition-colors"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  {lang === "ml" ? "പ്രവാചക ക്വിസ്" : "Prophets Quest Quiz"}
+                </h3>
+                <p className="text-xs text-[#626273] font-medium mt-1 leading-relaxed">
+                  {lang === "ml"
+                    ? "പ്രവാചകന്മാരും അവരുടെ മുഅ്ജിസത്തുകളും കണ്ടെത്തി സമ്മാനം നേടുക."
+                    : "Test your knowledge of the noble Prophets and their miraculous signs."}
+                </p>
               </div>
-              <div className="flex items-center gap-1.5 mb-1">
-                <span className="px-2 py-0.5 rounded-full bg-[#FFE4B5] text-[#7A4B00] text-[10px] font-black">
-                  +10 XP
-                </span>
-                <span className="text-[10px] font-bold text-[#626273]">5 Pairs</span>
+
+              <div className="mt-4 pt-3 border-t border-[#F3F1F4] flex items-center justify-between text-xs font-bold text-[#7857E8]">
+                <span>{lang === "ml" ? "കളിച്ചു തുടങ്ങാം" : "Play Now"}</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </div>
-              <h3
-                className="text-base font-black text-[#141426] group-hover:text-[#287553] transition-colors"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                {lang === "ml" ? "അറബിക് വേഡ് മാച്ച്" : "Arabic Word Match"}
-              </h3>
-              <p className="text-xs text-[#626273] font-medium mt-1 leading-relaxed">
-                {lang === "ml"
-                  ? "അറബിക് ദിക്റുകളും അവയുടെ അർത്ഥങ്ങളും യോജിപ്പിച്ച് മാച്ച് ചെയ്യുക."
-                  : "Match beautiful daily Islamic phrases like Bismillah with their meanings."}
-              </p>
             </div>
 
-            <div className="mt-4 pt-3 border-t border-[#F3F1F4] flex items-center justify-between text-xs font-bold text-[#287553]">
-              <span>{lang === "ml" ? "കളിച്ചു തുടങ്ങാം" : "Play Now"}</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </div>
-          </div>
-
-          {/* Card 3: Sunnah Habits Catcher */}
-          <div
-            onClick={() => {
-              restartSunnahCatcher();
-              setMode("sunnah-catcher");
-            }}
-            className="bg-white border-2 border-[#E4E0E9] hover:border-[#FF9800] rounded-[24px] p-4.5 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-all cursor-pointer tactile group"
-          >
-            <div>
-              <div className="w-12 h-12 rounded-2xl bg-[#FFE4B5] text-[#7A4B00] flex items-center justify-center text-2xl mb-3 group-hover:scale-105 transition-transform">
-                🌟
+            {/* Card 2: Arabic Word Match */}
+            <div
+              onClick={() => {
+                restartWordMatch();
+                setMode("word-match");
+              }}
+              className="bg-white border-2 border-[#E4E0E9] hover:border-[#287553] rounded-[24px] p-4.5 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-all cursor-pointer tactile group"
+            >
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-[#D2F4DE] text-[#287553] flex items-center justify-center text-2xl mb-3 group-hover:scale-105 transition-transform">
+                  🧩
+                </div>
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  {isGameClaimed("word-match") ? (
+                    <span className="px-2 py-0.5 rounded-full bg-[#D2F4DE] text-[#287553] text-[10px] font-black inline-flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      <span>{lang === "ml" ? "നേടി (10 XP)" : "Claimed (+10 XP)"}</span>
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded-full bg-[#FFE4B5] text-[#7A4B00] text-[10px] font-black inline-flex items-center gap-1">
+                      <Sparkles className="w-3 h-3 text-[#FF9800]" />
+                      <span>+10 XP</span>
+                    </span>
+                  )}
+                  <span className="text-[10px] font-bold text-[#626273]">5 Pairs</span>
+                </div>
+                <h3
+                  className="text-base font-black text-[#141426] group-hover:text-[#287553] transition-colors"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  {lang === "ml" ? "അറബിക് വേഡ് മാച്ച്" : "Arabic Word Match"}
+                </h3>
+                <p className="text-xs text-[#626273] font-medium mt-1 leading-relaxed">
+                  {lang === "ml"
+                    ? "അറബിക് ദിക്റുകളും അവയുടെ അർത്ഥങ്ങളും യോജിപ്പിച്ച് മാച്ച് ചെയ്യുക."
+                    : "Match beautiful daily Islamic phrases like Bismillah with their meanings."}
+                </p>
               </div>
-              <div className="flex items-center gap-1.5 mb-1">
-                <span className="px-2 py-0.5 rounded-full bg-[#FFE4B5] text-[#7A4B00] text-[10px] font-black">
-                  +10 XP
-                </span>
-                <span className="text-[10px] font-bold text-[#626273]">5 Scenarios</span>
+
+              <div className="mt-4 pt-3 border-t border-[#F3F1F4] flex items-center justify-between text-xs font-bold text-[#287553]">
+                <span>{lang === "ml" ? "കളിച്ചു തുടങ്ങാം" : "Play Now"}</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </div>
-              <h3
-                className="text-base font-black text-[#141426] group-hover:text-[#FF9800] transition-colors"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                {lang === "ml" ? "സുന്നത്ത് ശീലങ്ങൾ" : "Sunnah Habits Rush"}
-              </h3>
-              <p className="text-xs text-[#626273] font-medium mt-1 leading-relaxed">
-                {lang === "ml"
-                  ? "നല്ല സുന്നത്ത് ശീലങ്ങളും ഒഴിവാക്കേണ്ട കാര്യങ്ങളും വേഗത്തിൽ കണ്ടെത്തുക."
-                  : "Spot lovely Sunnah practices versus habits to avoid in daily life."}
-              </p>
             </div>
 
-            <div className="mt-4 pt-3 border-t border-[#F3F1F4] flex items-center justify-between text-xs font-bold text-[#FF9800]">
-              <span>{lang === "ml" ? "കളിച്ചു തുടങ്ങാം" : "Play Now"}</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            {/* Card 3: Sunnah Habits Catcher */}
+            <div
+              onClick={() => {
+                restartSunnahCatcher();
+                setMode("sunnah-catcher");
+              }}
+              className="bg-white border-2 border-[#E4E0E9] hover:border-[#FF9800] rounded-[24px] p-4.5 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-all cursor-pointer tactile group"
+            >
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-[#FFE4B5] text-[#7A4B00] flex items-center justify-center text-2xl mb-3 group-hover:scale-105 transition-transform">
+                  🌟
+                </div>
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  {isGameClaimed("sunnah-catcher") ? (
+                    <span className="px-2 py-0.5 rounded-full bg-[#D2F4DE] text-[#287553] text-[10px] font-black inline-flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      <span>{lang === "ml" ? "നേടി (10 XP)" : "Claimed (+10 XP)"}</span>
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded-full bg-[#FFE4B5] text-[#7A4B00] text-[10px] font-black inline-flex items-center gap-1">
+                      <Sparkles className="w-3 h-3 text-[#FF9800]" />
+                      <span>+10 XP</span>
+                    </span>
+                  )}
+                  <span className="text-[10px] font-bold text-[#626273]">5 Scenarios</span>
+                </div>
+                <h3
+                  className="text-base font-black text-[#141426] group-hover:text-[#FF9800] transition-colors"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  {lang === "ml" ? "സുന്നത്ത് ശീലങ്ങൾ" : "Sunnah Habits Rush"}
+                </h3>
+                <p className="text-xs text-[#626273] font-medium mt-1 leading-relaxed">
+                  {lang === "ml"
+                    ? "നല്ല സുന്നത്ത് ശീലങ്ങളും ഒഴിവാക്കേണ്ട കാര്യങ്ങളും വേഗത്തിൽ കണ്ടെത്തുക."
+                    : "Spot lovely Sunnah practices versus habits to avoid in daily life."}
+                </p>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-[#F3F1F4] flex items-center justify-between text-xs font-bold text-[#FF9800]">
+                <span>{lang === "ml" ? "കളിച്ചു തുടങ്ങാം" : "Play Now"}</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+
+            {/* Card 4: Noor Desert Runner (2D Dino Runner) */}
+            <div
+              onClick={() => {
+                setMode("dino-runner");
+              }}
+              className="bg-white border-2 border-[#E4E0E9] hover:border-[#D97706] rounded-[24px] p-4.5 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-all cursor-pointer tactile group"
+            >
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-[#FEF3C7] text-[#D97706] flex items-center justify-center text-2xl mb-3 group-hover:scale-105 transition-transform">
+                  🏃
+                </div>
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  {isGameClaimed("dino-runner") ? (
+                    <span className="px-2 py-0.5 rounded-full bg-[#D2F4DE] text-[#287553] text-[10px] font-black inline-flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      <span>{lang === "ml" ? "നേടി (10 XP)" : "Claimed (+10 XP)"}</span>
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded-full bg-[#FFE4B5] text-[#7A4B00] text-[10px] font-black inline-flex items-center gap-1">
+                      <Sparkles className="w-3 h-3 text-[#FF9800]" />
+                      <span>+10 XP</span>
+                    </span>
+                  )}
+                  <span className="text-[10px] font-bold text-[#626273]">2D Dino Runner</span>
+                </div>
+                <h3
+                  className="text-base font-black text-[#141426] group-hover:text-[#D97706] transition-colors"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  {lang === "ml" ? "നൂർ ഡെസേർട്ട് റണ്ണർ" : "Noor Desert Runner"}
+                </h3>
+                <p className="text-xs text-[#626273] font-medium mt-1 leading-relaxed">
+                  {lang === "ml"
+                    ? "മരുഭൂമിയിലൂടെ ചാടി ഓടുക, വിജ്ഞാന ചുരുളുകൾ ശേഖരിച്ച് ഹദീസുകൾ പഠിക്കുക."
+                    : "Classic 2D jump runner! Dodge obstacles and collect wisdom scrolls to learn authentic Hadiths."}
+                </p>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-[#F3F1F4] flex items-center justify-between text-xs font-bold text-[#D97706]">
+                <span>{lang === "ml" ? "കളിച്ചു തുടങ്ങാം" : "Play Now"}</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </div>
             </div>
           </div>
         </div>
@@ -837,30 +947,64 @@ export const IslamicGamesScreen: React.FC = () => {
       )}
 
       {/* ============================================================== */}
+      {/* GAME 4: NOOR DESERT RUNNER (2D DINO RUNNER)                   */}
+      {/* ============================================================== */}
+      {mode === "dino-runner" && (
+        <NoorDinoRunner
+          lang={lang}
+          isClaimed={isGameClaimed("dino-runner")}
+          onComplete={() => handleGameComplete("dino-runner", 10)}
+          onBackToMenu={() => setMode("menu")}
+        />
+      )}
+
+      {/* ============================================================== */}
       {/* CELEBRATION MODAL ON GAME FINISH                               */}
       {/* ============================================================== */}
       {showCelebration && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
           <div className="bg-white rounded-[32px] p-6 max-w-sm w-full text-center space-y-4 shadow-xl border border-[#E4E0E9] animate-pop">
             <div className="w-20 h-20 mx-auto rounded-full bg-[#FFEBB7] flex items-center justify-center text-4xl shadow-inner animate-bounce">
-              🏆
+              {completionInfo?.isFirstTime ? "🏆" : "🌟"}
             </div>
 
             <div>
-              <span className="px-3 py-1 rounded-full bg-[#E3D4FF] text-[#5A35C7] text-xs font-black inline-flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>+10 XP EARNED</span>
-              </span>
+              {completionInfo?.isFirstTime ? (
+                <span className="px-3 py-1 rounded-full bg-[#E3D4FF] text-[#5A35C7] text-xs font-black inline-flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>+10 XP EARNED</span>
+                </span>
+              ) : (
+                <span className="px-3 py-1 rounded-full bg-[#D2F4DE] text-[#287553] text-xs font-black inline-flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>
+                    {lang === "ml"
+                      ? "പരിശീലനം പൂർത്തിയായി (XP നേരത്തെ നേടി)"
+                      : "Practice Finished • XP Already Claimed"}
+                  </span>
+                </span>
+              )}
+
               <h2
                 className="text-xl font-black text-[#141426] mt-2"
                 style={{ fontFamily: "var(--font-display)" }}
               >
-                {lang === "ml" ? "അഭിനന്ദനങ്ങൾ! മികച്ച കളി!" : "MashaAllah! Great Job!"}
+                {completionInfo?.isFirstTime
+                  ? lang === "ml"
+                    ? "അഭിനന്ദനങ്ങൾ! മികച്ച കളി!"
+                    : "MashaAllah! Great Job!"
+                  : lang === "ml"
+                  ? "മികച്ച കളി! മാശാ അല്ലാഹ്!"
+                  : "Barakallahu Feek! Great Practice!"}
               </h2>
-              <p className="text-xs text-[#626273] mt-1">
-                {lang === "ml"
-                  ? "നിങ്ങൾ വിജയകരമായി കളി പൂർത്തിയാക്കി 10 XP സ്വന്തമാക്കി!"
-                  : "You completed the game and successfully added +10 XP to your score!"}
+              <p className="text-xs text-[#626273] mt-1 leading-relaxed">
+                {completionInfo?.isFirstTime
+                  ? lang === "ml"
+                    ? "നിങ്ങൾ വിജയകരമായി കളി പൂർത്തിയാക്കി 10 XP സ്വന്തമാക്കി!"
+                    : "You completed the game and successfully added +10 XP to your score!"
+                  : lang === "ml"
+                  ? "ഈ കളിയിൽ നിന്നുള്ള 10 XP നിങ്ങൾ ഇതിനകം നേടിയിട്ടുണ്ട്. അറിവ് കൂടുതൽ ഉറപ്പിക്കാൻ നിങ്ങൾക്ക് എപ്പോഴും വീണ്ടും പരിശീലിക്കാം!"
+                  : "You have already claimed the 10 XP reward for this game. You can play again anytime to practice and master your knowledge!"}
               </p>
             </div>
 
@@ -872,6 +1016,7 @@ export const IslamicGamesScreen: React.FC = () => {
                   if (mode === "quiz") restartQuiz();
                   if (mode === "word-match") restartWordMatch();
                   if (mode === "sunnah-catcher") restartSunnahCatcher();
+                  // dino-runner will reset automatically when replayed
                 }}
                 className="w-full py-3 rounded-full bg-[#191A22] hover:bg-black text-white text-xs font-bold flex items-center justify-center gap-2 tactile shadow-xs"
               >
