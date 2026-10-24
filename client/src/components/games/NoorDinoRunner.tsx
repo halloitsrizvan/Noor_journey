@@ -14,6 +14,9 @@ import {
   ArrowDown,
   CheckCircle2,
   Flame,
+  X,
+  Clock,
+  ShieldCheck,
 } from "lucide-react";
 import { sfx } from "@/lib/sound/sfx";
 
@@ -148,6 +151,117 @@ export const WISDOM_CARDS: WisdomItem[] = [
   },
 ];
 
+// ================= DAILY LIVES SYSTEM =================
+export const STORAGE_KEY_LIVES = "noor_runner_daily_lives_v1";
+export const MAX_DAILY_LIVES = 3;
+
+interface DailyLivesData {
+  date: string;
+  lives: number;
+}
+
+export function getTodayDateString(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+export function getStoredDailyLives(): number {
+  if (typeof window === "undefined") return MAX_DAILY_LIVES;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_LIVES);
+    if (!raw) return MAX_DAILY_LIVES;
+    const parsed: DailyLivesData = JSON.parse(raw);
+    if (parsed.date === getTodayDateString() && typeof parsed.lives === "number") {
+      return Math.max(0, Math.min(MAX_DAILY_LIVES, parsed.lives));
+    }
+    // New day! Automatically refresh to 3 full lives for the day
+    saveDailyLives(MAX_DAILY_LIVES);
+    return MAX_DAILY_LIVES;
+  } catch {
+    return MAX_DAILY_LIVES;
+  }
+}
+
+export function saveDailyLives(lives: number): void {
+  if (typeof window === "undefined") return;
+  try {
+    const state: DailyLivesData = {
+      date: getTodayDateString(),
+      lives: Math.max(0, Math.min(MAX_DAILY_LIVES, lives)),
+    };
+    localStorage.setItem(STORAGE_KEY_LIVES, JSON.stringify(state));
+  } catch {
+    // Ignore storage issues
+  }
+}
+
+export function getTimeUntilMidnight(): { hours: number; minutes: number } {
+  const now = new Date();
+  const midnight = new Date(now);
+  midnight.setHours(24, 0, 0, 0);
+  const diffMs = Math.max(0, midnight.getTime() - now.getTime());
+  const hours = Math.floor(diffMs / (1000 * 60 * 60));
+  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+  return { hours, minutes };
+}
+
+export interface BonusQuizItem {
+  id: number;
+  q: { en: string; ml: string };
+  options: { text: { en: string; ml: string }; isCorrect: boolean }[];
+}
+
+export const BONUS_QUESTIONS: BonusQuizItem[] = [
+  {
+    id: 1,
+    q: {
+      en: "What do we say before eating or drinking?",
+      ml: "ഭക്ഷണം കഴിക്കുന്നതിനോ കുടിക്കുന്നതിനോ മുമ്പ് എന്ത് പറയണം?",
+    },
+    options: [
+      { text: { en: "Bismillah", ml: "ബിസ്മില്ലാഹ്" }, isCorrect: true },
+      { text: { en: "Alhamdulillah", ml: "അൽഹംദുലില്ലാഹ്" }, isCorrect: false },
+      { text: { en: "Astaghfirullah", ml: "അസ്തഗ്ഫിറുല്ലാഹ്" }, isCorrect: false },
+    ],
+  },
+  {
+    id: 2,
+    q: {
+      en: "What does 'Assalamu Alaikum' mean?",
+      ml: "'അസ്സലാമു അലൈക്കും' എന്ന സലാമിന്റെ അർത്ഥമെന്ത്?",
+    },
+    options: [
+      { text: { en: "Peace be upon you", ml: "നിങ്ങൾക്ക് സമാധാനമുണ്ടാകട്ടെ" }, isCorrect: true },
+      { text: { en: "Good morning", ml: "സുപ്രഭാതം" }, isCorrect: false },
+      { text: { en: "Goodbye", ml: "വിട" }, isCorrect: false },
+    ],
+  },
+  {
+    id: 3,
+    q: {
+      en: "What word do we say to thank Allah for blessings?",
+      ml: "അല്ലാഹുവിന് നന്ദി രേഖപ്പെടുത്താൻ നാം പറയുന്ന വാക്കേത്?",
+    },
+    options: [
+      { text: { en: "Alhamdulillah", ml: "അൽഹംദുലില്ലാഹ്" }, isCorrect: true },
+      { text: { en: "SubhanAllah", ml: "സുബ്ഹാനല്ലാഹ്" }, isCorrect: false },
+      { text: { en: "Allahu Akbar", ml: "അല്ലാഹു അക്ബർ" }, isCorrect: false },
+    ],
+  },
+  {
+    id: 4,
+    q: {
+      en: "Smiling at parents and friends is which good deed?",
+      ml: "മാതാപിതാക്കളോടും കൂട്ടുകാരോടും പുഞ്ചിരിക്കുന്നത് എന്തായി കണക്കാക്കപ്പെടുന്നു?",
+    },
+    options: [
+      { text: { en: "Sadaqah (Charity)", ml: "സ്വദഖ (ദാനം)" }, isCorrect: true },
+      { text: { en: "A chore", ml: "ഒരു ഭാരം" }, isCorrect: false },
+      { text: { en: "Wasting time", ml: "സമയം കളയൽ" }, isCorrect: false },
+    ],
+  },
+];
+
 // ================= GAME ENGINE CONSTANTS =================
 const TARGET_DISTANCE = 500; // Goal meters to reach Madinah Oasis
 const CANVAS_WIDTH = 800;
@@ -204,13 +318,29 @@ export const NoorDinoRunner: React.FC<NoorDinoRunnerProps> = ({
   // Game control state
   const [gameState, setGameState] = useState<"ready" | "running" | "paused" | "gameover" | "goal-reached">("ready");
   const [distance, setDistance] = useState<number>(0);
-  const [hearts, setHearts] = useState<number>(3);
+  const [hearts, setHearts] = useState<number>(() => getStoredDailyLives());
+  const [isPracticeOnly, setIsPracticeOnly] = useState<boolean>(false);
   const [scrollsCount, setScrollsCount] = useState<number>(0);
   const [soundMuted, setSoundMuted] = useState<boolean>(false);
   const [activeWisdom, setActiveWisdom] = useState<WisdomItem>(WISDOM_CARDS[0]);
   const [collectedWisdoms, setCollectedWisdoms] = useState<WisdomItem[]>([]);
   const [showWisdomModal, setShowWisdomModal] = useState<WisdomItem | null>(null);
   const [isEndlessMode, setIsEndlessMode] = useState<boolean>(false);
+
+  // Daily Lives & Bonus Quiz modal state
+  const [showLivesModal, setShowLivesModal] = useState<boolean>(false);
+  const [showBonusQuiz, setShowBonusQuiz] = useState<boolean>(false);
+  const [quizQuestionIndex, setQuizQuestionIndex] = useState<number>(0);
+  const [quizAnswered, setQuizAnswered] = useState<boolean | null>(null);
+  const [midnightTime, setMidnightTime] = useState(() => getTimeUntilMidnight());
+
+  // Periodically refresh midnight countdown
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setMidnightTime(getTimeUntilMidnight());
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
 
   // References for requestAnimationFrame loop
   const animFrameId = useRef<number | null>(null);
@@ -233,7 +363,7 @@ export const NoorDinoRunner: React.FC<NoorDinoRunnerProps> = ({
   // World physics
   const speedRef = useRef(4.8);
   const distanceRef = useRef(0);
-  const heartsRef = useRef(3);
+  const heartsRef = useRef(getStoredDailyLives());
   const scrollsCountRef = useRef(0);
   const obstaclesRef = useRef<Obstacle[]>([]);
   const collectiblesRef = useRef<Collectible[]>([]);
@@ -260,10 +390,40 @@ export const NoorDinoRunner: React.FC<NoorDinoRunnerProps> = ({
     [soundMuted]
   );
 
+  // Handle answering bonus quiz question to restore +1 life
+  const handleAnswerBonusQuiz = useCallback(
+    (isCorrect: boolean) => {
+      if (isCorrect) {
+        playSfx("win");
+        setQuizAnswered(true);
+        const newHearts = Math.min(MAX_DAILY_LIVES, hearts + 1);
+        heartsRef.current = newHearts;
+        setHearts(newHearts);
+        saveDailyLives(newHearts);
+        setTimeout(() => {
+          setShowBonusQuiz(false);
+          setQuizAnswered(null);
+          setQuizQuestionIndex((prev) => (prev + 1) % BONUS_QUESTIONS.length);
+        }, 1300);
+      } else {
+        playSfx("hit");
+        setQuizAnswered(false);
+        setTimeout(() => {
+          setQuizAnswered(null);
+        }, 1100);
+      }
+    },
+    [hearts, playSfx]
+  );
+
   // ================= JUMP & DUCK LOGIC =================
   const triggerJump = useCallback(() => {
     const p = playerRef.current;
     if (gameState === "ready") {
+      if (!isPracticeOnly && heartsRef.current <= 0) {
+        setShowLivesModal(true);
+        return;
+      }
       setGameState("running");
       playSfx("jump");
       return;
@@ -289,7 +449,7 @@ export const NoorDinoRunner: React.FC<NoorDinoRunnerProps> = ({
         });
       }
     }
-  }, [gameState, playSfx]);
+  }, [gameState, isPracticeOnly, playSfx]);
 
   const setDuckState = useCallback((ducking: boolean) => {
     isDuckHeldRef.current = ducking;
@@ -335,41 +495,57 @@ export const NoorDinoRunner: React.FC<NoorDinoRunnerProps> = ({
   }, [triggerJump, setDuckState]);
 
   // Restart / Reset Game
-  const resetGame = useCallback(() => {
-    playerRef.current = {
-      x: 70,
-      y: GROUND_Y - 48,
-      width: 38,
-      height: 48,
-      vy: 0,
-      isJumping: false,
-      isDucking: false,
-      invulnerableTimer: 0,
-      legCycle: 0,
-      dustTimer: 0,
-    };
-    speedRef.current = 4.8;
-    distanceRef.current = 0;
-    heartsRef.current = 3;
-    scrollsCountRef.current = 0;
-    obstaclesRef.current = [];
-    collectiblesRef.current = [];
-    particlesRef.current = [];
-    nextSpawnDistanceRef.current = 80;
-    nextCollectibleDistanceRef.current = 40;
-    groundScrollRef.current = 0;
-    bgScrollRef.current = 0;
-    midScrollRef.current = 0;
+  const resetGame = useCallback(
+    (forcePractice = false) => {
+      const currentDaily = getStoredDailyLives();
+      const usePractice = forcePractice || isPracticeOnly;
+      const initialHearts = usePractice ? 3 : currentDaily;
 
-    setDistance(0);
-    setHearts(3);
-    setScrollsCount(0);
-    setCollectedWisdoms([]);
-    setActiveWisdom(WISDOM_CARDS[0]);
-    setShowWisdomModal(null);
-    setIsEndlessMode(false);
-    setGameState("running");
-  }, []);
+      if (!usePractice && initialHearts <= 0) {
+        setShowLivesModal(true);
+        return;
+      }
+
+      if (forcePractice) {
+        setIsPracticeOnly(true);
+      }
+
+      playerRef.current = {
+        x: 70,
+        y: GROUND_Y - 48,
+        width: 38,
+        height: 48,
+        vy: 0,
+        isJumping: false,
+        isDucking: false,
+        invulnerableTimer: 0,
+        legCycle: 0,
+        dustTimer: 0,
+      };
+      speedRef.current = 4.8;
+      distanceRef.current = 0;
+      heartsRef.current = initialHearts;
+      scrollsCountRef.current = 0;
+      obstaclesRef.current = [];
+      collectiblesRef.current = [];
+      particlesRef.current = [];
+      nextSpawnDistanceRef.current = 80;
+      nextCollectibleDistanceRef.current = 40;
+      groundScrollRef.current = 0;
+      bgScrollRef.current = 0;
+      midScrollRef.current = 0;
+
+      setDistance(0);
+      setHearts(initialHearts);
+      setScrollsCount(0);
+      setCollectedWisdoms([]);
+      setActiveWisdom(WISDOM_CARDS[0]);
+      setShowWisdomModal(null);
+      setIsEndlessMode(false);
+      setGameState("running");
+    },
+    [isPracticeOnly]
+  );
 
   // ================= MAIN GAME LOOP =================
   useEffect(() => {
@@ -481,6 +657,9 @@ export const NoorDinoRunner: React.FC<NoorDinoRunnerProps> = ({
         if (p.invulnerableTimer <= 0 && checkCollision(p, obs)) {
           // Player hit obstacle!
           heartsRef.current -= 1;
+          if (!isPracticeOnly) {
+            saveDailyLives(heartsRef.current);
+          }
           setHearts(heartsRef.current);
           p.invulnerableTimer = 1.8; // 1.8s grace period
           playSfx("hit");
@@ -534,8 +713,11 @@ export const NoorDinoRunner: React.FC<NoorDinoRunnerProps> = ({
             });
           } else if (col.type === "date") {
             // Restore 1 heart if lost
-            if (heartsRef.current < 3) {
-              heartsRef.current = Math.min(3, heartsRef.current + 1);
+            if (heartsRef.current < MAX_DAILY_LIVES) {
+              heartsRef.current = Math.min(MAX_DAILY_LIVES, heartsRef.current + 1);
+              if (!isPracticeOnly) {
+                saveDailyLives(heartsRef.current);
+              }
               setHearts(heartsRef.current);
             }
           }
@@ -1134,37 +1316,54 @@ export const NoorDinoRunner: React.FC<NoorDinoRunnerProps> = ({
   };
 
   return (
-    <div className="space-y-4 animate-fade-in select-none">
-      {/* Top Header Bar */}
-      <div className="flex items-center justify-between gap-3">
-        <button
-          type="button"
-          onClick={() => {
-            playSfx("click");
-            onBackToMenu();
-          }}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white hover:bg-[#F3F1F4] border border-[#E4E0E9] text-[#141426] text-xs font-bold tactile shadow-2xs"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>{lang === "ml" ? "ഗെയിംസ് മെനു" : "Games Menu"}</span>
-        </button>
-
-        {/* Lives & Distance Progress */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Hearts / Health */}
-          <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-white border border-[#E4E0E9] shadow-2xs">
-            {[1, 2, 3].map((h) => (
-              <Heart
-                key={h}
-                className={`w-4 h-4 transition-transform ${
-                  h <= hearts ? "text-[#EF4444] fill-[#EF4444] scale-105" : "text-[#D1D5DB] fill-[#F3F4F6]"
-                }`}
-              />
-            ))}
+    <div className="space-y-3.5 animate-fade-in select-none">
+      {/* Top Header Bar - Cleaned HUD without redundant Games Menu button */}
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        {/* Left: Playful Title & Mode Pill */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#FFF8E7] to-[#FFEBB7] border border-[#FFD184] text-[#7A4B00] text-xs font-black shadow-2xs">
+            <span className="text-sm">🏃</span>
+            <span>{lang === "ml" ? "ഡെസേർട്ട് റണ്ണർ" : "Desert Runner"}</span>
           </div>
+          {isPracticeOnly && (
+            <span className="px-2.5 py-1 rounded-full bg-[#E0E7FF] border border-[#C7D2FE] text-[#4338CA] text-[10px] font-black inline-flex items-center gap-1">
+              <ShieldCheck className="w-3 h-3 text-[#4338CA]" />
+              <span>{lang === "ml" ? "പരിശീലനം" : "Practice"}</span>
+            </span>
+          )}
+        </div>
+
+        {/* Right: Functional 3-Life Button, Distance, Scrolls, Sound & Pause */}
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Functional 3 Life Button - Clickable with Daily Info & Refill */}
+          <button
+            type="button"
+            onClick={() => {
+              playSfx("click");
+              setShowLivesModal(true);
+            }}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-white hover:bg-rose-50 border-2 border-[#FECDD3] hover:border-[#FDA4AF] active:scale-95 transition-all shadow-2xs cursor-pointer group"
+            title={lang === "ml" ? "ദിവസേനയുള്ള ഹൃദയങ്ങൾ (വിവരങ്ങൾ കാണാൻ ക്ലിക്ക് ചെയ്യുക)" : "Daily Hearts (Tap for info & refill)"}
+          >
+            <div className="flex items-center gap-0.5">
+              {[1, 2, 3].map((h) => (
+                <Heart
+                  key={h}
+                  className={`w-3.5 h-3.5 transition-transform group-hover:scale-110 ${
+                    h <= hearts
+                      ? "text-[#EF4444] fill-[#EF4444] drop-shadow-[0_1px_2px_rgba(239,68,68,0.4)]"
+                      : "text-[#D1D5DB] fill-[#F3F4F6]"
+                  }`}
+                />
+              ))}
+            </div>
+            <span className="text-xs font-black text-[#E11D48] tracking-tight">
+              {hearts}/3
+            </span>
+          </button>
 
           {/* Distance Meter */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#FFEBB7] border border-[#FFD184] text-[#7A4B00] text-xs font-black shadow-2xs">
+          <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-[#FFEBB7] border border-[#FFD184] text-[#7A4B00] text-xs font-black shadow-2xs">
             <Flame className="w-3.5 h-3.5 text-[#FF9800]" />
             <span>
               {distance}m {isEndlessMode ? "" : `/ ${TARGET_DISTANCE}m`}
@@ -1172,7 +1371,7 @@ export const NoorDinoRunner: React.FC<NoorDinoRunnerProps> = ({
           </div>
 
           {/* Scrolls Collected */}
-          <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#E3D4FF] border border-[#D0BAFF] text-[#5A35C7] text-xs font-black shadow-2xs">
+          <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-[#E3D4FF] border border-[#D0BAFF] text-[#5A35C7] text-xs font-black shadow-2xs">
             <BookOpen className="w-3.5 h-3.5" />
             <span>{scrollsCount}</span>
           </div>
@@ -1181,10 +1380,23 @@ export const NoorDinoRunner: React.FC<NoorDinoRunnerProps> = ({
           <button
             type="button"
             onClick={() => setSoundMuted((prev) => !prev)}
-            className="p-1.5 rounded-full bg-white border border-[#E4E0E9] text-[#626273] hover:text-[#141426] tactile shadow-2xs"
+            className="p-1.5 rounded-full bg-white border border-[#E4E0E9] text-[#626273] hover:text-[#141426] active:scale-95 transition-all shadow-2xs"
+            title={soundMuted ? "Unmute" : "Mute"}
           >
-            {soundMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+            {soundMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
           </button>
+
+          {/* Pause Toggle */}
+          {gameState === "running" && (
+            <button
+              type="button"
+              onClick={() => setGameState("paused")}
+              className="p-1.5 rounded-full bg-white border border-[#E4E0E9] text-[#626273] hover:text-[#141426] active:scale-95 transition-all shadow-2xs"
+              title="Pause"
+            >
+              <Pause className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -1201,37 +1413,81 @@ export const NoorDinoRunner: React.FC<NoorDinoRunnerProps> = ({
         {/* READY / START SCREEN OVERLAY */}
         {gameState === "ready" && (
           <div className="absolute inset-0 bg-black/45 backdrop-blur-xs flex flex-col items-center justify-center p-4 text-center text-white space-y-3 animate-fade-in">
-            <div className="w-16 h-16 rounded-full bg-[#FFD184] text-[#191A22] flex items-center justify-center text-3xl shadow-lg animate-bounce">
-              🏃
-            </div>
-            <div>
-              <h2 className="text-xl sm:text-2xl font-black text-white" style={{ fontFamily: "var(--font-display)" }}>
-                {lang === "ml" ? "നൂർ ഡെസേർട്ട് റണ്ണർ" : "Noor Desert Runner"}
-              </h2>
-              <p className="text-xs text-[#FFD184] font-medium max-w-md mt-1">
-                {lang === "ml"
-                  ? "മദീന ഒയാസിസിലേക്ക് ഓടുക! മുള്ളുകളിൽ തട്ടാതെ ചാടുക, വിജ്ഞാന ചുരുളുകൾ ശേഖരിച്ച് ഹദീസുകൾ പഠിക്കുക."
-                  : "Run to the Oasis of Madinah! Jump over thorns, duck under falcons, and collect wisdom scrolls."}
-              </p>
-            </div>
+            {/* If out of daily lives and not in practice */}
+            {!isPracticeOnly && hearts <= 0 ? (
+              <div className="space-y-3 max-w-sm">
+                <div className="w-14 h-14 mx-auto rounded-full bg-rose-500/20 border-2 border-rose-400 flex items-center justify-center text-3xl">
+                  💔
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-white" style={{ fontFamily: "var(--font-display)" }}>
+                    {lang === "ml" ? "ഇന്നത്തെ 3 ഹൃദയങ്ങൾ തീർന്നു!" : "Out of Daily Hearts!"}
+                  </h3>
+                  <p className="text-xs text-[#FFD184] font-medium mt-1">
+                    {lang === "ml"
+                      ? `രാത്രി 12 മണിക്ക് (${midnightTime.hours}h ${midnightTime.minutes}m) 3 ഹൃദയങ്ങളും വീണ്ടും ലഭിക്കും. അല്ലെങ്കിൽ ഒരു ചോദ്യത്തിന് ഉത്തരം നൽകി +1 ഹൃദയം നേടൂ!`
+                      : `Refills at midnight (in ${midnightTime.hours}h ${midnightTime.minutes}m)! Or answer a quick question to get +1 heart right now.`}
+                  </p>
+                </div>
 
-            <div className="flex items-center gap-2 pt-2">
-              <button
-                type="button"
-                onClick={triggerJump}
-                className="px-6 py-2.5 rounded-full bg-[#FFD184] hover:bg-[#FFBF5F] text-[#191A22] text-xs font-black flex items-center gap-2 tactile shadow-md"
-              >
-                <Play className="w-4 h-4 fill-current" />
-                <span>{lang === "ml" ? "കളിച്ചു തുടങ്ങാം (Space / Tap)" : "Start Journey (Space / Tap)"}</span>
-              </button>
-            </div>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      playSfx("click");
+                      setShowLivesModal(true);
+                      setShowBonusQuiz(true);
+                    }}
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-full bg-[#FFD184] hover:bg-[#FFBF5F] text-[#7A4B00] text-xs font-black flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all"
+                  >
+                    <Sparkles className="w-4 h-4 text-[#FF9800]" />
+                    <span>{lang === "ml" ? "+1 ഹൃദയം നേടാം ✨" : "Answer Quiz for +1 Heart ✨"}</span>
+                  </button>
 
-            {/* Instruction shortcuts */}
-            <div className="flex items-center gap-4 text-[11px] text-white/80 font-medium pt-1">
-              <span>⬆️ Space / Up: {lang === "ml" ? "ചാടുക" : "Jump"}</span>
-              <span>⬇️ Down / S: {lang === "ml" ? "താഴുക" : "Duck"}</span>
-              <span>🏮 {lang === "ml" ? "ഹദീസുകൾ ശേഖരിക്കുക" : "Collect Hadiths"}</span>
-            </div>
+                  <button
+                    type="button"
+                    onClick={() => resetGame(true)}
+                    className="w-full sm:w-auto px-4 py-2.5 rounded-full bg-white/20 hover:bg-white/30 text-white text-xs font-bold active:scale-95 transition-all"
+                  >
+                    <span>{lang === "ml" ? "പരിശീലന കളി (സൗജന്യം)" : "Free Practice Run"}</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="w-16 h-16 rounded-full bg-[#FFD184] text-[#191A22] flex items-center justify-center text-3xl shadow-lg animate-bounce">
+                  🏃
+                </div>
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-black text-white" style={{ fontFamily: "var(--font-display)" }}>
+                    {lang === "ml" ? "നൂർ ഡെസേർട്ട് റണ്ണർ" : "Noor Desert Runner"}
+                  </h2>
+                  <p className="text-xs text-[#FFD184] font-medium max-w-md mt-1">
+                    {lang === "ml"
+                      ? "മദീന ഒയാസിസിലേക്ക് ഓടുക! മുള്ളുകളിൽ തട്ടാതെ ചാടുക, വിജ്ഞാന ചുരുളുകൾ ശേഖരിച്ച് ഹദീസുകൾ പഠിക്കുക."
+                      : "Run to the Oasis of Madinah! Jump over thorns, duck under falcons, and collect wisdom scrolls."}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={triggerJump}
+                    className="px-6 py-2.5 rounded-full bg-[#FFD184] hover:bg-[#FFBF5F] text-[#191A22] text-xs font-black flex items-center gap-2 tactile shadow-md"
+                  >
+                    <Play className="w-4 h-4 fill-current" />
+                    <span>{lang === "ml" ? "കളിച്ചു തുടങ്ങാം (Space / Tap)" : "Start Journey (Space / Tap)"}</span>
+                  </button>
+                </div>
+
+                {/* Instruction shortcuts */}
+                <div className="flex items-center gap-4 text-[11px] text-white/80 font-medium pt-1">
+                  <span>⬆️ Space / Up: {lang === "ml" ? "ചാടുക" : "Jump"}</span>
+                  <span>⬇️ Down / S: {lang === "ml" ? "താഴുക" : "Duck"}</span>
+                  <span>🏮 {lang === "ml" ? "ഹദീസുകൾ ശേഖരിക്കുക" : "Collect Hadiths"}</span>
+                </div>
+              </>
+            )}
           </div>
         )}
 
@@ -1257,7 +1513,13 @@ export const NoorDinoRunner: React.FC<NoorDinoRunnerProps> = ({
             </div>
             <div>
               <h3 className="text-xl font-black text-white" style={{ fontFamily: "var(--font-display)" }}>
-                {lang === "ml" ? "യാത്ര തടസ്സപ്പെട്ടു!" : "Journey Interrupted!"}
+                {!isPracticeOnly && hearts <= 0
+                  ? lang === "ml"
+                    ? "ഇന്നത്തെ ഹൃദയങ്ങൾ തീർന്നു!"
+                    : "All 3 Daily Hearts Used!"
+                  : lang === "ml"
+                  ? "യാത്ര തടസ്സപ്പെട്ടു!"
+                  : "Journey Interrupted!"}
               </h3>
               <p className="text-xs text-[#E4E0E9] mt-0.5">
                 {lang === "ml"
@@ -1266,22 +1528,52 @@ export const NoorDinoRunner: React.FC<NoorDinoRunnerProps> = ({
               </p>
             </div>
 
-            <div className="flex items-center gap-2 pt-2">
-              <button
-                type="button"
-                onClick={resetGame}
-                className="px-5 py-2.5 rounded-full bg-[#FFD184] hover:bg-[#FFBF5F] text-[#191A22] text-xs font-black flex items-center gap-1.5 tactile"
-              >
-                <RotateCcw className="w-4 h-4" />
-                <span>{lang === "ml" ? "വീണ്ടും ശ്രമിക്കാം" : "Try Again"}</span>
-              </button>
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+              {/* If daily lives left or practice mode */}
+              {isPracticeOnly || hearts > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => resetGame(false)}
+                  className="px-5 py-2.5 rounded-full bg-[#FFD184] hover:bg-[#FFBF5F] text-[#191A22] text-xs font-black flex items-center gap-1.5 tactile"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  <span>
+                    {lang === "ml"
+                      ? `വീണ്ടും ശ്രമിക്കാം (${hearts} ജീവൻ)`
+                      : `Try Again (${hearts} left)`}
+                  </span>
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      playSfx("click");
+                      setShowLivesModal(true);
+                      setShowBonusQuiz(true);
+                    }}
+                    className="px-5 py-2.5 rounded-full bg-[#FFD184] hover:bg-[#FFBF5F] text-[#7A4B00] text-xs font-black flex items-center gap-1.5 tactile shadow-md"
+                  >
+                    <Sparkles className="w-4 h-4 text-[#FF9800]" />
+                    <span>{lang === "ml" ? "+1 ഹൃദയം നേടാം ✨" : "Get +1 Heart (Quiz) ✨"}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => resetGame(true)}
+                    className="px-4 py-2.5 rounded-full bg-white/20 hover:bg-white/30 text-white text-xs font-bold tactile"
+                  >
+                    <span>{lang === "ml" ? "പരിശീലനം (സൗജന്യം)" : "Practice Mode"}</span>
+                  </button>
+                </>
+              )}
 
               <button
                 type="button"
                 onClick={onBackToMenu}
                 className="px-4 py-2.5 rounded-full bg-white/20 hover:bg-white/30 text-white text-xs font-bold tactile"
               >
-                <span>{lang === "ml" ? "മറ്റു ഗെയിമുകൾ" : "Games Menu"}</span>
+                <span>{lang === "ml" ? "മറ്റു ഗെയിമുകൾ" : "All Games"}</span>
               </button>
             </div>
           </div>
@@ -1323,7 +1615,7 @@ export const NoorDinoRunner: React.FC<NoorDinoRunnerProps> = ({
 
               <button
                 type="button"
-                onClick={resetGame}
+                onClick={() => resetGame(false)}
                 className="px-4 py-2.5 rounded-full bg-white/20 hover:bg-white/30 text-white text-xs font-bold tactile flex items-center gap-1.5"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -1342,17 +1634,17 @@ export const NoorDinoRunner: React.FC<NoorDinoRunnerProps> = ({
         )}
       </div>
 
-      {/* MOBILE / ON-SCREEN TOUCH CONTROLS */}
-      <div className="grid grid-cols-2 gap-3 sm:hidden">
+      {/* TACTILE 3D ON-SCREEN TOUCH CONTROLS - Easy & intuitive for children */}
+      <div className="grid grid-cols-2 gap-3 pt-0.5">
         <button
           type="button"
           onTouchStart={() => setDuckState(true)}
           onTouchEnd={() => setDuckState(false)}
           onMouseDown={() => setDuckState(true)}
           onMouseUp={() => setDuckState(false)}
-          className="py-3.5 rounded-2xl bg-[#E4E0E9] active:bg-[#D5D0DC] text-[#141426] font-black text-sm flex items-center justify-center gap-2 tactile shadow-2xs"
+          className="py-4 px-4 rounded-2xl bg-gradient-to-b from-[#EDE9FE] to-[#DDD6FE] active:translate-y-1 border-b-4 border-[#C4B5FD] text-[#5B21B6] font-black text-sm flex items-center justify-center gap-2 select-none shadow-xs cursor-pointer transition-all"
         >
-          <ArrowDown className="w-4 h-4" />
+          <ArrowDown className="w-5 h-5 text-[#6D28D9]" />
           <span>{lang === "ml" ? "താഴുക (DUCK)" : "DUCK / SLIDE"}</span>
         </button>
 
@@ -1360,10 +1652,10 @@ export const NoorDinoRunner: React.FC<NoorDinoRunnerProps> = ({
           type="button"
           onTouchStart={triggerJump}
           onClick={triggerJump}
-          className="py-3.5 rounded-2xl bg-[#FFD184] active:bg-[#FFBF5F] text-[#7A4B00] font-black text-sm flex items-center justify-center gap-2 tactile shadow-2xs"
+          className="py-4 px-4 rounded-2xl bg-gradient-to-b from-[#FCD34D] via-[#FBBF24] to-[#F59E0B] active:translate-y-1 border-b-4 border-[#B45309] text-[#78350F] font-black text-sm flex items-center justify-center gap-2 select-none shadow-md cursor-pointer transition-all"
         >
-          <ArrowUp className="w-4 h-4 text-[#FF9800]" />
-          <span>{lang === "ml" ? "ചാടുക (JUMP)" : "JUMP 🚀"}</span>
+          <ArrowUp className="w-5 h-5 text-[#92400E]" />
+          <span>{lang === "ml" ? "ചാടുക (JUMP) 🚀" : "JUMP 🚀"}</span>
         </button>
       </div>
 
@@ -1421,6 +1713,165 @@ export const NoorDinoRunner: React.FC<NoorDinoRunnerProps> = ({
                 <p className="font-semibold text-[#141426] line-clamp-2">"{w.hadith[lang]}"</p>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* DAILY LIVES INTERACTIVE MODAL & QUIZ                           */}
+      {/* ============================================================== */}
+      {showLivesModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-[32px] p-6 max-w-sm w-full text-center space-y-4 shadow-2xl border-2 border-[#FECDD3] animate-pop relative">
+            {/* Close button */}
+            <button
+              type="button"
+              onClick={() => {
+                playSfx("click");
+                setShowLivesModal(false);
+                setShowBonusQuiz(false);
+              }}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#F3F1F4] hover:bg-[#E4E0E9] flex items-center justify-center text-[#626273] hover:text-[#141426] transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {/* Icon */}
+            <div className="w-16 h-16 mx-auto rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-3xl shadow-inner">
+              💖
+            </div>
+
+            <div>
+              <h3 className="text-xl font-black text-[#141426]" style={{ fontFamily: "var(--font-display)" }}>
+                {lang === "ml" ? "ദിവസേനയുള്ള 3 ഹൃദയങ്ങൾ" : "3 Daily Hearts"}
+              </h3>
+              <p className="text-xs text-[#626273] mt-1 leading-relaxed">
+                {lang === "ml"
+                  ? "കളിക്കാൻ ദിവസവും നിങ്ങൾക്ക് 3 ഹൃദയങ്ങൾ ലഭിക്കുന്നു. മുള്ളുകളിലോ പക്ഷികളിലോ തട്ടുമ്പോൾ ജീവൻ കുറയും."
+                  : "You get 3 hearts every day to explore the desert and collect Hadith pearls!"}
+              </p>
+            </div>
+
+            {/* Big 3 Hearts Row */}
+            <div className="flex items-center justify-center gap-3 py-2.5 px-4 rounded-2xl bg-rose-50/70 border border-rose-100">
+              {[1, 2, 3].map((h) => (
+                <div key={h} className="flex flex-col items-center gap-1">
+                  <Heart
+                    className={`w-8 h-8 transition-all ${
+                      h <= hearts
+                        ? "text-[#EF4444] fill-[#EF4444] scale-110 drop-shadow-[0_2px_4px_rgba(239,68,68,0.3)] animate-pulse"
+                        : "text-[#D1D5DB] fill-[#F3F4F6] opacity-60"
+                    }`}
+                  />
+                  <span className="text-[10px] font-bold text-[#626273]">
+                    {h <= hearts ? (lang === "ml" ? "സജീവം" : "Active") : (lang === "ml" ? "തീർന്നു" : "Used")}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Midnight Refill Timer */}
+            <div className="flex items-center justify-center gap-2 text-xs font-bold text-[#7A4B00] bg-[#FFF8E7] border border-[#FFD184] rounded-xl py-2 px-3">
+              <Clock className="w-4 h-4 text-[#FF9800] shrink-0" />
+              <span>
+                {lang === "ml"
+                  ? `റീഫിൽ: രാത്രി 12 മണിക്ക് (${midnightTime.hours}h ${midnightTime.minutes}m) 🌙`
+                  : `Refills at midnight (in ${midnightTime.hours}h ${midnightTime.minutes}m)! 🌙`}
+              </span>
+            </div>
+
+            {/* Ajwah Date Tip */}
+            <div className="text-[11px] text-[#287553] bg-[#E8F8F0] border border-[#A7F3D0] rounded-xl p-2.5 text-left flex items-start gap-2">
+              <span className="text-base leading-none">🌴</span>
+              <span>
+                {lang === "ml"
+                  ? "മരുഭൂമിയിൽ പറക്കുന്ന പച്ച അജ്‌വ ഈത്തപ്പഴങ്ങൾ പിടിച്ചാൽ നഷ്ടപ്പെട്ട 1 ജീവൻ തിരികെ കിട്ടും!"
+                  : "Secret tip: Catch floating green Ajwah dates in the run to heal +1 lost heart!"}
+              </span>
+            </div>
+
+            {/* Bonus Heart Quiz Trigger if hearts < 3 */}
+            {hearts < MAX_DAILY_LIVES && !showBonusQuiz && (
+              <button
+                type="button"
+                onClick={() => {
+                  playSfx("click");
+                  setShowBonusQuiz(true);
+                  setQuizAnswered(null);
+                }}
+                className="w-full py-2.5 rounded-full bg-gradient-to-r from-[#FFD184] to-[#FFBF5F] hover:from-[#FFBF5F] hover:to-[#FF9800] text-[#7A4B00] font-black text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all tactile cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4 text-[#FF9800]" />
+                <span>
+                  {lang === "ml"
+                    ? "+1 ഹൃദയം നേടാൻ ഒരു ചോദ്യം ഉത്തരം പറയൂ!"
+                    : "Answer 1 Question for +1 Heart! ✨"}
+                </span>
+              </button>
+            )}
+
+            {/* Bonus Quiz Section */}
+            {showBonusQuiz && (
+              <div className="p-3 bg-[#FAF5FF] border border-[#E9D5FF] rounded-2xl text-left space-y-2.5 animate-fade-in">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black text-[#7857E8] uppercase tracking-wider">
+                    {lang === "ml" ? "ബോണസ് ചോദ്യം" : "Bonus Heart Quiz"}
+                  </span>
+                  <span className="text-[10px] font-bold text-[#626273]">+1 ❤️</span>
+                </div>
+                <p className="text-xs font-bold text-[#141426]">
+                  {BONUS_QUESTIONS[quizQuestionIndex % BONUS_QUESTIONS.length].q[lang]}
+                </p>
+                <div className="space-y-1.5">
+                  {BONUS_QUESTIONS[quizQuestionIndex % BONUS_QUESTIONS.length].options.map((opt, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => handleAnswerBonusQuiz(opt.isCorrect)}
+                      disabled={quizAnswered !== null}
+                      className={`w-full py-2 px-3 rounded-xl text-xs font-bold text-left transition-all border cursor-pointer ${
+                        quizAnswered === null
+                          ? "bg-white hover:bg-[#F3F0FF] border-[#E9D5FF] text-[#141426]"
+                          : opt.isCorrect
+                          ? "bg-[#D2F4DE] border-[#287553] text-[#1E563C]"
+                          : "bg-white/50 border-gray-200 text-gray-400 opacity-60"
+                      }`}
+                    >
+                      {opt.text[lang]}
+                    </button>
+                  ))}
+                </div>
+
+                {quizAnswered === true && (
+                  <div className="p-2 bg-[#D2F4DE] text-[#1E563C] text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 animate-bounce">
+                    <CheckCircle2 className="w-4 h-4 text-[#287553]" />
+                    <span>
+                      {lang === "ml" ? "മാശാ അല്ലാഹ്! +1 ഹൃദയം ചേർത്തു!" : "MashaAllah! +1 Heart Restored!"}
+                    </span>
+                  </div>
+                )}
+                {quizAnswered === false && (
+                  <p className="text-[11px] font-bold text-[#D14343] text-center">
+                    {lang === "ml"
+                      ? "വീണ്ടും ശ്രമിക്കൂ! ശരിയുത്തരം തിരഞ്ഞെടുക്കൂ."
+                      : "Try again! You can pick the right answer."}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Close / Action Button */}
+            <button
+              type="button"
+              onClick={() => {
+                playSfx("click");
+                setShowLivesModal(false);
+                setShowBonusQuiz(false);
+              }}
+              className="w-full py-2.5 rounded-full bg-[#191A22] hover:bg-black text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+            >
+              <span>{lang === "ml" ? "കളിക്കാം! 🚀" : "Let's Play! 🚀"}</span>
+            </button>
           </div>
         </div>
       )}

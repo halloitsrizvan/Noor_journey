@@ -422,30 +422,32 @@ export const IslamicGamesScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* Hero Banner */}
-      <div className="bg-gradient-to-r from-[#FFD184] via-[#FFE4B5] to-[#FFD184] rounded-[28px] p-5 shadow-2xs border border-[#FFBF5F]/40 flex items-center justify-between overflow-hidden relative">
-        <div className="relative z-10 max-w-[70%]">
-          <span className="px-2.5 py-0.5 rounded-full bg-[#191A22] text-[#FFD184] text-[10px] font-black uppercase tracking-wider inline-flex items-center gap-1 mb-2">
-            <Gamepad2 className="w-3 h-3" />
-            <span>{lang === "ml" ? "ഇസ്ലാമിക് മിനി ഗെയിംസ്" : "Islamic Mini-Games"}</span>
-          </span>
-          <h1
-            className="text-xl sm:text-2xl font-black text-[#141426] leading-tight"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            {lang === "ml" ? "കളിച്ച് അറിവും XP യും നേടാം!" : "Play, Learn & Earn XP!"}
-          </h1>
-          <p className="text-xs text-[#141426]/80 font-medium mt-1">
-            {lang === "ml"
-              ? "പ്രവാചകന്മാരുടെ ചരിത്രം, അറബിക് പദങ്ങൾ, നല്ല ശീലങ്ങൾ എന്നിവ രസകരമായി പഠിക്കാം."
-              : "Explore Prophet stories, Arabic meanings, and daily Sunnah habits while winning XP rewards."}
-          </p>
-        </div>
+      {/* Hero Banner (Shown on menu for overview, hidden during active game for clean child UX) */}
+      {mode === "menu" && (
+        <div className="bg-gradient-to-r from-[#FFD184] via-[#FFE4B5] to-[#FFD184] rounded-[28px] p-5 shadow-2xs border border-[#FFBF5F]/40 flex items-center justify-between overflow-hidden relative">
+          <div className="relative z-10 max-w-[70%]">
+            <span className="px-2.5 py-0.5 rounded-full bg-[#191A22] text-[#FFD184] text-[10px] font-black uppercase tracking-wider inline-flex items-center gap-1 mb-2">
+              <Gamepad2 className="w-3 h-3" />
+              <span>{lang === "ml" ? "ഇസ്ലാമിക് മിനി ഗെയിംസ്" : "Islamic Mini-Games"}</span>
+            </span>
+            <h1
+              className="text-xl sm:text-2xl font-black text-[#141426] leading-tight"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              {lang === "ml" ? "കളിച്ച് അറിവും XP യും നേടാം!" : "Play, Learn & Earn XP!"}
+            </h1>
+            <p className="text-xs text-[#141426]/80 font-medium mt-1">
+              {lang === "ml"
+                ? "പ്രവാചകന്മാരുടെ ചരിത്രം, അറബിക് പദങ്ങൾ, നല്ല ശീലങ്ങൾ എന്നിവ രസകരമായി പഠിക്കാം."
+                : "Explore Prophet stories, Arabic meanings, and daily Sunnah habits while winning XP rewards."}
+            </p>
+          </div>
 
-        <div className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 flex items-center justify-center text-5xl select-none">
-          🎮
+          <div className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 flex items-center justify-center text-5xl select-none">
+            🎮
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ============================================================== */}
       {/* VIEW: MAIN GAMES MENU                                          */}
