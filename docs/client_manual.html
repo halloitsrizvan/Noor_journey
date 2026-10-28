@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Noor Journey — Comprehensive Platform Manual & Client Documentation</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&display=swap');
+
+    :root {
+      --primary: #047857;
+      --primary-dark: #064e3b;
+      --primary-light: #ecfdf5;
+      --accent-gold: #d97706;
+      --accent-gold-light: #fef3c7;
+      --accent-purple: #7c3aed;
+      --accent-purple-light: #f5f3ff;
+      --dark: #0f172a;
+      --slate: #475569;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --bg-card: #ffffff;
+      --bg-page: #f8fafc;
+    }
+
+    @page {
+      size: A4;
+      margin: 16mm 14mm 18mm 14mm;
+      @bottom-right {
+        content: counter(page);
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 9pt;
+        color: #94a3b8;
+      }
+      @bottom-left {
+        content: "Noor Journey — Client Presentation Manual";
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 8.5pt;
+        color: #94a3b8;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: var(--dark);
+      background-color: var(--bg-page);
+      font-size: 10pt;
+      line-height: 1.55;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .page {
+      padding: 10px 0;
+      page-break-after: always;
+    }
+
+    .page:last-child {
+      page-break-after: avoid;
+    }
+
+    /* COVER PAGE */
+    .cover {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 250mm;
+      background: linear-gradient(145deg, #064e3b 0%, #047857 45%, #0f766e 100%);
+      color: white;
+      border-radius: 16px;
+      padding: 45px 40px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(6, 78, 59, 0.2);
+    }
+
+    .cover::before {
+      content: "";
+      position: absolute;
+      top: -100px;
+      right: -100px;
+      width: 320px;
+      height: 320px;
+      background: radial-gradient(circle, rgba(217, 119, 6, 0.3) 0%, rgba(255,255,255,0) 70%);
+      border-radius: 50%;
+    }
+
+    .cover-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 2;
+    }
+
+    .emblem {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .emblem-icon {
+      font-size: 32pt;
+    }
+
+    .emblem-text h2 {
+      font-size: 18pt;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #ffffff;
+      line-height: 1.1;
+    }
+
+    .emblem-text p {
+      font-size: 10pt;
+      color: #a7f3d0;
+      font-weight: 500;
+    }
+
+    .badge-pill {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-size: 8.5pt;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: #fef3c7;
+    }
+
+    .cover-body {
+      margin: 40px 0;
+      z-index: 2;
+    }
+
+    .cover-body .doc-tag {
+      color: #fbbf24;
+      font-size: 11pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .cover-body h1 {
+      font-size: 30pt;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -1px;
+      margin-bottom: 18px;
+    }
+
+    .cover-body .subtitle {
+      font-size: 13pt;
+      color: #e2e8f0;
+      font-weight: 400;
+      max-width: 90%;
+      line-height: 1.45;
+      margin-bottom: 25px;
+    }
+
+    .cover-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .feature-tag {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 8.5pt;
+      font-weight: 500;
+      color: #ffffff;
+    }
+
+    .cover-footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      padding-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      font-size: 8.5pt;
+      color: #d1fae5;
+      z-index: 2;
+    }
+
+    .cover-footer strong {
+      color: #ffffff;
+    }
+
+    /* SECTION HEADERS */
+    h2.section-title {
+      font-size: 17pt;
+      font-weight: 800;
+      color: var(--primary-dark);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 2.5px solid var(--primary);
+      padding-bottom: 6px;
+    }
+
+    h3.subsection-title {
+      font-size: 12.5pt;
+      font-weight: 700;
+      color: var(--dark);
+      margin: 18px 0 8px 0;
+    }
+
+    p {
+      margin-bottom: 10px;
+      color: var(--slate);
+    }
+
+    /* GRIDS & CARDS */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .card.highlight {
+      border-left: 4px solid var(--primary);
+    }
+
+    .card.gold-highlight {
+      border-left: 4px solid var(--accent-gold);
+    }
+
+    .card.purple-highlight {
+      border-left: 4px solid var(--accent-purple);
+    }
+
+    .card-title {
+      font-size: 10.5pt;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .card p {
+      font-size: 9pt;
+      margin-bottom: 0;
+      color: var(--slate);
+    }
+
+    /* SCREENSHOT SECTION */
+    .screen-figure {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      margin: 14px 0 20px 0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      page-break-inside: avoid;
+    }
+
+    .screen-img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      display: block;
+    }
+
+    .screen-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid #f1f5f9;
+    }
+
+    .screen-caption {
+      font-size: 9.5pt;
+      font-weight: 700;
+      color: var(--dark);
+    }
+
+    .screen-route {
+      font-family: monospace;
+      font-size: 8pt;
+      background: #f1f5f9;
+      padding: 3px 8px;
+      border-radius: 4px;
+      color: var(--primary-dark);
+      font-weight: 600;
+    }
+
+    .screen-description {
+      font-size: 8.8pt;
+      color: var(--slate);
+      margin-top: 6px;
+      line-height: 1.45;
+    }
+
+    .key-points {
+      margin-top: 8px;
+      padding-left: 18px;
+      font-size: 8.5pt;
+      color: var(--slate);
+    }
+
+    .key-points li {
+      margin-bottom: 3px;
+    }
+
+    /* TABLES */
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 16px 0;
+      font-size: 8.5pt;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    table.data-table th {
+      background: #f1f5f9;
+      color: var(--dark);
+      font-weight: 700;
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    table.data-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #f1f5f9;
+      color: var(--slate);
+    }
+
+    table.data-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    table.data-table tr:nth-child(even) {
+      background: #fafaf9;
+    }
+
+    /* CALLOUT BOXES */
+    .callout {
+      background: var(--primary-light);
+      border-left: 4px solid var(--primary);
+      padding: 12px 14px;
+      border-radius: 0 8px 8px 0;
+      margin: 14px 0;
+      font-size: 9pt;
+      color: var(--primary-dark);
+    }
+
+    .callout strong {
+      color: #064e3b;
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    /* ARCHITECTURE DIAGRAM BOX */
+    .arch-box {
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 10px;
+      padding: 16px;
+      font-family: monospace;
+      font-size: 8pt;
+      line-height: 1.4;
+      margin: 14px 0;
+      overflow-x: auto;
+    }
+
+    .badge-label {
+      display: inline-block;
+      font-size: 7.5pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 4px;
+      margin-right: 6px;
+    }
+
+    .badge-green { background: #dcfce7; color: #166534; }
+    .badge-amber { background: #fef3c7; color: #92400e; }
+    .badge-purple { background: #ede9fe; color: #5b21b6; }
+    .badge-blue { background: #e0f2fe; color: #075985; }
+
+    .toc {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 24px;
+      margin-top: 20px;
+    }
+
+    .toc-item {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px dotted #cbd5e1;
+      padding: 7px 0;
+      font-size: 9.5pt;
+      color: var(--dark);
+      font-weight: 500;
+    }
+
+    .toc-item span:first-child {
+      font-weight: 600;
+    }
+
+    .arabic-text {
+      font-family: 'Amiri', serif;
+      font-size: 13pt;
+      direction: rtl;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= PAGE 1: COVER PAGE ================= -->
+  <div class="page">
+    <div class="cover">
+      <div class="cover-header">
+        <div class="emblem">
+          <div class="emblem-icon">🌙</div>
+          <div class="emblem-text">
+            <h2>NOOR JOURNEY</h2>
+            <p>നൂർ ജേർണി • Islamic Learning & Madrasa Companion</p>
+          </div>
+        </div>
+        <div class="badge-pill">Enterprise Client Edition</div>
+      </div>
+
+      <div class="cover-body">
+        <span class="doc-tag">Demonstration & Platform Manual</span>
+        <h1>Interactive Learning Platform for Children & Madrasas</h1>
+        <div class="subtitle">
+          A comprehensive presentation guide showcasing user flows, mobile-first interfaces, Tajweed audio studios, Canvas 2D mini-games, and religious review governance.
+        </div>
+        <div class="cover-badges">
+          <span class="feature-tag">✨ SKIMVB Curriculum Aligned</span>
+          <span class="feature-tag">⚡ React 19 & TanStack Start</span>
+          <span class="feature-tag">🕌 NestJS 11 & PostgreSQL Neon</span>
+          <span class="feature-tag">🎙️ Surah Al-Fatihah Tajweed Studio</span>
+          <span class="feature-tag">🎮 2D Noor Desert Runner Game</span>
+          <span class="feature-tag">👨‍👩‍👧 Parent Dashboard & Reflections</span>
+        </div>
+      </div>
+
+      <div class="cover-footer">
+        <div>
+          <p><strong>Prepared for:</strong> Institutional Clients, Madrasa Boards & Educators</p>
+          <p><strong>Platform Version:</strong> 1.0 (Production Architecture Ready)</p>
+        </div>
+        <div style="text-align: right;">
+          <p><strong>Technical Stack:</strong> TypeScript • React 19 • NestJS • Prisma</p>
+          <p><strong>Publication Date:</strong> October 2026</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= PAGE 2: EXECUTIVE SUMMARY & ARCHITECTURE ================= -->
+  <div class="page">
+    <h2 class="section-title"><span>🌟</span> 1. Executive Summary & Vision</h2>
+
+    <p>
+      <strong>Noor Journey</strong> is a dedicated values-first Islamic educational platform designed specifically for children aged 9–12 (Madrasa Classes 3 to 5). Created to address the modern challenge of digital distractions, Noor Journey pairs joyful, high-fidelity gamification with strict theological and pedagogical integrity aligned with the Samastha Kerala Islam Matha Vidyabhyasa Board (SKIMVB) standards.
+    </p>
+
+    <div class="grid-3" style="margin-top: 14px;">
+      <div class="card highlight">
+        <div class="card-title"><span>🎒</span> Child-Centric Joy</div>
+        <p>Bite-sized missions (5–7 minutes), vibrant avatars, encouraging sound effects, and zero punitive game mechanics.</p>
+      </div>
+      <div class="card gold-highlight">
+        <div class="card-title"><span>🕌</span> Authentic Pedagogy</div>
+        <p>Structured around 5 core Madrasa subjects: Tajweed, Aqeedah, Fiqh, Akhlaq, and Lisanul-Quran with bilingual Malayalam/English support.</p>
+      </div>
+      <div class="card purple-highlight">
+        <div class="card-title"><span>🛡️</span> Institutional Trust</div>
+        <p>Four-eyes religious review pipeline, server-authoritative scoring, zero commercial advertisements, and parent-isolated profiles.</p>
+      </div>
+    </div>
+
+    <h2 class="section-title" style="margin-top: 24px;"><span>🏛️</span> 2. High-Level Technical Architecture</h2>
+    
+    <p>
+      Engineered as a high-performance modern web platform utilizing a robust monorepo structure. Built with full cloud-native capabilities, supporting serverless PostgreSQL pooling and edge frontend distribution.
+    </p>
+
+    <div class="arch-box">
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       NOOR JOURNEY FULL-STACK PLATFORM                      │
+├──────────────────────────────────────┬──────────────────────────────────────┤
+│ CLIENT (Vercel / Edge CDN / Nginx)   │ SERVER (Render / Railway / Docker)   │
+│ • React 19 + TanStack Start & Router │ • NestJS 11 TypeScript Modular REST  │
+│ • Tailwind CSS v4 & Radix UI         │ • Opaque SHA-256 Session Auth        │
+│ • Canvas 2D Games (Noor Runner)      │ • Child Ownership & Role Guards      │
+│ • Web Audio API (Qari Tilawah)       │ • Spaced Repetition (1d / 3d / 7d)   │
+├──────────────────────────────────────┴──────────────────────────────────────┤
+│ DATABASE & CLOUD LAYER: Neon Serverless PostgreSQL (Pooled/Direct) + Audio   │
+└─────────────────────────────────────────────────────────────────────────────┘
+    </div>
+
+    <div class="toc">
+      <h3 style="font-size: 11pt; font-weight: 800; color: var(--primary-dark); margin-bottom: 10px;">Document Manual Index</h3>
+      <div class="toc-item"><span>Section 3: Onboarding & Student Dashboard</span><span>Screens 1 & 2</span></div>
+      <div class="toc-item"><span>Section 4: Madrasa Curriculum & Tajweed Studio</span><span>Screens 3, 4 & 5</span></div>
+      <div class="toc-item"><span>Section 5: Islamic Games Hub & Noor Desert Runner</span><span>Screens 6, 7 & 8</span></div>
+      <div class="toc-item"><span>Section 6: Madrasa Leaderboard & Social Growth</span><span>Screen 9</span></div>
+      <div class="toc-item"><span>Section 7: Parent Portal & Administrator Governance</span><span>Screens 10 & 11</span></div>
+      <div class="toc-item"><span>Section 8: Curriculum Specifications & Rollout</span><span>Summary & Specs</span></div>
+    </div>
+  </div>
+
+  <!-- ================= PAGE 3: SCREEN 1 & 2 ================= -->
+  <div class="page">
+    <h2 class="section-title"><span>📱</span> 3. Visual Tour: Onboarding & Learning Space</h2>
+
+    <!-- SCREEN 1 -->
+    <div class="screen-figure">
+      <img src="screenshots/01_landing_welcome.png" alt="Landing Screen" class="screen-img">
+      <div class="screen-meta">
+        <span class="screen-caption">Screen 01: Welcome & Landing Interface</span>
+        <span class="screen-route">Route: /</span>
+      </div>
+      <div class="screen-description">
+        The welcome portal provides an immediate warm, approachable aesthetic featuring the animated Noor lantern guide. Designed with low cognitive load to welcome students and provide separate entry points for children and parents.
+      </div>
+      <ul class="key-points">
+        <li><strong>Language Switcher:</strong> Instant toggle between Malayalam (മലയാളം) and English at the top right.</li>
+        <li><strong>Streamlined Access:</strong> Single-click student sign-in keeping friction minimal for younger children.</li>
+        <li><strong>Values-First Greeting:</strong> Immediate framing around building character, knowledge, and daily spiritual habits.</li>
+      </ul>
+    </div>
+
+    <!-- SCREEN 2 -->
+    <div class="screen-figure">
+      <img src="screenshots/02_student_dashboard.png" alt="Student Dashboard" class="screen-img">
+      <div class="screen-meta">
+        <span class="screen-caption">Screen 02: Student Learning Space & Mission Hub</span>
+        <span class="screen-route">Route: /journey</span>
+      </div>
+      <div class="screen-description">
+        The primary daily hub for students. Surfaces the next priority mission, visualizes weekly session milestones, and introduces the 5 core Madrasa subjects.
+      </div>
+      <ul class="key-points">
+        <li><strong>Today's Mission Card:</strong> Highlights "Kind words" (Taskiya & Akhlaq), estimating 6 minutes of focused learning.</li>
+        <li><strong>Session Progression Node:</strong> Visual 5-session trail tracking completed and upcoming subjects in sequence.</li>
+        <li><strong>Child Header:</strong> Displays student avatar, accumulated XP points, and earned Noor Stars without toxic pressure.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ================= PAGE 4: SCREEN 3 & 4 ================= -->
+  <div class="page">
+    <h2 class="section-title"><span>📖</span> 4. Madrasa Curriculum & Tajweed Studio</h2>
+
+    <!-- SCREEN 3 -->
+    <div class="screen-figure">
+      <img src="screenshots/03_curriculum_subjects.png" alt="Curriculum Breakdown" class="screen-img">
+      <div class="screen-meta">
+        <span class="screen-caption">Screen 03: Madrasa Subject Details (Tajweed & Tilawah)</span>
+        <span class="screen-route">Route: /curriculum & /subject/tajweed</span>
+      </div>
+      <div class="screen-description">
+        Comprehensive subject overview aligned with Samastha Kerala Madrasa curriculum standards. Displays lesson counts, estimated duration, and XP reward incentives.
+      </div>
+      <ul class="key-points">
+        <li><strong>Subject Header:</strong> Features Arabic script (<span class="arabic-text">علم التجويد والترتيل</span>) with phonetic guidance.</li>
+        <li><strong>Progress Indicator:</strong> Displays lesson completion percentage (0 / 3 Lessons Done) and total available XP (+75 XP).</li>
+        <li><strong>Curriculum Roadmap:</strong> Direct link into the interactive Al-Fatihah Voice Studio and pronunciation guides.</li>
+      </ul>
+    </div>
+
+    <!-- SCREEN 4 -->
+    <div class="screen-figure">
+      <img src="screenshots/04_tajweed_overview.png" alt="Tajweed Hub" class="screen-img">
+      <div class="screen-meta">
+        <span class="screen-caption">Screen 04: Surah Al-Fatihah Pathway & Tajweed Roadmap</span>
+        <span class="screen-route">Route: /tajweed</span>
+      </div>
+      <div class="screen-description">
+        Dedicated Tajweed studio guiding learners through verse-by-verse exploration of Surah Al-Fatihah paired with a progressive 10-level mastery pathway.
+      </div>
+      <ul class="key-points">
+        <li><strong>Step-by-Step Verse Missions:</strong> 7 structured missions exploring word analysis, Tajweed rules, and audio checks.</li>
+        <li><strong>Dual Modes:</strong> Learners can embark on the guided verse-by-verse journey or access the Full Surah Reading view.</li>
+        <li><strong>Gamified Progression:</strong> Clear node-based unlock states ensuring fundamental articulation before advanced rules.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ================= PAGE 5: SCREEN 5 & 6 ================= -->
+  <div class="page">
+    <h2 class="section-title"><span>🎙️</span> 5. Quran Reader & Islamic Mini-Games</h2>
+
+    <!-- SCREEN 5 -->
+    <div class="screen-figure">
+      <img src="screenshots/05_tajweed_fatihah_reader.png" alt="Quran Reader" class="screen-img">
+      <div class="screen-meta">
+        <span class="screen-caption">Screen 05: Surah Al-Fatihah Full Reading & Verse Practice</span>
+        <span class="screen-route">Route: /tajweed (Full Reading View)</span>
+      </div>
+      <div class="screen-description">
+        Clean, distraction-free Quranic recitation view rendered with authentic Uthmani typography, numbered Ayah cards, and contextual English translations.
+      </div>
+      <ul class="key-points">
+        <li><strong>Interactive Ayah Cards:</strong> Each verse can be clicked to practice individually with audio recitation.</li>
+        <li><strong>Translation Toggle:</strong> Quick-action button to hide or reveal translations for memorization (Hifz) drills.</li>
+        <li><strong>Multiple Qari Audio:</strong> Integrates high-definition audio streams from renowned reciters (Mishary Alafasy, Abdul Basit, etc.).</li>
+      </ul>
+    </div>
+
+    <!-- SCREEN 6 -->
+    <div class="screen-figure">
+      <img src="screenshots/06_games_hub.png" alt="Games Hub" class="screen-img">
+      <div class="screen-meta">
+        <span class="screen-caption">Screen 06: Islamic Mini-Games Hub (Play, Learn & Earn XP)</span>
+        <span class="screen-route">Route: /games</span>
+      </div>
+      <div class="screen-description">
+        Curated educational game center that rewards revision through enjoyable interactive gameplay without addictive micro-transactions.
+      </div>
+      <ul class="key-points">
+        <li><strong>Prophets Quest Quiz:</strong> 5-question trivia testing knowledge of noble Prophets and divine signs.</li>
+        <li><strong>Arabic Word Match:</strong> Match daily Islamic phrases (e.g. Bismillah, Alhamdulillah) with authentic meanings.</li>
+        <li><strong>Sunnah Habits Rush:</strong> Quick-fire scenario challenge identifying Sunnah practices versus undesirable daily habits.</li>
+        <li><strong>Noor Desert Runner:</strong> Full Canvas 2D action runner teaching Hadith gems while dodging distractions.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ================= PAGE 6: SCREEN 7 & 8 ================= -->
+  <div class="page">
+    <h2 class="section-title"><span>🎮</span> 6. Noor Desert Runner: Canvas Game & Rewards</h2>
+
+    <!-- SCREEN 7 -->
+    <div class="screen-figure">
+      <img src="screenshots/07_noor_desert_runner.png" alt="Dino Runner Launcher" class="screen-img">
+      <div class="screen-meta">
+        <span class="screen-caption">Screen 07: 2D Canvas Game — Noor Desert Runner</span>
+        <span class="screen-route">Route: /games (Runner Active)</span>
+      </div>
+      <div class="screen-description">
+        Proprietary HTML5 Canvas 2D runner game where students run toward the Oasis of Madinah, jumping over obstacles and collecting authentic wisdom scrolls.
+      </div>
+      <ul class="key-points">
+        <li><strong>Smooth Physics Engine:</strong> Support for Jump (Space/Up) and Duck/Slide (Down/S) with on-screen touch buttons for mobile tablets.</li>
+        <li><strong>Educational Wisdom Cards:</strong> Displays verified Hadiths (e.g., <em>"Cleanliness is half of faith - Sahih Muslim"</em>) before each run.</li>
+        <li><strong>Health & Distance HUD:</strong> Real-time heart meter (3 lives), distance tracker (500m goal), and audio mute toggle.</li>
+      </ul>
+    </div>
+
+    <!-- SCREEN 8 -->
+    <div class="screen-figure">
+      <img src="screenshots/08_game_reward_mashaallah.png" alt="Reward Celebration" class="screen-img">
+      <div class="screen-meta">
+        <span class="screen-caption">Screen 08: Celebratory Completion & MashaAllah Encouragement</span>
+        <span class="screen-route">Route: Modal Dialog (Upon Mission/Game Completion)</span>
+      </div>
+      <div class="screen-description">
+        Encouraging feedback dialog celebrating student effort with positive Islamic expressions ("MashaAllah! Great Job!") and deduplicated XP rewards.
+      </div>
+      <ul class="key-points">
+        <li><strong>+10 XP Awarded:</strong> Fair, single-award XP system prevents excessive farming while encouraging joyful replays.</li>
+        <li><strong>Positive Psychology:</strong> Focus on effort, patience, and gratitude rather than harsh failure states.</li>
+        <li><strong>Clear Next Actions:</strong> Immediate choices to "Play Again" for practice or "Choose Another Game" to continue learning.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ================= PAGE 7: SCREEN 9, 10 & 11 ================= -->
+  <div class="page">
+    <h2 class="section-title"><span>👥</span> 7. Social Cohorts, Parent & Admin Portals</h2>
+
+    <!-- SCREEN 9 -->
+    <div class="screen-figure" style="margin-bottom: 12px;">
+      <img src="screenshots/09_madrasa_leaderboard.png" alt="Leaderboard" class="screen-img">
+      <div class="screen-meta">
+        <span class="screen-caption">Screen 09: Madrasa Class Leaderboard</span>
+        <span class="screen-route">Route: /leaderboard</span>
+      </div>
+      <div class="screen-description">
+        Healthy peer cohort encouragement celebrating study consistency, completed weekly missions, and earned Noor Stars.
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- SCREEN 10 -->
+      <div class="screen-figure" style="margin: 0;">
+        <img src="screenshots/10_parent_portal.png" alt="Parent Portal" class="screen-img">
+        <div class="screen-meta">
+          <span class="screen-caption">Screen 10: Parent Portal Gate</span>
+          <span class="screen-route">Route: /parent</span>
+        </div>
+        <div class="screen-description" style="font-size: 8pt;">
+          Password/PIN protected adult barrier. Allows parents to review screen time, track mastery, and record family reflection notes.
+        </div>
+      </div>
+
+      <!-- SCREEN 11 -->
+      <div class="screen-figure" style="margin: 0;">
+        <img src="screenshots/11_admin_portal.png" alt="Admin Portal" class="screen-img">
+        <div class="screen-meta">
+          <span class="screen-caption">Screen 11: Editorial & Admin Portal</span>
+          <span class="screen-route">Route: /admin</span>
+        </div>
+        <div class="screen-description" style="font-size: 8pt;">
+          Four-eyes editorial workflow. Authors draft curriculum; verified religious reviewers approve and publish releases with full audit trails.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= PAGE 8: CURRICULUM SPECIFICATIONS & CLIENT ROLLOUT ================= -->
+  <div class="page">
+    <h2 class="section-title"><span>📋</span> 8. Curriculum Specifications & Assessment Logic</h2>
+
+    <p>
+      The platform enforces strict server-authoritative integrity to ensure that learning milestones reflect genuine student comprehension.
+    </p>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Subject Domain</th>
+          <th>Intended SKIMVB Grade</th>
+          <th>Core Competencies</th>
+          <th>Assessment Structure</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Tajweed & Quran</strong></td>
+          <td>Classes 3 – 5</td>
+          <td>Makharij (articulation), Surah Al-Fatihah, Noon Sakinah & Tanween rules.</td>
+          <td>Verse audio matching, pronunciation quizzes, 10-level pathway.</td>
+        </tr>
+        <tr>
+          <td><strong>Aqeedah (Creed)</strong></td>
+          <td>Classes 3 – 4</td>
+          <td>Pillars of Iman, Tawheed, Attributes of Allah, Prophets & Books.</td>
+          <td>Concept pair matching, scenario discrimination, reflection.</td>
+        </tr>
+        <tr>
+          <td><strong>Fiqh (Worship)</strong></td>
+          <td>Classes 3 – 5</td>
+          <td>Taharah, Wudu steps, Salah positions & timings, Adhan & Duas.</td>
+          <td>Interactive sequence ordering, timing checkers, visual puzzles.</td>
+        </tr>
+        <tr>
+          <td><strong>Akhlaq (Ethics)</strong></td>
+          <td>Classes 3 – 5</td>
+          <td>Kind speech, respecting parents, honesty, patience, community care.</td>
+          <td>Dilemma choices, family reflection prompts, Sunnah habit runs.</td>
+        </tr>
+        <tr>
+          <td><strong>Lisanul-Quran</strong></td>
+          <td>Classes 4 – 5</td>
+          <td>Common Quranic vocabulary, basic Arabic syntax, word pairs.</td>
+          <td>Flash cards, drag-and-drop matching, speed challenges.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <strong>Server-Authoritative Checkpoint Threshold (3 / 4 Pass Rule)</strong>
+      Checkpoint assessments deliver questions with private answer keys stripped from the client payload. Passing requires &ge; 3 correct answers out of 4 questions. First-time mastery awards exactly 20 XP in an atomic database transaction, and automatically schedules spaced repetition reviews at 1-day, 3-day, and 7-day intervals.
+    </div>
+
+    <h2 class="section-title" style="margin-top: 20px;"><span>🚀</span> 9. Institutional Rollout & Deployment Roadmap</h2>
+
+    <div class="grid-2">
+      <div class="card highlight">
+        <div class="card-title"><span>☁️</span> Cloud Architecture (Recommended)</div>
+        <p style="font-size: 8.5pt;">
+          • <strong>Database:</strong> Serverless PostgreSQL on Neon (automated daily backups & branch scaling)<br>
+          • <strong>Backend:</strong> NestJS 11 container on Render or Railway with health probes<br>
+          • <strong>Frontend:</strong> React 19 / Vite edge distribution on Vercel with global CDN
+        </p>
+      </div>
+
+      <div class="card gold-highlight">
+        <div class="card-title"><span>🏢</span> On-Premise / Institutional Docker</div>
+        <p style="font-size: 8.5pt;">
+          • Complete Docker Compose configuration provided (<span style="font-family: monospace;">docker-compose.yml</span>)<br>
+          • Internal network isolation between Nginx web server and NestJS API<br>
+          • Zero dependency on external commercial trackers or ad networks
+        </p>
+      </div>
+    </div>
+
+    <div style="background: white; border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; margin-top: 14px;">
+      <h3 style="font-size: 10.5pt; font-weight: 700; color: var(--primary-dark); margin-bottom: 6px;">Client Presentation Sign-Off & Next Steps</h3>
+      <p style="font-size: 8.5pt; color: var(--slate); margin-bottom: 8px;">
+        This document represents the operational state of the Noor Journey platform as demonstrated. Institutions seeking pilot trials, custom curriculum integrations, or white-label Madrasa deployments may proceed with user registration and administrative account bootstrapping.
+      </p>
+      <div style="display: flex; justify-content: space-between; font-size: 8pt; color: var(--muted); border-top: 1px solid #f1f5f9; padding-top: 8px;">
+        <span><strong>Repository:</strong> github.com/halloitsrizvan/Noor_journey</span>
+        <span><strong>Documentation:</strong> docs/Noor_Journey_Platform_Documentation_and_Client_Manual.pdf</span>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
